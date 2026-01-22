@@ -1,247 +1,314 @@
-# Paseo Libre Chatbot Widget
+# Paseo Libre Chat Widget - Standalone/CDN Version
 
-AI-powered chatbot widget that can be embedded in any website. Provides instant customer support, lead generation, and intelligent conversations.
+Widget de chat embebible que puede ser usado en cualquier sitio web sin necesidad de React, Next.js u otros frameworks.
 
-> 📚 **[Ver índice completo de documentación](./DOCS_INDEX.md)** - Guías de deploy, comercialización, migración y más.
+## 🚀 Instalación Rápida
 
-## Features
+### Opción 1: CDN (Recomendado)
 
-- 🤖 AI-powered responses using Google Gemini
-- 💬 Real-time chat with Socket.IO
-- 🎨 Fully customizable theme and colors
-- 📱 Responsive design (mobile & desktop)
-- 🔊 Voice message support
-- 📍 Location sharing
-- 🖼️ Image attachments
-- 🌍 Multi-language support
-- 📊 Conversation analytics
-- 🔒 Secure and privacy-focused
-
-## Installation
-
-### Via CDN (Recommended for most cases)
-
-Add this code to your HTML, just before the closing `</body>` tag:
+Agrega este código antes del cierre del `</body>` en tu HTML:
 
 ```html
-<!-- Paseo Libre Chatbot CSS -->
-<link rel="stylesheet" href="https://cdn.paseolibre.com/chatbot/v1/chatbot.css">
-
-<!-- Paseo Libre Chatbot Widget -->
-<script src="https://cdn.paseolibre.com/chatbot/v1/chatbot.umd.js"></script>
-
+<!-- Paseo Libre Chat Widget -->
+<script src="https://cdn.paseolibre.com/chat-widget.js"></script>
 <script>
-  // Initialize the chatbot
-  PaseoLibreChatbot.init({
-    serverUrl: 'https://bot.paseolibre.com',
-    apiKey: 'YOUR_API_KEY', // Get your API key from dashboard
+  PaseoLibreChat.init({
+    apiKey: 'tu-api-key-aqui',
+    apiBaseUrl: 'https://api.paseolibre.com',
     theme: {
-      primaryColor: '#3b82f6',
-      botName: 'Assistant',
-      botAvatar: 'https://your-site.com/bot-avatar.png',
-      position: 'bottom-right',
-    },
-    lang: 'es', // 'es', 'en', 'pt', 'fr'
+      primaryColor: '#10b981',
+      botName: 'Asistente Paseo Libre',
+      position: 'bottom-right'
+    }
   });
 </script>
 ```
 
-### Via NPM (For React projects)
+### Opción 2: NPM Package
 
 ```bash
-npm install @paseolibre/chatbot-widget
+npm install @paseolibre/chat-widget-standalone
 ```
 
-```tsx
-import { ChatWidget } from '@paseolibre/chatbot-widget'
-import '@paseolibre/chatbot-widget/dist/chatbot.css'
+```javascript
+import PaseoLibreChat from '@paseolibre/chat-widget-standalone';
 
-function App() {
-  return (
-    <ChatWidget
-      serverUrl="https://bot.paseolibre.com"
-      apiKey="YOUR_API_KEY"
-      theme={{
-        primaryColor: '#3b82f6',
-        botName: 'Assistant',
-        position: 'bottom-right',
-      }}
-      lang="es"
-    />
-  )
-}
+PaseoLibreChat.init({
+  apiKey: 'tu-api-key-aqui',
+  apiBaseUrl: 'https://api.paseolibre.com'
+});
 ```
 
-## Configuration Options
+## ⚙️ Configuración
+
+### Opciones Disponibles
 
 ```typescript
-interface ChatbotConfig {
-  // Required
-  serverUrl: string          // Your chatbot server URL
-  apiKey: string            // Your API key from dashboard
-  
-  // Optional
+interface StandaloneConfig {
+  // Requerido
+  apiKey: string;              // Tu API key de Paseo Libre
+  apiBaseUrl: string;          // URL del backend Socket.IO
+
+  // Tema (opcional)
   theme?: {
-    primaryColor?: string   // Main color (default: '#3b82f6')
-    botName?: string        // Bot name (default: 'Assistant')
-    botAvatar?: string      // Bot avatar URL
-    position?: 'bottom-right' | 'bottom-left' // Position (default: 'bottom-right')
-    bubbleStyles?: {
-      backgroundColor?: string
-      textColor?: string
-      borderRadius?: string
-    }
-  }
-  lang?: 'es' | 'en' | 'pt' | 'fr' // Language (default: 'es')
-  
-  // Page context (auto-detected if not provided)
+    primaryColor?: string;     // Color principal (default: '#10b981')
+    botName?: string;          // Nombre del bot (default: 'Asistente Virtual')
+    logoUrl?: string;          // URL del logo (default: '/avatar/mar_default.webp')
+    position?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
+    welcomeMessage?: string;   // Mensaje de bienvenida
+    inputPlaceholder?: string; // Placeholder del input
+    borderRadius?: string;     // Border radius (default: '0.75rem')
+    launcherBorderRadius?: string; // Border radius del botón (default: '50%')
+  };
+
+  // Contexto del usuario (opcional)
+  userContext?: {
+    token?: string;            // Token de autenticación
+    metadata?: any;            // Metadata adicional
+  };
+
+  // Contexto de la página (opcional)
   pageContext?: {
-    title?: string
-    url?: string
-    path?: string
-    referrer?: string
-  }
-  
-  // Callbacks
-  onReady?: () => void
-  onMessage?: (message: ChatMessage) => void
-  onError?: (error: Error) => void
+    url?: string;
+    title?: string;
+    path?: string;
+    referrer?: string;
+  };
+
+  // SEO (opcional)
+  includeSEOMetadata?: boolean; // Incluir metadata SEO (default: false)
+
+  // Callbacks (opcional)
+  onNavigate?: (url: string) => void;
+  onLogin?: (loginUrl: string) => void;
+  onEvent?: (eventName: string, data: any) => void;
+  onStateChange?: (isOpen: boolean) => void;
 }
 ```
 
-## API Key
+## 📚 Ejemplos de Uso
 
-To use this widget, you need an API key. Get yours at:
-
-👉 **[https://dashboard.paseolibre.com/chatbot](https://dashboard.paseolibre.com/chatbot)**
-
-### Pricing
-
-- **Free Tier**: 1,000 messages/month
-- **Starter**: $29/month - 10,000 messages
-- **Professional**: $99/month - 50,000 messages
-- **Enterprise**: Custom pricing - Unlimited messages
-
-## Examples
-
-### Minimal Setup
+### Ejemplo Básico
 
 ```html
-<script src="https://cdn.paseolibre.com/chatbot/v1/chatbot.umd.js"></script>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mi Sitio Web</title>
+</head>
+<body>
+  <h1>Bienvenido a mi sitio</h1>
+  
+  <script src="https://cdn.paseolibre.com/chat-widget.js"></script>
+  <script>
+    PaseoLibreChat.init({
+      apiKey: 'demo-key-12345',
+      apiBaseUrl: 'http://localhost:4000'
+    });
+  </script>
+</body>
+</html>
+```
+
+### Ejemplo con Personalización Completa
+
+```html
 <script>
-  PaseoLibreChatbot.init({
-    serverUrl: 'https://bot.paseolibre.com',
-    apiKey: 'pk_live_abc123xyz',
+  PaseoLibreChat.init({
+    apiKey: 'mi-api-key',
+    apiBaseUrl: 'https://api.paseolibre.com',
+    
+    theme: {
+      primaryColor: '#ff6b6b',
+      botName: 'Asistente Virtual de Mi Empresa',
+      logoUrl: 'https://mi-sitio.com/logo.png',
+      position: 'bottom-left',
+      welcomeMessage: '¡Hola! ¿Necesitas ayuda?',
+      inputPlaceholder: 'Pregúntame lo que quieras...',
+    },
+
+    userContext: {
+      token: 'user-auth-token',
+      metadata: {
+        userId: '12345',
+        email: 'user@example.com'
+      }
+    },
+
+    pageContext: {
+      url: window.location.href,
+      title: document.title,
+      path: window.location.pathname,
+      referrer: document.referrer
+    },
+
+    onNavigate: (url) => {
+      console.log('Navegando a:', url);
+      window.location.href = url;
+    },
+
+    onEvent: (eventName, data) => {
+      console.log('Evento recibido:', eventName, data);
+      
+      // Manejo de eventos personalizados
+      if (eventName === 'reservation_created') {
+        alert('¡Reserva creada! ID: ' + data.reservationId);
+      }
+    },
+
+    onStateChange: (isOpen) => {
+      console.log('Chat está', isOpen ? 'abierto' : 'cerrado');
+    }
   });
 </script>
 ```
 
-### Custom Theme
+### Ejemplo con Control Programático
 
-```javascript
-PaseoLibreChatbot.init({
-  serverUrl: 'https://bot.paseolibre.com',
-  apiKey: 'pk_live_abc123xyz',
-  theme: {
-    primaryColor: '#10b981', // Green
-    botName: 'Sarah',
-    botAvatar: 'https://mysite.com/sarah.jpg',
-    position: 'bottom-left',
-    bubbleStyles: {
-      backgroundColor: '#10b981',
-      textColor: '#ffffff',
-      borderRadius: '12px',
-    }
-  },
-  lang: 'en',
-  onReady: () => {
-    console.log('Chatbot ready!');
-  },
-  onMessage: (msg) => {
-    console.log('New message:', msg);
+```html
+<script>
+  // Inicializar
+  const chat = PaseoLibreChat.init({
+    apiKey: 'demo-key',
+    apiBaseUrl: 'http://localhost:4000'
+  });
+
+  // Abrir el chat programáticamente
+  document.getElementById('btnAbrir').addEventListener('click', () => {
+    PaseoLibreChat.open();
+  });
+
+  // Cerrar el chat programáticamente
+  document.getElementById('btnCerrar').addEventListener('click', () => {
+    PaseoLibreChat.close();
+  });
+
+  // Enviar un mensaje programáticamente
+  document.getElementById('btnEnviar').addEventListener('click', () => {
+    PaseoLibreChat.sendMessage('Hola, necesito ayuda');
+  });
+
+  // Destruir el widget
+  document.getElementById('btnDestruir').addEventListener('click', () => {
+    PaseoLibreChat.destroy();
+  });
+
+  // Actualizar configuración
+  document.getElementById('btnActualizar').addEventListener('click', () => {
+    PaseoLibreChat.update({
+      theme: {
+        primaryColor: '#ff6b6b',
+        botName: 'Nuevo Nombre'
+      }
+    });
+  });
+</script>
+```
+
+## 🛠️ API Pública
+
+### `PaseoLibreChat.init(config)`
+
+Inicializa el widget con la configuración proporcionada.
+
+**Retorna**: Instancia del widget para encadenamiento.
+
+### `PaseoLibreChat.open()`
+
+Abre la ventana del chat programáticamente.
+
+### `PaseoLibreChat.close()`
+
+Cierra la ventana del chat programáticamente.
+
+### `PaseoLibreChat.sendMessage(message)`
+
+Envía un mensaje al chat programáticamente.
+
+**Parámetros**:
+- `message` (string): El mensaje a enviar.
+
+### `PaseoLibreChat.update(config)`
+
+Actualiza la configuración del widget sin reiniciarlo.
+
+**Parámetros**:
+- `config` (Partial<StandaloneConfig>): Configuración parcial a actualizar.
+
+### `PaseoLibreChat.destroy()`
+
+Destruye el widget y limpia todos los recursos.
+
+## 🎨 Personalización de Estilos
+
+El widget utiliza variables CSS que puedes sobrescribir:
+
+```html
+<style>
+  /* Sobrescribir estilos del widget */
+  #paseo-libre-chat-widget-root {
+    /* Tus estilos personalizados */
   }
-});
-```
 
-### E-commerce Integration
-
-```javascript
-// Track user viewing a product
-PaseoLibreChatbot.trackEvent('product_viewed', {
-  productId: '12345',
-  productName: 'Cool Sneakers',
-  price: 99.99
-});
-
-// The bot can now answer questions about this product
-```
-
-## Advanced Features
-
-### Custom Context
-
-Pass custom context to provide the bot with information about the user or page:
-
-```javascript
-PaseoLibreChatbot.init({
-  serverUrl: 'https://bot.paseolibre.com',
-  apiKey: 'pk_live_abc123xyz',
-  pageContext: {
-    title: 'Product Page - Cool Sneakers',
-    category: 'Footwear',
-    userId: 'user_123',
-    metadata: {
-      cartValue: 150.00,
-      isLoggedIn: true
-    }
+  /* Variables CSS globales */
+  :root {
+    --paseo-chat-primary: #10b981;
+    --paseo-chat-background: #ffffff;
+    --paseo-chat-text: #1f2937;
+    --paseo-chat-border: #e5e7eb;
   }
-});
+</style>
 ```
 
-### Programmatic Control
+## 🧪 Testing Local
 
-```javascript
-// Open chatbot programmatically
-PaseoLibreChatbot.open();
+Para probar el widget localmente:
 
-// Close chatbot
-PaseoLibreChatbot.close();
+1. Clona el repositorio
+2. Instala dependencias:
+   ```bash
+   cd standalone-widget
+   npm install
+   ```
 
-// Send a message programmatically
-PaseoLibreChatbot.sendMessage('Hello!');
+3. Inicia el servidor de desarrollo:
+   ```bash
+   npm run dev
+   ```
 
-// Update theme dynamically
-PaseoLibreChatbot.updateTheme({
-  primaryColor: '#f59e0b'
-});
+4. Abre `http://localhost:3001` en tu navegador
 
-// Destroy widget
-PaseoLibreChatbot.destroy();
+## 📦 Build para Producción
+
+```bash
+npm run build
 ```
 
-## Browser Support
+Esto generará:
+- `dist/paseo-libre-chat.js` - Bundle minificado para CDN
+- `dist/paseo-libre-chat.css` - Estilos del widget
+- `dist/paseo-libre-chat.js.map` - Source map para debugging
 
-- Chrome (latest)
-- Firefox (latest)
-- Safari (latest)
-- Edge (latest)
-- Mobile browsers (iOS Safari, Chrome Mobile)
+## 🌐 Compatibilidad
 
-## 📚 Additional Documentation
+- ✅ Chrome 90+
+- ✅ Firefox 88+
+- ✅ Safari 14+
+- ✅ Edge 90+
+- ✅ Mobile browsers (iOS Safari, Chrome Mobile)
 
-- **[DOCS_INDEX.md](./DOCS_INDEX.md)** - Índice completo de documentación
-- **[COMMERCIAL.md](./COMMERCIAL.md)** - Modelo de negocio y pricing ($0-$99/mo)
-- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Deploy a CDN (Cloudflare, AWS, Vercel)
-- **[REPOSITORY_MIGRATION.md](./REPOSITORY_MIGRATION.md)** - Migrar a repositorio propio
-- **[IMPLEMENTATION_SUMMARY.md](./IMPLEMENTATION_SUMMARY.md)** - Resumen ejecutivo
+## 📄 Licencia
 
-## License
+MIT License - © 2025 Paseo Libre
 
-MIT © Paseo Libre
+## 🆘 Soporte
 
-## Support
+- 📧 Email: soporte@paseolibre.com
+- 💬 Chat: https://paseolibre.com/soporte
+- 📖 Docs: https://docs.paseolibre.com/chat-widget
 
-- 📧 Email: support@paseolibre.com
-- 💬 Live Chat: [https://paseolibre.com](https://paseolibre.com)
-- 📖 Documentation: [https://docs.paseolibre.com/chatbot](https://docs.paseolibre.com/chatbot)
-- 🐛 Issues: [GitHub Issues](https://github.com/paseolibre/chatbot-widget/issues)
+## 🔗 Links
+
+- [Documentación completa](https://docs.paseolibre.com)
+- [Ejemplos en vivo](https://paseolibre.com/widget-demo)
+- [Repositorio GitHub](https://github.com/paseolibre/chat-widget)

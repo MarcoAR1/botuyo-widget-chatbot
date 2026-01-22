@@ -1,48 +1,54 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { resolve } from 'path'
-import dts from 'vite-plugin-dts'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { resolve } from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [
-    react(),
-    dts({
-      insertTypesEntry: true,
-    }),
-  ],
+  plugins: [react()],
+  
   build: {
     lib: {
-      entry: resolve(__dirname, 'src/index.tsx'),
-      name: 'PaseoLibreChatbot',
-      formats: ['es', 'umd'],
-      fileName: (format) => `chatbot.${format}.js`,
+      entry: resolve(__dirname, 'standalone.tsx'),
+      name: 'PaseoLibreChat',
+      formats: ['iife'], // Solo IIFE para CDN
+      fileName: () => 'paseo-libre-chat.js',
     },
     rollupOptions: {
-      external: ['react', 'react-dom'],
+      // Externalize dependencies that are too large
+      // For standalone, we bundle everything
+      external: [],
       output: {
-        globals: {
-          react: 'React',
-          'react-dom': 'ReactDOM',
-        },
-        assetFileNames: (assetInfo) => {
-          if (assetInfo.name === 'style.css') return 'chatbot.css'
-          return assetInfo.name || ''
-        },
+        globals: {},
+        // Inline all assets
+        assetFileNames: 'paseo-libre-chat.[ext]',
       },
     },
-    cssCodeSplit: false,
+    outDir: 'dist',
     sourcemap: true,
+    // Reduce bundle size
     minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: true,
+        drop_console: false, // Keep console for debugging
+        drop_debugger: true,
       },
     },
   },
+  
   resolve: {
     alias: {
-      '@': resolve(__dirname, './src'),
+      '@': resolve(__dirname, '../src'),
     },
   },
-})
+
+  // For development
+  server: {
+    port: 3001,
+    open: '/index.html',
+  },
+
+  // Optimize deps
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'socket.io-client'],
+  },
+});
