@@ -1,0 +1,155 @@
+name: Deploy to Cloudflare R2
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags (v1.0.0, v1.1.0, etc.)
+  workflow_dispatch:  # Allow manual trigger
+    inputs:
+      version:
+        description: 'Version to deploy (e.g., v1, v2, latest)'
+        required: false
+        default: 'latest'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build widget
+        run: npm run build
+      
+      - name: Verify build outputs
+        run: |
+          ls -lah dist/
+          echo "UMD size: $(wc -c < dist/chatbot.umd.js | numfmt --to=iec)"
+          echo "CSS size: $(wc -c < dist/chatbot.css | numfmt --to=iec)"
+      
+      - name: Install Wrangler
+        run: npm install -g wrangler
+      
+      - name: Extract version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "push" ] && [ -n "${{ github.ref }}" ]; then
+            # Tag push: extract version from tag (refs/tags/v1.0.0 -> v1.0.0)
+            VERSION=${GITHUB_REF#refs/tags/}
+            echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          else
+            # Manual trigger: use input version
+            VERSION="${{ github.event.inputs.version }}"
+            echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          fi
+          echo "Deploying version: ${VERSION}"
+      
+      - name: Deploy to R2
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          BUCKET="chatbot-cdn"
+          
+          echo "🚀 Deploying to R2: ${BUCKET}/${VERSION}/"
+          
+          # Deploy chatbot.umd.js
+          wrangler r2 object put ${BUCKET}/${VERSION}/chatbot.umd.js \
+            --file dist/chatbot.umd.js \
+            --content-type application/javascript \
+            --cache-control "public, max-age=31536000, immutable"
+          
+          # Deploy chatbot.es.js
+          wrangler r2 object put ${BUCKET}/${VERSION}/chatbot.es.js \
+            --file dist/chatbot.es.js \
+            --content-type application/javascript \
+            --cache-control "public, max-age=31536000, immutable"
+          
+          # Deploy chatbot.css
+          wrangler r2 object put ${BUCKET}/${VERSION}/chatbot.css \
+            --file dist/chatbot.css \
+            --content-type text/css \
+            --cache-control "public, max-age=31536000, immutable"
+          
+          # Deploy index.d.ts
+          wrangler r2 object put ${BUCKET}/${VERSION}/index.d.ts \
+            --file dist/index.d.ts \
+            --content-type text/plain \
+            --cache-control "public, max-age=31536000, immutable"
+          
+          echo "✅ Deployed to ${BUCKET}/${VERSION}/"
+      
+      - name: Deploy to /latest/ (if version tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          BUCKET="chatbot-cdn"
+          
+          echo "🚀 Also deploying to ${BUCKET}/latest/"
+          
+          # Deploy with shorter cache for /latest/
+          wrangler r2 object put ${BUCKET}/latest/chatbot.umd.js \
+            --file dist/chatbot.umd.js \
+            --content-type application/javascript \
+            --cache-control "public, max-age=3600"
+          
+          wrangler r2 object put ${BUCKET}/latest/chatbot.es.js \
+            --file dist/chatbot.es.js \
+            --content-type application/javascript \
+            --cache-control "public, max-age=3600"
+          
+          wrangler r2 object put ${BUCKET}/latest/chatbot.css \
+            --file dist/chatbot.css \
+            --content-type text/css \
+            --cache-control "public, max-age=3600"
+          
+          wrangler r2 object put ${BUCKET}/latest/index.d.ts \
+            --file dist/index.d.ts \
+            --content-type text/plain \
+            --cache-control "public, max-age=3600"
+          
+          echo "✅ Deployed to ${BUCKET}/latest/"
+      
+      - name: Create deployment summary
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          
+          echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** \`${VERSION}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Deployed Files" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| File | Size |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|------|" >> $GITHUB_STEP_SUMMARY
+          echo "| chatbot.umd.js | $(wc -c < dist/chatbot.umd.js | numfmt --to=iec) |" >> $GITHUB_STEP_SUMMARY
+          echo "| chatbot.es.js | $(wc -c < dist/chatbot.es.js | numfmt --to=iec) |" >> $GITHUB_STEP_SUMMARY
+          echo "| chatbot.css | $(wc -c < dist/chatbot.css | numfmt --to=iec) |" >> $GITHUB_STEP_SUMMARY
+          echo "| index.d.ts | $(wc -c < dist/index.d.ts | numfmt --to=iec) |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 CDN URLs" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```html' >> $GITHUB_STEP_SUMMARY
+          echo "<!-- Version specific (recommended) -->" >> $GITHUB_STEP_SUMMARY
+          echo "<script src=\"https://cdn.paseolibre.com/${VERSION}/chatbot.umd.js\"></script>" >> $GITHUB_STEP_SUMMARY
+          echo "<link rel=\"stylesheet\" href=\"https://cdn.paseolibre.com/${VERSION}/chatbot.css\">" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "<!-- Latest version (auto-updates) -->" >> $GITHUB_STEP_SUMMARY
+          echo "<script src=\"https://cdn.paseolibre.com/latest/chatbot.umd.js\"></script>" >> $GITHUB_STEP_SUMMARY
+          echo "<link rel=\"stylesheet\" href=\"https://cdn.paseolibre.com/latest/chatbot.css\">" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Deployment successful!**" >> $GITHUB_STEP_SUMMARY
