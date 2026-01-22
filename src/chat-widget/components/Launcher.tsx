@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useTranslations } from '@/chat-widget/i18n'
 import { MessageCircle, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { getPrimaryColor } from '../utils/theme'
+import { getPrimaryColor, getSolidStyles } from '../utils/theme'
 import type { BubbleStyles } from '../types'
 
 export type BotEmotion =
@@ -49,15 +49,16 @@ export function Launcher({
   promptPersistence = 'session',
   avatarScale = 1.0,
 }: LauncherProps) {
-  const t = useTranslations('common.extracted')
+  const t = useTranslations('extracted')
   const themeColor = getPrimaryColor({ primaryColor })
+  const solidStyles = useMemo(() => getSolidStyles(), [])
   const customLauncherStyle = styles?.launcher?.bg
-  const useInlineBg = !customLauncherStyle
   const showPulse = styles?.launcher?.pulse !== false
 
   const [isPromptVisible, setIsPromptVisible] = useState(false)
   const [isFadingOut, setIsFadingOut] = useState(false)
   const [hasDismissed, setHasDismissed] = useState(false)
+  const [imageError, setImageError] = useState(false)
 
   const isRight = position === 'bottom-right'
   const STORAGE_KEY = 'chat_launcher_prompt_state'
@@ -66,6 +67,11 @@ export function Launcher({
     () => avatars[emotion] || avatars.default || logoUrl,
     [emotion, avatars, logoUrl]
   )
+
+  // Reset error state when image changes
+  useEffect(() => {
+    setImageError(false)
+  }, [currentImageSrc])
 
   // 1. PRE-CARGA (Performance)
   useEffect(() => {
@@ -82,6 +88,17 @@ export function Launcher({
     if (promptPersistence === 'forever') {
       if (localStorage.getItem(STORAGE_KEY) === 'dismissed')
         setHasDismissed(true)
+    }
+  }, [promptPersistence])
+
+  // Función para cerrar el prompt
+  const handleClosePrompt = useCallback(() => {
+    setIsFadingOut(true)
+    setTimeout(() => setIsPromptVisible(false), 500)
+    if (promptPersistence !== 'always') {
+      setHasDismissed(true)
+      if (promptPersistence === 'forever')
+        localStorage.setItem(STORAGE_KEY, 'dismissed')
     }
   }, [promptPersistence])
 
@@ -104,19 +121,10 @@ export function Launcher({
       clearTimeout(showTimer)
       clearTimeout(hideTimer)
     }
-  }, [starterPrompt, isOpen, hasDismissed, promptPersistence])
-
-  const handleClosePrompt = () => {
-    setIsFadingOut(true)
-    setTimeout(() => setIsPromptVisible(false), 500)
-    if (promptPersistence !== 'always') {
-      setHasDismissed(true)
-      if (promptPersistence === 'forever')
-        localStorage.setItem(STORAGE_KEY, 'dismissed')
-    }
-  }
+  }, [starterPrompt, isOpen, hasDismissed, promptPersistence, handleClosePrompt])
 
   const handleMainAction = () => {
+    console.log('[Launcher] handleMainAction called, isOpen:', isOpen)
     setHasDismissed(true)
     if (promptPersistence === 'forever')
       localStorage.setItem(STORAGE_KEY, 'dismissed')
@@ -126,32 +134,36 @@ export function Launcher({
   return (
     <div
       className={cn(
-        'flex items-center pointer-events-none w-fit transition-all duration-500',
+        'flex items-center w-fit transition-all duration-500',
         isRight ? 'flex-row ml-auto' : 'flex-row-reverse mr-auto'
       )}
     >
       {/* --- PROMPT BUBBLE (GLOBO) --- */}
       <div
         className={cn(
-          'transition-all duration-700 ease-in-out pointer-events-auto flex items-center',
+          'transition-all duration-700 ease-in-out flex items-center',
           isPromptVisible
             ? cn(
                 'opacity-100 translate-x-0 w-auto max-w-[350px]',
                 isRight ? 'mr-4' : 'ml-4'
               )
-            : 'opacity-0 translate-x-8 w-0 max-w-0 pointer-events-none overflow-hidden'
+            : 'opacity-0 translate-x-8 w-0 max-w-0 overflow-hidden'
         )}
       >
         <div
           className={cn(
-            // 🔥 DARK MODE: 'bg-background' y 'text-foreground' para heredar el tema nativo
-            // 'border-border' asegura que el borde cambie de color automáticamente
-            'relative bg-background text-foreground px-5 py-3.5 shadow-soft-xl border border-border flex items-center gap-3',
+            'relative px-5 py-3.5 shadow-soft-xl border flex items-center gap-3',
             styles?.radius?.card || 'rounded-[20px]',
             isFadingOut && 'opacity-0 scale-95 transition-all duration-300',
             !isPromptVisible && 'hidden'
           )}
-          style={{ width: 'max-content', maxWidth: '280px' }}
+          style={{ 
+            width: 'max-content', 
+            maxWidth: '280px',
+            backgroundColor: solidStyles.background,
+            color: solidStyles.foreground,
+            borderColor: solidStyles.border,
+          }}
         >
           <span className="text-sm font-semibold leading-tight tracking-tight whitespace-nowrap">
             {starterPrompt}
@@ -189,7 +201,7 @@ export function Launcher({
       </div>
 
       {/* --- BOTÓN LANZADOR --- */}
-      <div className="relative pointer-events-auto flex items-center justify-center shrink-0">
+      <div className="relative flex items-center justify-center shrink-0">
         {!isOpen && showPulse && (
           <span className="absolute inset-0 flex items-center justify-center">
             <span
@@ -205,12 +217,14 @@ export function Launcher({
           className={cn(
             'relative z-10 h-14 w-14 sm:h-16 sm:w-16',
             'flex items-center justify-center text-white transition-all duration-500',
-            'hover:scale-110 active:scale-95 shadow-soft-xl',
+            'hover:scale-110 active:scale-95 shadow-soft-xl cursor-pointer',
             !isOpen && 'hover:rotate-6',
             styles?.radius?.button || 'rounded-full',
             customLauncherStyle
           )}
-          style={useInlineBg ? { backgroundColor: themeColor } : undefined}
+          style={{
+            backgroundColor: themeColor || 'hsl(160, 84%, 39%)',
+          }}
           aria-label={isOpen ? 'Cerrar chat' : 'Abrir chat'}
         >
           <div className="relative h-full w-full flex items-center justify-center overflow-hidden rounded-inherit">
@@ -222,12 +236,13 @@ export function Launcher({
                   : 'opacity-100 scale-100 rotate-0'
               )}
             >
-              {currentImageSrc ? (
+              {currentImageSrc && !imageError ? (
                 <img
                   src={currentImageSrc}
-                  alt={t('extracted.assistant')}
+                  alt={t('assistant')}
                   className="w-full h-full object-cover"
                   style={{ transform: `scale(${avatarScale})` }}
+                  onError={() => setImageError(true)}
                   key={currentImageSrc}
                 />
               ) : (

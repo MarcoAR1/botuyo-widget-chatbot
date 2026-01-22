@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo Widget - Estilos Por Defecto</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .demo-card {
+      background: white;
+      border-radius: 24px;
+      padding: 48px;
+      max-width: 600px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: #1a202c;
+      margin-bottom: 16px;
+    }
+    
+    p {
+      font-size: 1.125rem;
+      color: #4a5568;
+      line-height: 1.7;
+      margin-bottom: 24px;
+    }
+    
+    .badge {
+      display: inline-block;
+      background: #10b981;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 12px;
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .info {
+      background: #f7fafc;
+      border-left: 4px solid #10b981;
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: 32px;
+    }
+    
+    .info strong {
+      color: #2d3748;
+      display: block;
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-card">
+    <h1>🎨 Demo de Estilos</h1>
+    <span class="badge">Estilos Por Defecto</span>
+    
+    <p>
+      El widget de chat ahora tiene estilos sólidos por defecto. 
+      Verás un fondo blanco, textos oscuros y un botón verde en la esquina inferior derecha.
+    </p>
+    
+    <p>
+      <strong>Características aplicadas:</strong>
+    </p>
+    <ul style="margin-left: 20px; color: #4a5568; line-height: 2;">
+      <li>✅ Fondo blanco sólido (hsl(0, 0%, 100%))</li>
+      <li>✅ Texto oscuro (hsl(240, 10%, 3.9%))</li>
+      <li>✅ Color primario verde Paseo Libre (hsl(160, 84%, 39%))</li>
+      <li>✅ Bordes grises (hsl(240, 5.9%, 90%))</li>
+      <li>✅ Sombras suaves (shadow-soft-xl)</li>
+    </ul>
+    
+    <div class="info">
+      <strong>📍 Ubicación del Widget</strong>
+      Busca el botón circular verde en la esquina inferior derecha de tu pantalla. 
+      Haz clic para abrir el chat y ver todos los estilos aplicados.
+    </div>
+  </div>
+
+  <!-- Widget Root -->
+  <div id="paseo-libre-chat-widget-root"></div>
+
+  <!-- React, ReactDOM desde CDN -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+  <script type="module">
+    // Importar el widget standalone
+    import PaseoLibreChat from '/standalone.tsx';
+
+    // Inicializar con tema por defecto explícito
+    PaseoLibreChat.init({
+      apiKey: 'demo-key-12345',
+      apiBaseUrl: 'http://localhost:4000',
+      theme: {
+        primaryColor: 'hsl(160, 84%, 39%)',
+        botName: 'Demo Asistente',
+        logoUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=paseolibre',
+        position: 'bottom-right',
+        welcomeMessage: '¡Hola! 👋 Este es el widget con estilos por defecto.',
+        inputPlaceholder: 'Escribe un mensaje...',
+        cssVariables: {
+          background: '0 0% 100%',
+          foreground: '240 10% 3.9%',
+          card: '0 0% 100%',
+          cardForeground: '240 10% 3.9%',
+          primary: '160 84% 39%',
+          primaryForeground: '0 0% 100%',
+          muted: '240 4.8% 95.9%',
+          mutedForeground: '240 3.8% 46.1%',
+          border: '240 5.9% 90%',
+          destructive: '0 84.2% 60.2%',
+          radius: '0.5rem',
+        }
+      },
+      onStateChange: (isOpen) => {
+        console.log('Widget estado:', isOpen ? 'abierto' : 'cerrado');
+      }
+    });
+
+    console.log('✅ Widget inicializado con estilos por defecto');
+  </script>
+</body>
+</html>

@@ -6,7 +6,7 @@
 declare module '@paseolibre/chat-widget-standalone' {
   // ========== Main Export ==========
   const PaseoLibreChat: PaseoLibreChatWidget
-  //@ts-ignore
+  // @ts-expect-error - Default export for CDN compatibility
   export default PaseoLibreChat
 
   // ========== Widget Class ==========
@@ -135,7 +135,7 @@ declare module '@paseolibre/chat-widget-standalone' {
     id?: string | number
     url?: string
     title?: string
-    //@ts-ignore
+    // @ts-expect-error - Allow dynamic properties for metadata extensibility
     [key: string]: any
   }
 
@@ -157,9 +157,9 @@ declare module '@paseolibre/chat-widget-standalone' {
   }
 
   // ========== Message Types ==========
-  //@ts-ignore
+  // @ts-expect-error - String union type for message types
   export type MessageType = 'text' | 'image' | 'location' | 'system' | 'audio' | 'file'
-  //@ts-ignore
+  // @ts-expect-error - String union type for message senders
   export type MessageSender = 'user' | 'bot' | 'system'
 
   export interface BaseMessage {
@@ -198,7 +198,7 @@ declare module '@paseolibre/chat-widget-standalone' {
     content: string
   }
 
-  //@ts-ignore
+  // @ts-expect-error - Union type for all message variants
   export type ChatMessage =
     | TextMessage
     | ImageMessage
@@ -208,7 +208,7 @@ declare module '@paseolibre/chat-widget-standalone' {
 }
 
 // ========== Global Window Declaration (for CDN usage) ==========
-//@ts-ignore
+// @ts-expect-error - Extend global window object for CDN script access
 declare global {
   interface Window {
     PaseoLibreChat: import('@paseolibre/chat-widget-standalone').PaseoLibreChatWidget

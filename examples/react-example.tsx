@@ -7,7 +7,7 @@ import React from 'react';
 import { 
   ChatWidgetProvider, 
   useChatWidget,
-  type ChatWidgetProviderProps,
+  type ChatWidgetProviderProps as _ChatWidgetProviderProps,
   type ChatTheme 
 } from '@paseolibre/chat-widget-standalone';
 
@@ -101,7 +101,7 @@ function ChatControls() {
 }
 
 // ========== Botón flotante personalizado (opcional) ==========
-function CustomFloatingButton() {
+function _CustomFloatingButton() {
   const chat = useChatWidget();
 
   return (

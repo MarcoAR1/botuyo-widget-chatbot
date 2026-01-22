@@ -136,22 +136,36 @@
   </div>
 
   <!-- Widget Script -->
-  <script src="./dist/paseo-libre-chat.js"></script>
-  <script>
+  <script type="module" src="/standalone.tsx"></script>
+  <script type="module">
     // Inicialización inicial
     let widgetInstance = null;
 
-    function initWidget() {
+    async function initWidget() {
       const config = {
         apiKey: document.getElementById('apiKey').value,
         apiBaseUrl: document.getElementById('apiUrl').value,
         theme: {
           primaryColor: document.getElementById('primaryColor').value,
           botName: document.getElementById('botName').value,
-          logoUrl: '/avatar/mar_default.webp',
+          logoUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=paseolibre',
           position: document.getElementById('position').value,
           welcomeMessage: '¡Hola! 👋 Soy tu asistente virtual. ¿En qué puedo ayudarte?',
           inputPlaceholder: 'Escribe tu mensaje...',
+          // ✨ CSS Variables para personalización completa
+          cssVariables: {
+            background: '0 0% 100%',           // Fondo blanco
+            foreground: '240 10% 3.9%',        // Texto oscuro
+            card: '0 0% 100%',                 // Fondo de tarjetas
+            cardForeground: '240 10% 3.9%',    // Texto de tarjetas
+            primary: '160 84% 39%',            // Verde Paseo Libre
+            primaryForeground: '0 0% 100%',    // Blanco sobre verde
+            muted: '240 4.8% 95.9%',           // Gris claro
+            mutedForeground: '240 3.8% 46.1%', // Gris oscuro
+            border: '240 5.9% 90%',            // Bordes grises
+            destructive: '0 84.2% 60.2%',      // Rojo para errores
+            radius: '0.5rem',                  // Bordes redondeados
+          }
         },
         onNavigate: (url) => {
           console.log('Navegación solicitada:', url);
@@ -169,22 +183,34 @@
         widgetInstance.destroy();
       }
 
-      widgetInstance = PaseoLibreChat.init(config);
+      // Asegurar que PaseoLibreChat esté disponible
+      if (!window.PaseoLibreChat) {
+        try {
+          const module = await import('/standalone.tsx');
+          window.PaseoLibreChat = module.default;
+        } catch (error) {
+          console.error('Error cargando módulo:', error);
+          return;
+        }
+      }
+
+      widgetInstance = window.PaseoLibreChat.init(config);
     }
 
-    function reinitWidget() {
-      initWidget();
+    async function reinitWidget() {
+      await initWidget();
       alert('Widget reiniciado con nueva configuración!');
     }
 
+    // Exponer funciones globalmente para onclick
+    window.initWidget = initWidget;
+    window.reinitWidget = reinitWidget;
+
     // Inicializar al cargar la página
-    window.addEventListener('load', () => {
-      // Esperar a que el script del widget esté disponible
-      if (typeof PaseoLibreChat !== 'undefined') {
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
         initWidget();
-      } else {
-        console.error('PaseoLibreChat no está disponible. Asegúrate de que el script standalone esté compilado.');
-      }
+      }, 100);
     });
   </script>
 </body>

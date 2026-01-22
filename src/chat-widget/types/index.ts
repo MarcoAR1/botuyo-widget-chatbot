@@ -126,6 +126,32 @@ export interface ChatTheme {
   promptPersistence?: PromptStrategy // Estrategia del globo
 
   avatarScale?: number // Zoom del avatar (ej: 1.2 para 20% más grande)
+
+  /** Variables CSS personalizadas para design system */
+  cssVariables?: {
+    /** Color de fondo principal (formato HSL sin hsl(), ej: "0 0% 100%") */
+    background?: string
+    /** Color de texto principal (formato HSL sin hsl(), ej: "240 10% 3.9%") */
+    foreground?: string
+    /** Color de fondo de tarjetas (formato HSL sin hsl(), ej: "0 0% 100%") */
+    card?: string
+    /** Color de texto en tarjetas (formato HSL sin hsl(), ej: "240 10% 3.9%") */
+    cardForeground?: string
+    /** Color primario (formato HSL sin hsl(), ej: "160 84% 39%") */
+    primary?: string
+    /** Color de texto sobre fondo primario (formato HSL sin hsl(), ej: "0 0% 100%") */
+    primaryForeground?: string
+    /** Color de fondo silenciado (formato HSL sin hsl(), ej: "240 4.8% 95.9%") */
+    muted?: string
+    /** Color de texto silenciado (formato HSL sin hsl(), ej: "240 3.8% 46.1%") */
+    mutedForeground?: string
+    /** Color de bordes (formato HSL sin hsl(), ej: "240 5.9% 90%") */
+    border?: string
+    /** Color destructivo/error (formato HSL sin hsl(), ej: "0 84.2% 60.2%") */
+    destructive?: string
+    /** Border radius base (ej: "0.5rem") */
+    radius?: string
+  }
 }
 
 export interface UserContext {

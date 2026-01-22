@@ -121,7 +121,7 @@ export function ChatButton() {
 // ========== app/products/[id]/page.tsx (Dynamic Route con Context) ==========
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect as _useEffect } from 'react';
 import { ChatWidgetProvider } from '@paseolibre/chat-widget-standalone';
 
 export default function ProductPage({ params }: { params: { id: string } }) {
@@ -192,7 +192,7 @@ module.exports = nextConfig
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": ["next-env.d.ts", "**\/*.ts", "**\/*.tsx", ".next/types/**\/*.ts"],
   "exclude": ["node_modules"]
 }
 */

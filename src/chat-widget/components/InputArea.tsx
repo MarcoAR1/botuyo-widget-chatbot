@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { useTranslations } from '@/chat-widget/i18n'
 import {
   Send,
@@ -13,7 +13,7 @@ import {
   Loader2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { getPrimaryColor } from '../utils/theme'
+import { getPrimaryColor, getSolidStyles } from '../utils/theme'
 import imageCompression from 'browser-image-compression'
 
 // --- CONFIGURACIÓN ---
@@ -43,7 +43,7 @@ export function InputArea({
   onSendAttachment,
   onSendLocation,
 }: InputAreaProps) {
-  const t = useTranslations('common.extracted')
+  const t = useTranslations()
   const [inputValue, setInputValue] = useState('')
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
@@ -59,6 +59,7 @@ export function InputArea({
   const timerRef = useRef<NodeJS.Timeout | null>(null)
 
   const brandColor = getPrimaryColor({ primaryColor })
+  const solidStyles = useMemo(() => getSolidStyles(), [])
 
   // 🔥 LÓGICA DE ENVÍO CORREGIDA
   const handleSend = () => {
@@ -171,10 +172,22 @@ export function InputArea({
   }
 
   return (
-    <div className="w-full bg-background/95 backdrop-blur-md px-4 py-3 border-t border-border/40 relative">
+    <div 
+      className="w-full backdrop-blur-md px-4 py-3 border-t relative"
+      style={{
+        backgroundColor: `${solidStyles.background}f2`, // 95% opacity
+        borderColor: solidStyles.border,
+      }}
+    >
       {/* PREVIEW DE ADJUNTO */}
       {(attachment || isCompressing) && (
-        <div className="absolute bottom-full left-4 mb-2 p-1.5 bg-card rounded-2xl border border-border shadow-soft-2xl animate-in slide-in-from-bottom-2 z-50">
+        <div 
+          className="absolute bottom-full left-4 mb-2 p-1.5 rounded-2xl border shadow-soft-2xl animate-in slide-in-from-bottom-2 z-50"
+          style={{
+            backgroundColor: solidStyles.card,
+            borderColor: solidStyles.border,
+          }}
+        >
           <div className="relative w-16 h-16">
             {isCompressing ? (
               <div className="w-full h-full flex flex-col items-center justify-center bg-muted rounded-xl">
@@ -214,7 +227,12 @@ export function InputArea({
             <div className="absolute bottom-full left-0 mb-2 flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-2 duration-300 z-[60]">
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-3 px-5 py-3 bg-card border border-border shadow-soft-2xl rounded-2xl hover:bg-muted transition-colors text-[10px] font-black uppercase tracking-widest text-foreground"
+                className="flex items-center gap-3 px-5 py-3 border shadow-soft-2xl rounded-2xl transition-colors text-[10px] font-black uppercase tracking-widest"
+                style={{
+                  backgroundColor: solidStyles.card,
+                  borderColor: solidStyles.border,
+                  color: solidStyles.cardForeground,
+                }}
               >
                 <ImageIcon size={18} className="text-blue-500" /> {t('fotos')}
               </button>
@@ -233,7 +251,12 @@ export function InputArea({
                     () => setIsLoadingLocation(false),
                   )
                 }}
-                className="flex items-center gap-3 px-5 py-3 bg-card border border-border shadow-soft-2xl rounded-2xl hover:bg-muted transition-colors text-[10px] font-black uppercase tracking-widest text-foreground"
+                className="flex items-center gap-3 px-5 py-3 border shadow-soft-2xl rounded-2xl transition-colors text-[10px] font-black uppercase tracking-widest"
+                style={{
+                  backgroundColor: solidStyles.card,
+                  borderColor: solidStyles.border,
+                  color: solidStyles.cardForeground,
+                }}
               >
                 {isLoadingLocation ? (
                   <Loader2 size={18} className="animate-spin" />
@@ -260,11 +283,15 @@ export function InputArea({
         {/* ÁREA DE TEXTO / GRABACIÓN */}
         <div
           className={cn(
-            'flex-1 relative flex items-center min-w-0 rounded-[24px] border border-border/50 px-4 transition-all focus-within:bg-background focus-within:ring-1 focus-within:ring-primary/20 shadow-inner',
+            'flex-1 relative flex items-center min-w-0 rounded-[24px] border px-4 transition-all shadow-inner',
             isRecording
-              ? 'bg-destructive/5 border-destructive/20 h-[44px]'
-              : 'bg-muted/40 min-h-[40px] max-h-[120px]',
+              ? 'h-[44px]'
+              : 'min-h-[40px] max-h-[120px]',
           )}
+          style={{
+            backgroundColor: isRecording ? `${solidStyles.destructive}0d` : solidStyles.muted,
+            borderColor: isRecording ? solidStyles.destructive : solidStyles.border,
+          }}
         >
           {isRecording ? (
             <div className="flex items-center w-full gap-4 animate-in zoom-in-95">
@@ -306,8 +333,12 @@ export function InputArea({
                 onChange={handleInputChange}
                 onFocus={() => setIsMenuOpen(false)}
                 placeholder={placeholder}
-                className="w-full bg-transparent text-sm py-2.5 outline-none resize-none overflow-hidden leading-tight text-foreground placeholder:text-muted-foreground/60 pr-8 scrollbar-none"
-                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                className="w-full bg-transparent text-sm py-2.5 outline-none resize-none overflow-hidden leading-tight pr-8 scrollbar-none"
+                style={{ 
+                  scrollbarWidth: 'none', 
+                  msOverflowStyle: 'none',
+                  color: solidStyles.foreground,
+                }}
               />
               {inputValue.length > MAX_CHARS * 0.8 && (
                 <span

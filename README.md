@@ -2,6 +2,11 @@
 
 Widget de chat embebible que puede ser usado en cualquier sitio web sin necesidad de React, Next.js u otros frameworks. También disponible como componente React con Provider y hooks.
 
+## � Documentación
+- **[✅ Cobertura de Personalización](./CUSTOMIZATION_COVERAGE.md)** - ¡TODO lo que puedes personalizar!- **[🎯 Guía Rápida de Temas](./QUICK_THEME_SETUP.md)** - ¡Empieza aquí si el widget se ve transparente!
+- **[🎨 Guía Completa de Personalización](./THEME_GUIDE.md)** - Temas, colores y ejemplos avanzados
+- **[📖 Documentación CSS Variables](./CSS_CUSTOMIZATION.md)** - Detalles técnicos del sistema de diseño
+
 ## 🚀 Instalación Rápida
 
 ### Opción 1: CDN (JavaScript Vanilla)
@@ -16,9 +21,16 @@ Agrega este código antes del cierre del `</body>` en tu HTML:
     apiKey: 'tu-api-key-aqui',
     apiBaseUrl: 'https://api.paseolibre.com',
     theme: {
-      primaryColor: '#10b981',
+      primaryColor: 'hsl(160, 84%, 39%)',
       botName: 'Asistente Paseo Libre',
-      position: 'bottom-right'
+      position: 'bottom-right',
+      // ⚠️ IMPORTANTE: Variables CSS necesarias
+      cssVariables: {
+        background: '0 0% 100%',           // Fondo blanco
+        foreground: '240 10% 3.9%',        // Texto oscuro
+        primary: '160 84% 39%',            // Color principal
+        // ... Ver QUICK_THEME_SETUP.md para más opciones
+      }
     }
   });
 </script>
@@ -40,7 +52,16 @@ function App() {
     <ChatWidgetProvider
       apiKey="tu-api-key-aqui"
       apiBaseUrl="https://api.paseolibre.com"
-      theme={{ primaryColor: '#10b981' }}
+      theme={{ 
+        primaryColor: 'hsl(160, 84%, 39%)',
+        // ⚠️ IMPORTANTE: Variables CSS necesarias
+        cssVariables: {
+          background: '0 0% 100%',
+          foreground: '240 10% 3.9%',
+          primary: '160 84% 39%',
+          // ... Ver QUICK_THEME_SETUP.md para configuración completa
+        }
+      }}
     >
       <YourApp />
     </ChatWidgetProvider>
@@ -63,7 +84,14 @@ function App() {
     <ChatWidget
       apiKey="tu-api-key-aqui"
       apiBaseUrl="https://api.paseolibre.com"
-      theme={{ primaryColor: '#10b981' }}
+      theme={{ 
+        primaryColor: 'hsl(160, 84%, 39%)',
+        cssVariables: {
+          background: '0 0% 100%',
+          foreground: '240 10% 3.9%',
+          primary: '160 84% 39%',
+        }
+      }}
     />
   );
 }

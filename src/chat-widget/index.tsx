@@ -3,6 +3,9 @@
  * Entry Point - Exporta el componente principal, Provider y tipos
  */
 
+/* eslint-disable react-refresh/only-export-components */
+// Este archivo es un punto de entrada que debe exportar componentes, hooks y tipos
+
 // ========== Componentes ==========
 export { ChatWidget } from './ChatWidget'
 export { ChatWidgetProvider, useChatWidget } from './ChatWidgetProvider'

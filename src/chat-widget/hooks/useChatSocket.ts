@@ -150,7 +150,9 @@ export function useChatSocket(options: UseChatSocketOptions) {
         data.messages.forEach((msg) => {
           try {
             handlersRef.current.onMessage(sanitizeIncomingMessage(msg))
-          } catch (e) {}
+          } catch (e) {
+            console.debug('Error processing message:', e)
+          }
         })
       }
       if (handlersRef.current.onEvent)
@@ -165,7 +167,7 @@ export function useChatSocket(options: UseChatSocketOptions) {
     })
 
     socketRef.current = socket
-  }, [apiKey, apiBaseUrl, userContext?.token, sanitizeIncomingMessage])
+  }, [apiKey, apiBaseUrl, userContext?.token, userContext?.metadata, sanitizeIncomingMessage])
 
   const disconnect = useCallback(() => {
     if (socketRef.current) {

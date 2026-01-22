@@ -6,6 +6,9 @@
  * con acceso a su estado y métodos a través de hooks.
  */
 
+/* eslint-disable react-refresh/only-export-components */
+// Este archivo exporta tanto el componente Provider como el hook useChatWidget
+
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
 import { ChatWidget } from './ChatWidget'
 import type { ChatWidgetProps } from './types'

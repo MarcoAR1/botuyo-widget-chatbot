@@ -18,6 +18,7 @@ import { BotEmotion, Launcher } from './components/Launcher'
 import { ChatWindow } from './components/ChatWindow'
 import { cn } from '@/lib/utils'
 import { useIsMobile } from './hooks/useIsMobile'
+import { mergeThemeWithDefaults } from './utils/theme'
 
 // Helper utilitario
 const toBase64 = (file: File) =>
@@ -119,13 +120,16 @@ export function ChatWidget(props: ChatWidgetProps) {
   })
 
   const handleToggle = useCallback(() => {
+    console.log('[ChatWidget] handleToggle called, current isOpen:', state.isOpen)
     if (!state.isOpen) {
       actions.openWindow()
       setUnreadCount(0)
       onStateChange?.(true)
+      console.log('[ChatWidget] Opening window')
     } else {
       actions.closeWindow()
       onStateChange?.(false)
+      console.log('[ChatWidget] Closing window')
     }
   }, [state.isOpen, actions, onStateChange])
 
@@ -143,9 +147,23 @@ export function ChatWidget(props: ChatWidgetProps) {
       : 'default'
   }, [state.isTyping, state.messages])
 
+  // --- THEME: Fusionar tema del usuario con valores por defecto robustos ---
+  const mergedTheme = useMemo(() => mergeThemeWithDefaults(theme), [theme])
+
   // --- FIX: Estilos Dinámicos para Mobile vs Desktop ---
   const containerStyle: React.CSSProperties = {
-    '--chat-primary': theme?.primaryColor || 'hsl(var(--primary))',
+    '--chat-primary': mergedTheme.primaryColor,
+    '--background': mergedTheme.cssVariables.background,
+    '--foreground': mergedTheme.cssVariables.foreground,
+    '--card': mergedTheme.cssVariables.card,
+    '--card-foreground': mergedTheme.cssVariables.cardForeground,
+    '--primary': mergedTheme.cssVariables.primary,
+    '--primary-foreground': mergedTheme.cssVariables.primaryForeground,
+    '--muted': mergedTheme.cssVariables.muted,
+    '--muted-foreground': mergedTheme.cssVariables.mutedForeground,
+    '--border': mergedTheme.cssVariables.border,
+    '--destructive': mergedTheme.cssVariables.destructive,
+    '--radius': mergedTheme.cssVariables.radius,
     zIndex: state.isOpen ? 2147483647 : 9999, // Z-index máximo al abrirse
     position: 'fixed',
     // En mobile, si está abierto, usamos inset-0 para asegurar cobertura
@@ -163,7 +181,6 @@ export function ChatWidget(props: ChatWidgetProps) {
         ? '24px'
         : 'auto',
     bottom: isMobile && state.isOpen ? 0 : '100px',
-    pointerEvents: 'none',
     width: isMobile && state.isOpen ? '100%' : 'auto',
     height: isMobile && state.isOpen ? '100%' : 'auto',
   } as React.CSSProperties
@@ -177,16 +194,22 @@ export function ChatWidget(props: ChatWidgetProps) {
         !isMobile &&
           (theme?.position === 'bottom-left' ? 'items-start' : 'items-end')
       )}
-      style={containerStyle}
+      style={{
+        ...containerStyle,
+        pointerEvents: 'auto',
+        // Forzar estilos visuales para demo
+        backgroundColor: 'transparent',
+      }}
     >
       {/* VENTANA DE CHAT */}
       <div
         className={cn(
-          'transition-all duration-500 ease-in-out origin-bottom pointer-events-auto',
+          'transition-all duration-500 ease-in-out origin-bottom',
           state.isOpen
-            ? 'opacity-100 scale-100 h-full w-full translate-y-0'
+            ? 'opacity-100 scale-100 h-full w-full translate-y-0 pointer-events-auto'
             : 'opacity-0 scale-95 pointer-events-none translate-y-full h-0 w-0'
         )}
+        style={{ pointerEvents: state.isOpen ? 'auto' : 'none' }}
         onMouseDown={stopPropagation}
         onTouchStart={stopPropagation}
       >
@@ -278,10 +301,10 @@ export function ChatWidget(props: ChatWidgetProps) {
       {/* LANZADOR (LAUNCHER) */}
       <div
         className={cn(
-          'pointer-events-auto',
           state.isOpen ? 'hidden' : 'block',
           !isMobile && 'mt-4'
         )}
+        style={{ pointerEvents: 'auto' }}
         onMouseDown={stopPropagation}
         onTouchStart={stopPropagation}
       >

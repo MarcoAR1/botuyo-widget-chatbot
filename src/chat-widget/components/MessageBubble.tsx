@@ -7,7 +7,7 @@ import remarkGfm from 'remark-gfm'
 import { motion } from 'framer-motion'
 import { CheckCheck, MapPin, ExternalLink, ArrowRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { getPrimaryColor, getColorWithOpacity } from '../utils/theme'
+import { getPrimaryColor, getSolidStyles } from '../utils/theme'
 import type {
   ChatMessage,
   BubbleStyles,
@@ -40,14 +40,13 @@ export function MessageBubble({
   isFirst = true,
   isLast = true,
 }: MessageBubbleProps) {
-  const t = useTranslations('common.extracted')
+  const t = useTranslations('extracted')
   const isUser = message.sender === 'user'
   const isSystem = message.type === 'system' || message.sender === 'system'
   const isBot = !isUser && !isSystem
 
   const brandColor = getPrimaryColor({ primaryColor })
-  const brandColorLight = getColorWithOpacity(brandColor, 0.1)
-  const shadowColor = getColorWithOpacity(brandColor, 0.2)
+  const solidStyles = useMemo(() => getSolidStyles(), [])
 
   // --- AVATAR LOGIC ---
   const currentAvatar = useMemo(() => {
@@ -93,15 +92,15 @@ export function MessageBubble({
           rel="noopener noreferrer"
           className="block my-2 no-underline group"
         >
-          <span className="flex items-center gap-3 p-3 bg-card border border-border rounded-xl shadow-sm group-hover:border-primary/30 transition-all dark:bg-muted/20">
+          <span className="flex items-center gap-3 p-3 border rounded-xl shadow-sm group-hover:border-primary/30 transition-all" style={{ backgroundColor: solidStyles.card, borderColor: solidStyles.border }}>
             <span
               className="flex-shrink-0 p-2 rounded-full"
-              style={{ backgroundColor: brandColorLight, color: brandColor }}
+              style={{ backgroundColor: `${brandColor}1a`, color: brandColor }}
             >
               <MapPin size={16} strokeWidth={2.5} />
             </span>
             <span className="flex flex-col min-w-0 flex-1 text-[11px] font-bold text-foreground leading-tight uppercase tracking-tight">
-              {t('extracted.ver_ubicacion')}</span>
+              {t('ver_ubicacion')}</span>
             <ExternalLink
               size={12}
               className="text-muted-foreground/40 group-hover:text-primary"
@@ -155,7 +154,7 @@ export function MessageBubble({
           />
         )
 
-      case 'image':
+      case 'image': {
         const imgMsg = message as ImageMessage
         return (
           <Gallery
@@ -168,8 +167,9 @@ export function MessageBubble({
             radius="rounded-xl"
           />
         )
+      }
 
-      case 'location':
+      case 'location': {
         const locMsg = message as LocationMessage
         return (
           <RenderLink
@@ -178,6 +178,7 @@ export function MessageBubble({
             Ver ubicación
           </RenderLink>
         )
+      }
 
       default:
         return (
@@ -209,7 +210,14 @@ export function MessageBubble({
   if (isSystem) {
     return (
       <div className="flex justify-center my-4 animate-in fade-in zoom-in-95 w-full">
-        <span className="px-3 py-1 bg-muted border border-border rounded-full text-[9px] font-black text-muted-foreground uppercase tracking-widest dark:bg-muted/10">
+        <span 
+          className="px-3 py-1 border rounded-full text-[9px] font-black uppercase tracking-widest"
+          style={{
+            backgroundColor: solidStyles.muted,
+            borderColor: solidStyles.border,
+            color: solidStyles.mutedForeground,
+          }}
+        >
           {(message as TextMessage).content}
         </span>
       </div>
@@ -231,7 +239,13 @@ export function MessageBubble({
       {!isUser && (
         <div className="w-9 shrink-0 flex flex-col justify-end pb-1">
           {isLast ? (
-            <div className="h-9 w-9 rounded-full overflow-hidden border border-border shadow-sm bg-background">
+            <div 
+              className="h-9 w-9 rounded-full overflow-hidden border shadow-sm"
+              style={{
+                borderColor: solidStyles.border,
+                backgroundColor: solidStyles.background,
+              }}
+            >
               {currentAvatar ? (
                 <img
                   src={currentAvatar}
@@ -259,7 +273,7 @@ export function MessageBubble({
           'max-w-[85%] p-3 px-4 shadow-sm transition-all duration-300 relative',
           isUser
             ? 'text-primary-foreground'
-            : 'bg-card border border-border/60 text-foreground dark:bg-muted/20',
+            : 'border',
           // Bordes inteligentes
           isUser
             ? cn(
@@ -279,9 +293,13 @@ export function MessageBubble({
           isUser
             ? {
                 backgroundColor: brandColor,
-                boxShadow: isLast ? `0 8px 20px -6px ${shadowColor}` : 'none',
+                boxShadow: isLast ? `0 8px 20px -6px ${brandColor}33` : 'none',
               }
-            : {}
+            : {
+                backgroundColor: solidStyles.card,
+                borderColor: `${solidStyles.border}99`,
+                color: solidStyles.foreground,
+              }
         }
       >
         {renderContent()}

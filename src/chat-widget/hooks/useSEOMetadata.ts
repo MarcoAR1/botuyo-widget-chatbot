@@ -87,7 +87,8 @@ function extractSEOMetadata() {
  * @param pathname - Pathname actual para detectar cambios de página
  */
 export function useSEOMetadata(enabled: boolean = false) {
-  const pathname = useMemo<string>(() => (typeof window !== 'undefined' ? window.location.pathname : ''), [typeof window !== 'undefined' ? window.location.pathname : ''])
+  const currentPathname = typeof window !== 'undefined' ? window.location.pathname : ''
+  const pathname = useMemo<string>(() => currentPathname, [currentPathname])
   const [seoMetadata, setSeoMetadata] = useState<Record<string, any>>({})
 
   useEffect(() => {

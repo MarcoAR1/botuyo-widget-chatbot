@@ -5,10 +5,11 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useTranslations } from '@/chat-widget/i18n'
 import { ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { getSolidStyles } from '../utils/theme'
 
 interface GalleryProps {
   images: Array<{ src: string; alt?: string }>
@@ -16,7 +17,8 @@ interface GalleryProps {
 }
 
 export function Gallery({ images, radius = 'rounded-lg' }: GalleryProps) {
-  const t = useTranslations('common.extracted')
+  const t = useTranslations('extracted')
+  const solidStyles = useMemo(() => getSolidStyles(), [])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isLightboxOpen, setIsLightboxOpen] = useState(false)
 
@@ -42,9 +44,10 @@ export function Gallery({ images, radius = 'rounded-lg' }: GalleryProps) {
           alt={images[0].alt || 'Imagen'}
           className={cn(
             'w-full h-auto object-cover cursor-pointer transition-all duration-300',
-            'border border-border shadow-soft-md hover:shadow-soft-lg hover:scale-[1.02]',
+            'border shadow-soft-md hover:shadow-soft-lg hover:scale-[1.02]',
             radius
           )}
+          style={{ borderColor: solidStyles.border }}
           loading="lazy"
           onClick={() => openLightbox(0)}
         />
@@ -96,9 +99,10 @@ export function Gallery({ images, radius = 'rounded-lg' }: GalleryProps) {
           alt={images[currentIndex].alt || `Imagen ${currentIndex + 1}`}
           className={cn(
             'w-full h-56 object-cover cursor-pointer transition-all duration-300',
-            'border border-border shadow-soft-md',
+            'border shadow-soft-md',
             radius
           )}
+          style={{ borderColor: solidStyles.border }}
           loading="lazy"
           onClick={() => openLightbox(currentIndex)}
         />
@@ -107,17 +111,25 @@ export function Gallery({ images, radius = 'rounded-lg' }: GalleryProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-between px-3">
           <button
             onClick={prevImage}
-            className="bg-card/90 hover:bg-card p-2 rounded-full shadow-soft-lg transition-all hover:scale-110 active:scale-95"
-            aria-label={t('extracted.anterior')}
+            className="p-2 rounded-full shadow-soft-lg transition-all hover:scale-110 active:scale-95"
+            style={{
+              backgroundColor: `${solidStyles.card}e6`,
+              color: solidStyles.foreground,
+            }}
+            aria-label={t('anterior')}
           >
-            <ChevronLeft size={20} className="text-foreground" />
+            <ChevronLeft size={20} />
           </button>
           <button
             onClick={nextImage}
-            className="bg-card/90 hover:bg-card p-2 rounded-full shadow-soft-lg transition-all hover:scale-110 active:scale-95"
-            aria-label={t('extracted.siguiente')}
+            className="p-2 rounded-full shadow-soft-lg transition-all hover:scale-110 active:scale-95"
+            style={{
+              backgroundColor: `${solidStyles.card}e6`,
+              color: solidStyles.foreground,
+            }}
+            aria-label={t('siguiente')}
           >
-            <ChevronRight size={20} className="text-foreground" />
+            <ChevronRight size={20} />
           </button>
         </div>
 
@@ -178,7 +190,7 @@ interface LightboxProps {
 }
 
 function Lightbox({ images, currentIndex, onClose, onNext, onPrev }: LightboxProps) {
-  const t = useTranslations('common.extracted')
+  const t = useTranslations('extracted')
   return (
     <div
       className="fixed inset-0 z-[100000] bg-black/95 backdrop-blur-sm flex items-center justify-center animate-in fade-in duration-200"
@@ -188,7 +200,7 @@ function Lightbox({ images, currentIndex, onClose, onNext, onPrev }: LightboxPro
       <button
         onClick={onClose}
         className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 p-2 rounded-full transition-all hover:scale-110 active:scale-95 z-10"
-        aria-label={t('extracted.cerrar')}
+        aria-label={t('cerrar')}
       >
         <X size={24} className="text-white" />
       </button>

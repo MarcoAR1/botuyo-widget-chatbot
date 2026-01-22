@@ -1,14 +1,15 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useTranslations } from '@/chat-widget/i18n'
 import { X, ShieldCheck, Heart } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { BubbleStyles, ChatMessage } from '../types'
 import { MessageList } from './MessageList'
 import { InputArea } from './InputArea'
-import { getPrimaryColor } from '../utils/theme'
+import { getPrimaryColor, getSolidStyles } from '../utils/theme'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { useDynamicHeight } from '../hooks/useDynamicHeight'
 import { EmotionAvatarMap } from './Launcher'
 
 export interface ChatWindowProps {
@@ -48,55 +49,27 @@ export function ChatWindow({
   onSendAttachment,
   onSendLocation,
 }: ChatWindowProps) {
-  const t = useTranslations('common.extracted')
+  const t = useTranslations()
   const isMobile = useIsMobile()
   const themePrimary = getPrimaryColor({ primaryColor })
-
-  // Estados para el manejo dinámico del Viewport en móvil (Teclado virtual)
-  const [viewportHeight, setViewportHeight] = useState('100dvh')
-  const [offsetTop, setOffsetTop] = useState(0)
+  const dynamicHeightStyles = useDynamicHeight({ isOpen })
+  
+  // Generar estilos sólidos desde las variables CSS
+  const solidStyles = useMemo(() => getSolidStyles(), [])
 
   useEffect(() => {
     if (!isOpen) return
 
-    const handleVisualViewportChange = () => {
-      if (isMobile && window.visualViewport) {
-        // vv.height nos da el espacio libre (restando el teclado)
-        setViewportHeight(`${window.visualViewport.height}px`)
-        // offsetTop ayuda a corregir desplazamientos en iOS
-        setOffsetTop(window.visualViewport.offsetTop)
-      }
-    }
-
     if (isMobile) {
-      window.visualViewport?.addEventListener(
-        'resize',
-        handleVisualViewportChange
-      )
-      window.visualViewport?.addEventListener(
-        'scroll',
-        handleVisualViewportChange
-      )
       document.body.style.overflow = 'hidden'
-      // Previene que el scroll de fondo interfiera en móviles
       document.body.style.position = 'fixed'
       document.body.style.width = '100%'
     }
-
-    handleVisualViewportChange()
 
     return () => {
       document.body.style.overflow = ''
       document.body.style.position = ''
       document.body.style.width = ''
-      window.visualViewport?.removeEventListener(
-        'resize',
-        handleVisualViewportChange
-      )
-      window.visualViewport?.removeEventListener(
-        'scroll',
-        handleVisualViewportChange
-      )
     }
   }, [isOpen, isMobile])
 
@@ -108,16 +81,13 @@ export function ChatWindow({
       aria-modal="true"
       className={cn(
         'flex flex-col overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]',
-        'bg-background text-foreground z-[9999]',
+        'text-foreground z-[9999]',
 
-        // 💻 DESKTOP: ANCHO Y ALTO CONTROLADO
+        // 💻 DESKTOP: ANCHO Y ALTO CONTROLADO CON MARGEN DEL TECHO
         !isMobile && [
           'fixed bottom-6 right-6',
           'w-[350px] min-w-[350px] max-w-[350px]',
-          'h-[min(700px,calc(100vh-100px))]',
-          'min-h-[500px]',
-          'max-h-[800px]',
-          'rounded-[32px] border border-border/60 shadow-soft-2xl',
+          'rounded-[32px] border shadow-soft-2xl',
           'animate-in fade-in zoom-in-95 slide-in-from-bottom-10',
         ],
 
@@ -125,14 +95,22 @@ export function ChatWindow({
         isMobile && ['fixed inset-0 w-full']
       )}
       style={{
-        height: isMobile ? viewportHeight : undefined,
-        transform: isMobile ? `translateY(${offsetTop}px)` : undefined,
-        top: isMobile ? 0 : undefined,
-        width: !isMobile ? '350px' : '100%',
+        ...dynamicHeightStyles,
+        // 🎨 ESTILOS SÓLIDOS APLICADOS DESDE TEMA
+        backgroundColor: solidStyles.background,
+        borderColor: solidStyles.border,
+        color: solidStyles.foreground,
       }}
     >
       {/* --- HEADER --- */}
-      <header className="relative shrink-0 p-4 border-b border-border/40 bg-card/40 backdrop-blur-2xl z-20">
+      <header 
+        className="relative shrink-0 p-4 border-b z-20"
+        style={{
+          backgroundColor: `${solidStyles.background}e6`, // 90% opacity
+          borderColor: solidStyles.border,
+          backdropFilter: 'blur(24px)',
+        }}
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative">
@@ -177,7 +155,12 @@ export function ChatWindow({
       </header>
 
       {/* --- CHAT CONTENT --- */}
-      <main className="flex-1 min-h-0 relative bg-background/30 flex flex-col">
+      <main 
+        className="flex-1 min-h-0 relative flex flex-col"
+        style={{
+          backgroundColor: solidStyles.muted,
+        }}
+      >
         <MessageList
           messages={messages}
           isTyping={isTyping}
@@ -197,6 +180,7 @@ export function ChatWindow({
           paddingBottom: isMobile
             ? 'max(0.75rem, env(safe-area-inset-bottom))'
             : '0.75rem',
+          backgroundColor: solidStyles.background,
         }}
       >
         <InputArea

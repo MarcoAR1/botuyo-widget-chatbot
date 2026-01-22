@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { Play, Pause, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { getSolidStyles, getPrimaryColor } from '../utils/theme'
 
 interface AudioPlayerProps {
   url: string
@@ -16,6 +17,9 @@ export function AudioPlayer({ url, isBot, primaryColor }: AudioPlayerProps) {
   const [currentTime, setCurrentTime] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const audioRef = useRef<HTMLAudioElement>(null)
+  
+  const solidStyles = useMemo(() => getSolidStyles(), [])
+  const brandColor = useMemo(() => getPrimaryColor({ primaryColor }), [primaryColor])
 
   const togglePlay = () => {
     if (isPlaying) audioRef.current?.pause()
@@ -43,11 +47,11 @@ export function AudioPlayer({ url, isBot, primaryColor }: AudioPlayerProps) {
       <button
         onClick={togglePlay}
         disabled={isLoading}
-        className={cn(
-          'w-8 h-8 rounded-full flex items-center justify-center shrink-0',
-          isBot ? 'bg-primary text-white' : 'bg-card text-primary'
-        )}
-        style={isBot && primaryColor ? { backgroundColor: primaryColor } : {}}
+        className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+        style={{
+          backgroundColor: isBot ? brandColor : solidStyles.card,
+          color: isBot ? 'white' : brandColor,
+        }}
       >
         {isLoading ? (
           <Loader2 className="w-4 h-4 animate-spin" />
