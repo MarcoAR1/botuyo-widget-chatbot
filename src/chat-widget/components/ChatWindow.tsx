@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
-import { useTranslations } from 'next-intl'
+import { useEffect, useState } from 'react'
+import { useTranslations } from '@/chat-widget/i18n'
 import { X, ShieldCheck, Heart } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { BubbleStyles, ChatMessage } from '../types'

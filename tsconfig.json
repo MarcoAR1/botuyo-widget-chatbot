@@ -23,7 +23,7 @@
     /* Path mapping */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["../src/*"]
+      "@/*": ["./src/*"]
     },
 
     /* Declaration files */
@@ -33,7 +33,7 @@
   },
   "include": [
     "standalone.tsx",
-    "../src/chat-widget/**/*"
+    "src/**/*"
   ],
   "exclude": [
     "node_modules",

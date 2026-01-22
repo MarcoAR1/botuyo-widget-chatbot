@@ -37,7 +37,8 @@ export default defineConfig({
   
   resolve: {
     alias: {
-      '@': resolve(__dirname, '../src'),
+      '@': resolve(__dirname, './src'),
+      'next-intl': resolve(__dirname, './src/chat-widget/i18n/useTranslations.ts'),
     },
   },
 

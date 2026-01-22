@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
-import { useTranslations } from 'next-intl'
+import { useState, useRef } from 'react'
+import { useTranslations } from '@/chat-widget/i18n'
 import {
   Send,
   Plus,

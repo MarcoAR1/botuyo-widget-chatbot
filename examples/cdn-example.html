@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ejemplo CDN - Paseo Libre Chat Widget</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 600px;
+      width: 100%;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    p {
+      color: #666;
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background: #059669;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .status {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f3f4f6;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .status strong {
+      color: #10b981;
+    }
+
+    code {
+      background: #f3f4f6;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎉 Ejemplo CDN del Chat Widget</h1>
+    <p>
+      Este es un ejemplo de integración del <strong>Paseo Libre Chat Widget</strong> usando CDN.
+      No requiere React, Next.js ni ningún framework - solo JavaScript vanilla.
+    </p>
+
+    <div class="button-group">
+      <button onclick="widget.open()">🚀 Abrir Chat</button>
+      <button onclick="widget.close()">❌ Cerrar Chat</button>
+      <button onclick="widget.toggle()">🔄 Toggle Chat</button>
+      <button onclick="sendTestMessage()">💬 Enviar Mensaje</button>
+      <button onclick="showState()">📊 Ver Estado</button>
+    </div>
+
+    <div class="status" id="status">
+      <strong>Estado:</strong> Inicializando widget...
+    </div>
+
+    <div style="margin-top: 30px; padding-top: 30px; border-top: 1px solid #e5e7eb;">
+      <h3 style="color: #666; margin-bottom: 10px;">Código de integración:</h3>
+      <pre style="background: #1f2937; color: #10b981; padding: 15px; border-radius: 8px; overflow-x: auto; font-size: 12px;"><code>&lt;script src="https://cdn.paseolibre.com/chat-widget.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  const widget = PaseoLibreChat.init({
+    apiKey: 'demo-api-key',
+    apiBaseUrl: 'https://api.paseolibre.com',
+    theme: {
+      primaryColor: '#10b981',
+      botName: 'Demo Bot',
+      position: 'bottom-right'
+    }
+  });
+&lt;/script&gt;</code></pre>
+    </div>
+  </div>
+
+  <!-- IMPORTANTE: Cargar el script del widget -->
+  <!-- En producción, usar: https://cdn.paseolibre.com/chat-widget.js -->
+  <script src="../dist/paseo-libre-chat.js"></script>
+  
+  <script>
+    // Inicializar el widget
+    const widget = PaseoLibreChat.init({
+      apiKey: 'demo-api-key-12345',
+      apiBaseUrl: 'https://api.paseolibre.com', // Cambiar por tu API real
+      
+      theme: {
+        primaryColor: '#10b981',
+        botName: 'Demo Assistant',
+        position: 'bottom-right',
+        welcomeMessage: '¡Hola! 👋 Soy el asistente de demo. ¿En qué puedo ayudarte?',
+        inputPlaceholder: 'Escribe tu mensaje aquí...',
+        starterPrompt: '¿Necesitas ayuda? 💬',
+        borderRadius: '1rem',
+        launcherBorderRadius: '50%'
+      },
+      
+      pageContext: {
+        page: 'Demo CDN',
+        url: window.location.href,
+        title: document.title,
+        demo: true
+      },
+      
+      onStateChange: (isOpen) => {
+        updateStatus(`Chat ${isOpen ? 'abierto' : 'cerrado'}`);
+        console.log('Estado del chat:', isOpen);
+      },
+      
+      onNavigate: (url) => {
+        console.log('Navegación solicitada a:', url);
+        alert(`El bot solicita navegar a: ${url}`);
+      },
+      
+      onLogin: (userData) => {
+        console.log('Usuario autenticado:', userData);
+        updateStatus('Usuario autenticado correctamente');
+      },
+      
+      onEvent: (eventName, data) => {
+        console.log('Evento:', eventName, data);
+      }
+    });
+
+    // Funciones auxiliares
+    function updateStatus(message) {
+      const statusEl = document.getElementById('status');
+      statusEl.innerHTML = `<strong>Estado:</strong> ${message}`;
+    }
+
+    function sendTestMessage() {
+      widget.sendMessage('Este es un mensaje de prueba enviado programáticamente 🎯');
+      widget.open();
+      updateStatus('Mensaje enviado programáticamente');
+    }
+
+    function showState() {
+      const state = widget.getState();
+      alert(JSON.stringify(state, null, 2));
+      updateStatus('Estado mostrado en consola');
+      console.log('Estado del widget:', state);
+    }
+
+    // Actualizar estado inicial
+    setTimeout(() => {
+      updateStatus('Widget listo para usar ✅');
+    }, 1000);
+
+    // Ejemplo de actualización dinámica del tema
+    setTimeout(() => {
+      console.log('💡 Tip: Puedes actualizar el tema en cualquier momento:');
+      console.log('widget.update({ theme: { primaryColor: "#8b5cf6" } })');
+    }, 3000);
+  </script>
+</body>
+</html>

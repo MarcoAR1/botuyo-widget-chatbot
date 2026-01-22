@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { useTranslations } from 'next-intl'
+import { useTranslations } from '@/chat-widget/i18n'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { motion } from 'framer-motion'

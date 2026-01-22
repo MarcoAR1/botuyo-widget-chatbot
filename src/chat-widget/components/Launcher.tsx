@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
-import { useTranslations } from 'next-intl'
+import { useState, useEffect, useMemo } from 'react'
+import { useTranslations } from '@/chat-widget/i18n'
 import { MessageCircle, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getPrimaryColor } from '../utils/theme'

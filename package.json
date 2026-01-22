@@ -1,15 +1,28 @@
 {
   "name": "@paseolibre/chat-widget-standalone",
   "version": "1.0.0",
-  "description": "Paseo Libre Chat Widget - Standalone CDN version",
+  "description": "Paseo Libre Chat Widget - Standalone CDN version with React/TypeScript support",
   "main": "dist/paseo-libre-chat.js",
+  "module": "dist/index.esm.js",
   "types": "dist/standalone.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/standalone.d.ts",
+      "import": "./dist/index.esm.js",
+      "require": "./dist/paseo-libre-chat.js"
+    },
+    "./react": {
+      "types": "./dist/chat-widget/index.d.ts",
+      "import": "./dist/index.esm.js"
+    }
+  },
   "scripts": {
     "dev": "vite",
-    "build": "vite build && npm run build:types",
+    "build": "npm run clean && vite build && npm run build:types",
     "build:types": "tsc --emitDeclarationOnly --declaration --outDir dist",
     "preview": "vite preview",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "test": "echo \"No tests yet\" && exit 0"
   },
   "keywords": [
     "chat",
@@ -18,15 +31,28 @@
     "customer-support",
     "paseo-libre",
     "standalone",
-    "cdn"
+    "cdn",
+    "react",
+    "typescript",
+    "nextjs",
+    "socket.io"
   ],
   "author": "Paseo Libre",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/paseolibre/chat-widget.git"
+  },
+  "bugs": {
+    "url": "https://github.com/paseolibre/chat-widget/issues"
+  },
+  "homepage": "https://github.com/paseolibre/chat-widget#readme",
   "devDependencies": {
     "@types/node": "^20.10.0",
     "@types/react": "^18.2.45",
     "@types/react-dom": "^18.2.18",
     "@vitejs/plugin-react": "^4.2.1",
+    "terser": "^5.46.0",
     "typescript": "^5.3.3",
     "vite": "^5.0.8"
   },
@@ -35,10 +61,21 @@
     "react-dom": "^18.2.0"
   },
   "dependencies": {
-    "socket.io-client": "^4.7.4"
+    "browser-image-compression": "^2.0.2",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "framer-motion": "^12.28.1",
+    "lucide-react": "^0.562.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "socket.io-client": "^4.7.4",
+    "tailwind-merge": "^3.4.0"
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "INSTALLATION_GUIDE.md",
+    "LICENSE",
+    "examples"
   ]
 }

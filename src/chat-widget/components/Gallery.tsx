@@ -5,8 +5,8 @@
 
 'use client'
 
-import React, { useState } from 'react'
-import { useTranslations } from 'next-intl'
+import { useState } from 'react'
+import { useTranslations } from '@/chat-widget/i18n'
 import { ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react'
 import { cn } from '@/lib/utils'
 

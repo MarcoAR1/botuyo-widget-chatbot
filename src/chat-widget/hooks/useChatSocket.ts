@@ -9,7 +9,6 @@ import { io, Socket } from 'socket.io-client'
 import type {
   ClientToServerEvents,
   ServerToClientEvents,
-  SocketAuthPayload,
   BotMessagePayload,
   AuthSuccessPayload,
 } from '../types/socket'
@@ -123,7 +122,7 @@ export function useChatSocket(options: UseChatSocketOptions) {
       setIsConnected(true)
     })
 
-    socket.on('disconnect', (reason) => {
+    socket.on('disconnect', (_reason) => {
       setIsConnecting(false)
       setIsConnected(false)
       handlersRef.current.onDisconnected()

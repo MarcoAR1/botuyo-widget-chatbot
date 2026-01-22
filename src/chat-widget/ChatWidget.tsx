@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useCallback, useState, useRef, useMemo } from 'react'
+import { useCallback, useState, useRef, useMemo } from 'react'
 import type {
   ChatWidgetProps,
   ChatMessage,
@@ -122,10 +122,12 @@ export function ChatWidget(props: ChatWidgetProps) {
     if (!state.isOpen) {
       actions.openWindow()
       setUnreadCount(0)
+      onStateChange?.(true)
     } else {
       actions.closeWindow()
+      onStateChange?.(false)
     }
-  }, [state.isOpen, actions])
+  }, [state.isOpen, actions, onStateChange])
 
   const stopPropagation = useCallback((e: React.SyntheticEvent) => {
     e.stopPropagation()

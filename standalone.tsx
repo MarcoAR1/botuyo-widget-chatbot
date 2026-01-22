@@ -7,8 +7,8 @@
  */
 
 import { createRoot, Root } from 'react-dom/client';
-import { ChatWidget } from '../src/chat-widget/ChatWidget';
-import type { ChatWidgetProps } from '../src/chat-widget/types';
+import { ChatWidget } from './src/chat-widget/ChatWidget';
+import type { ChatWidgetProps } from './src/chat-widget/types';
 import React from 'react';
 
 // Import standalone styles

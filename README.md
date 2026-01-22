@@ -1,10 +1,10 @@
 # Paseo Libre Chat Widget - Standalone/CDN Version
 
-Widget de chat embebible que puede ser usado en cualquier sitio web sin necesidad de React, Next.js u otros frameworks.
+Widget de chat embebible que puede ser usado en cualquier sitio web sin necesidad de React, Next.js u otros frameworks. También disponible como componente React con Provider y hooks.
 
 ## 🚀 Instalación Rápida
 
-### Opción 1: CDN (Recomendado)
+### Opción 1: CDN (JavaScript Vanilla)
 
 Agrega este código antes del cierre del `</body>` en tu HTML:
 
@@ -24,19 +24,49 @@ Agrega este código antes del cierre del `</body>` en tu HTML:
 </script>
 ```
 
-### Opción 2: NPM Package
+### Opción 2: NPM Package (React/Next.js)
 
+**Instalación:**
 ```bash
 npm install @paseolibre/chat-widget-standalone
 ```
 
-```javascript
-import PaseoLibreChat from '@paseolibre/chat-widget-standalone';
+**Uso con Provider:**
+```tsx
+import { ChatWidgetProvider, useChatWidget } from '@paseolibre/chat-widget-standalone';
 
-PaseoLibreChat.init({
-  apiKey: 'tu-api-key-aqui',
-  apiBaseUrl: 'https://api.paseolibre.com'
-});
+function App() {
+  return (
+    <ChatWidgetProvider
+      apiKey="tu-api-key-aqui"
+      apiBaseUrl="https://api.paseolibre.com"
+      theme={{ primaryColor: '#10b981' }}
+    >
+      <YourApp />
+    </ChatWidgetProvider>
+  );
+}
+
+// En cualquier componente:
+function MyComponent() {
+  const chat = useChatWidget();
+  return <button onClick={chat.open}>Abrir Chat</button>;
+}
+```
+
+**Uso directo:**
+```tsx
+import { ChatWidget } from '@paseolibre/chat-widget-standalone';
+
+function App() {
+  return (
+    <ChatWidget
+      apiKey="tu-api-key-aqui"
+      apiBaseUrl="https://api.paseolibre.com"
+      theme={{ primaryColor: '#10b981' }}
+    />
+  );
+}
 ```
 
 ## ⚙️ Configuración
@@ -267,7 +297,15 @@ Para probar el widget localmente:
 1. Clona el repositorio
 2. Instala dependencias:
    ```bash
-   cd standalone-widget
+   c� Documentación
+
+- **[Guía de Inicio Rápido](QUICK_START.md)** - Comienza en 5 minutos
+- **[Guía de Instalación Completa](INSTALLATION_GUIDE.md)** - Instrucciones detalladas para CDN y React
+- **[Checklist de Verificación](VERIFICATION_CHECKLIST.md)** - Verifica que todo funcione correctamente
+- **[Resumen de Implementación](INSTALLATION_SUMMARY.md)** - Resumen técnico completo
+- **[Ejemplos](examples/)** - Ejemplos funcionales (CDN, React, Next.js)
+
+## �d standalone-widget
    npm install
    ```
 
