@@ -19,6 +19,8 @@ export default defineConfig({
       external: [],
       output: {
         globals: {},
+        // Evita la advertencia por usar default + named exports en el entry
+        exports: 'named',
         // Inline all assets
         assetFileNames: 'paseo-libre-chat.[ext]',
       },
@@ -29,7 +31,7 @@ export default defineConfig({
     minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: false, // Keep console for debugging
+        drop_console: true, // Remove all console.* calls in production
         drop_debugger: true,
       },
     },

@@ -3,6 +3,8 @@
  * Utilidad para gestionar el Device ID persistente
  */
 
+import { logger } from './logger'
+
 const DEVICE_ID_KEY = 'chat_device_id'
 
 /**
@@ -36,7 +38,7 @@ export function getOrCreateDeviceId(): string {
     return newDeviceId
   } catch (error) {
     // Fallback si localStorage no está disponible (ej: modo privado)
-    console.warn('[ChatWidget] localStorage not available, using session-only device ID')
+    logger.warn('localStorage not available, using session-only device ID')
     return generateUUID()
   }
 }
@@ -48,7 +50,7 @@ export function clearDeviceId(): void {
   try {
     localStorage.removeItem(DEVICE_ID_KEY)
   } catch (error) {
-    console.warn('[ChatWidget] Could not clear device ID')
+    logger.warn('Could not clear device ID')
   }
 }
 

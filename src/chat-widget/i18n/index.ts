@@ -3,5 +3,5 @@
  * Exportaciones centralizadas
  */
 
-export { useTranslations, t, getLocale, default } from './useTranslations'
-export { translations, type Locale, type TranslationKey, type TranslationPath } from './translations'
+export { useTranslations, t, default } from './useTranslations'
+export { translations, detectLanguage, type SupportedLocale } from './translations'

@@ -7,8 +7,8 @@ import { BotEmotion } from "../components/Launcher"
 
 // ========== Eventos Cliente → Servidor ==========
 export interface ClientToServerEvents {
-  /** Enviar mensaje del usuario */
-  user_message: (data: UserMessagePayload) => void
+  /** Enviar mensaje del usuario con confirmación opcional */
+  user_message: (data: UserMessagePayload, callback?: (ack: { success: boolean }) => void) => void
   
   /** Solicitar historial de chat */
   request_history: () => void
@@ -22,7 +22,7 @@ export interface ClientToServerEvents {
 
 export interface UserMessagePayload {
   content: string
-  type: 'text' | 'image' | 'location'
+  type: 'text' | 'image' | 'audio' | 'file' | 'location'
   metadata?: Record<string, any>
 }
 
@@ -55,9 +55,10 @@ export interface ServerToClientEvents {
 
 export interface BotMessagePayload {
   id: string
-  type: 'text' | 'image' | 'location' | 'system'
+  type: 'text' | 'image' | 'audio' | 'location' | 'system'
   content?: string
   imageUrl?: string
+  audioUrl?: string
   latitude?: number
   longitude?: number
   timestamp: string
@@ -91,6 +92,7 @@ export interface AuthSuccessPayload {
     [key: string]: any
   }
   message?: string
+  theme?: import('./index').ChatTheme  // Tema personalizado desde el servidor
 }
 
 export interface ErrorPayload {

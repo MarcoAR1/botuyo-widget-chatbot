@@ -3,215 +3,276 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Paseo Libre Chat Widget - Demo Standalone</title>
+  <title>Paseo Libre Chat Widget - Demo Hub</title>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      /* Usando los mismos colores del theme del widget */
+      --primary: hsl(160, 84%, 39%);
+      --primary-dark: hsl(160, 84%, 32%);
+      --background: hsl(0, 0%, 100%);
+      --foreground: hsl(240, 10%, 3.9%);
+      --card: hsl(0, 0%, 100%);
+      --card-foreground: hsl(240, 10%, 3.9%);
+      --muted: hsl(240, 4.8%, 95.9%);
+      --muted-foreground: hsl(240, 3.8%, 46.1%);
+      --border: hsl(240, 5.9%, 90%);
+      --radius: 0.5rem;
+    }
+
+    body.dark-mode {
+      --primary: hsl(160, 84%, 55%);
+      --primary-dark: hsl(160, 84%, 45%);
+      --background: hsl(240, 10%, 7%);
+      --foreground: hsl(0, 0%, 98%);
+      --card: hsl(240, 10%, 10%);
+      --card-foreground: hsl(0, 0%, 98%);
+      --muted: hsl(240, 4.8%, 15%);
+      --muted-foreground: hsl(240, 3.8%, 70%);
+      --border: hsl(0, 0%, 20%);
+    }
+
     body {
-      font-family: system-ui, -apple-system, sans-serif;
-      max-width: 800px;
-      margin: 0 auto;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       padding: 2rem;
-      background: #f5f5f5;
+      transition: all 0.3s ease;
     }
-    h1 {
-      color: #10b981;
-    }
-    .demo-content {
-      background: white;
-      padding: 2rem;
-      border-radius: 8px;
-      margin-bottom: 2rem;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    code {
-      background: #f0f0f0;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-family: monospace;
-    }
-    .config-panel {
-      background: #f9fafb;
-      padding: 1.5rem;
-      border-radius: 8px;
-      margin: 1rem 0;
-    }
-    .config-panel h3 {
-      margin-top: 0;
-    }
-    .config-item {
-      margin: 1rem 0;
-    }
-    label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-    }
-    input[type="text"],
-    input[type="color"],
-    select {
-      width: 100%;
+
+    .quick-dark-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10000;
+      display: flex;
+      gap: 0.5rem;
+      background: var(--card);
       padding: 0.5rem;
-      border: 1px solid #d1d5db;
-      border-radius: 4px;
-      font-size: 14px;
+      border-radius: var(--radius);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      backdrop-filter: blur(10px);
     }
-    button {
-      background: #10b981;
-      color: white;
+
+    .quick-toggle-btn {
+      padding: 0.5rem 1rem;
       border: none;
-      padding: 0.75rem 1.5rem;
-      border-radius: 6px;
+      background: transparent;
+      border-radius: calc(var(--radius) * 0.8);
       cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.2s;
       font-weight: 500;
-      margin-top: 1rem;
+      color: var(--foreground);
     }
-    button:hover {
-      background: #059669;
+
+    .quick-toggle-btn:hover {
+      background: var(--muted);
+    }
+
+    .quick-toggle-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .container {
+      max-width: 800px;
+      background: var(--card);
+      border-radius: calc(var(--radius) * 3);
+      padding: 3rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      color: var(--foreground);
+      margin-bottom: 1rem;
+    }
+
+    .subtitle {
+      font-size: 1.25rem;
+      color: var(--muted-foreground);
+      margin-bottom: 2rem;
+    }
+
+    .links {
+      display: grid;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .link-card {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.5rem;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      text-decoration: none;
+      color: var(--card-foreground);
+      transition: all 0.2s;
+      background: var(--card);
+    }
+
+    .link-card:hover {
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px hsla(160, 84%, 39%, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .link-icon {
+      font-size: 2rem;
+      flex-shrink: 0;
+    }
+
+    .link-content {
+      flex: 1;
+      text-align: left;
+    }
+
+    .link-title {
+      font-weight: 600;
+      font-size: 1.125rem;
+      margin-bottom: 0.25rem;
+      color: var(--foreground);
+    }
+
+    .link-desc {
+      font-size: 0.875rem;
+      color: var(--muted-foreground);
+    }
+
+    .demo-info {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: var(--muted);
+      border-radius: var(--radius);
+      text-align: left;
+    }
+
+    .demo-info h3 {
+      color: var(--foreground);
+      margin-bottom: 0.75rem;
+    }
+
+    .demo-info p {
+      color: var(--muted-foreground);
+      line-height: 1.6;
+      margin-bottom: 0.5rem;
+    }
+
+    .demo-info ul {
+      margin-left: 1.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .demo-info li {
+      color: var(--muted-foreground);
+      margin-bottom: 0.25rem;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      background: var(--primary);
+      color: white;
+      border-radius: calc(var(--radius) * 2);
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 0.5rem;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 2rem;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      .subtitle {
+        font-size: 1rem;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>🤖 Paseo Libre Chat Widget - Demo Standalone</h1>
-  
-  <div class="demo-content">
-    <h2>Demo en Vivo</h2>
-    <p>El widget flotante aparecerá en la esquina inferior derecha de esta página.</p>
-    <p>Esta es una página HTML simple sin React, Next.js ni ningún framework - solo JavaScript vanilla.</p>
+  <!-- Quick Dark Mode Toggle -->
+  <div class="quick-dark-toggle">
+    <button class="quick-toggle-btn active" data-mode="light">☀️</button>
+    <button class="quick-toggle-btn" data-mode="dark">🌙</button>
   </div>
 
-  <div class="demo-content">
-    <h2>Configuración Dinámica</h2>
-    <div class="config-panel">
-      <h3>Personaliza el Widget</h3>
-      
-      <div class="config-item">
-        <label for="apiKey">API Key:</label>
-        <input type="text" id="apiKey" value="demo-key-12345" />
-      </div>
+  <div class="container">
+    <h1>🤖 Paseo Libre Chat Widget</h1>
+    <p class="subtitle">Herramientas de Demo y Personalización</p>
 
-      <div class="config-item">
-        <label for="apiUrl">API Base URL:</label>
-        <input type="text" id="apiUrl" value="http://localhost:4000" />
-      </div>
+    <div class="links">
+      <a href="./theme-builder.html" class="link-card">
+        <span class="link-icon">🎨</span>
+        <div class="link-content">
+          <div class="link-title">
+            Theme Builder
+            <span class="badge">PRINCIPAL</span>
+          </div>
+          <div class="link-desc">
+            Crea y personaliza temas en tiempo real. Herramienta oficial para generar configuraciones.
+          </div>
+        </div>
+      </a>
 
-      <div class="config-item">
-        <label for="botName">Nombre del Bot:</label>
-        <input type="text" id="botName" value="Asistente Virtual" />
-      </div>
+      <a href="./examples/cdn-example.html" class="link-card">
+        <span class="link-icon">📦</span>
+        <div class="link-content">
+          <div class="link-title">Ejemplo CDN</div>
+          <div class="link-desc">
+            Integración completa vía CDN - Sin frameworks, solo JavaScript vanilla.
+          </div>
+        </div>
+      </a>
+    </div>
 
-      <div class="config-item">
-        <label for="primaryColor">Color Primario:</label>
-        <input type="color" id="primaryColor" value="#10b981" />
-      </div>
-
-      <div class="config-item">
-        <label for="position">Posición:</label>
-        <select id="position">
-          <option value="bottom-right">Bottom Right</option>
-          <option value="bottom-left">Bottom Left</option>
-          <option value="top-right">Top Right</option>
-          <option value="top-left">Top Left</option>
-        </select>
-      </div>
-
-      <button onclick="reinitWidget()">Aplicar Cambios</button>
+    <div class="demo-info">
+      <h3>💡 Información</h3>
+      <p><strong>El widget aparecerá en la esquina inferior derecha</strong> cuando abras cualquiera de las demos.</p>
+      <p>Para crear un tema personalizado, usa el <strong>Theme Builder</strong> que incluye:</p>
+      <ul>
+        <li>✅ Temas predefinidos listos para usar</li>
+        <li>✅ Editor visual de colores y espaciado</li>
+        <li>✅ Preview en tiempo real con sincronización automática</li>
+        <li>✅ Modo oscuro automático o manual</li>
+        <li>✅ Exportación de configuración JSON</li>
+      </ul>
     </div>
   </div>
 
-  <div class="demo-content">
-    <h2>Instalación</h2>
-    <p>Para usar este widget en tu sitio web, agrega este código antes del cierre del <code>&lt;/body&gt;</code>:</p>
-    <pre><code>&lt;!-- Paseo Libre Chat Widget --&gt;
-&lt;script src="https://cdn.paseolibre.com/chat-widget.js"&gt;&lt;/script&gt;
-&lt;script&gt;
-  PaseoLibreChat.init({
-    apiKey: 'tu-api-key-aqui',
-    apiBaseUrl: 'https://api.paseolibre.com',
-    theme: {
-      primaryColor: '#10b981',
-      botName: 'Asistente Paseo Libre',
-      position: 'bottom-right'
-    }
-  });
-&lt;/script&gt;</code></pre>
-  </div>
-
-  <!-- Widget Script -->
-  <script type="module" src="/standalone.tsx"></script>
-  <script type="module">
-    // Inicialización inicial
-    let widgetInstance = null;
-
-    async function initWidget() {
-      const config = {
-        apiKey: document.getElementById('apiKey').value,
-        apiBaseUrl: document.getElementById('apiUrl').value,
-        theme: {
-          primaryColor: document.getElementById('primaryColor').value,
-          botName: document.getElementById('botName').value,
-          logoUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=paseolibre',
-          position: document.getElementById('position').value,
-          welcomeMessage: '¡Hola! 👋 Soy tu asistente virtual. ¿En qué puedo ayudarte?',
-          inputPlaceholder: 'Escribe tu mensaje...',
-          // ✨ CSS Variables para personalización completa
-          cssVariables: {
-            background: '0 0% 100%',           // Fondo blanco
-            foreground: '240 10% 3.9%',        // Texto oscuro
-            card: '0 0% 100%',                 // Fondo de tarjetas
-            cardForeground: '240 10% 3.9%',    // Texto de tarjetas
-            primary: '160 84% 39%',            // Verde Paseo Libre
-            primaryForeground: '0 0% 100%',    // Blanco sobre verde
-            muted: '240 4.8% 95.9%',           // Gris claro
-            mutedForeground: '240 3.8% 46.1%', // Gris oscuro
-            border: '240 5.9% 90%',            // Bordes grises
-            destructive: '0 84.2% 60.2%',      // Rojo para errores
-            radius: '0.5rem',                  // Bordes redondeados
-          }
-        },
-        onNavigate: (url) => {
-          console.log('Navegación solicitada:', url);
-          // window.location.href = url;
-        },
-        onEvent: (eventName, data) => {
-          console.log('Evento recibido:', eventName, data);
-        },
-        onStateChange: (isOpen) => {
-          console.log('Widget estado:', isOpen ? 'abierto' : 'cerrado');
+  <script>
+    // Dark mode toggle
+    document.querySelectorAll('[data-mode]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const mode = btn.dataset.mode
+        
+        document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('active'))
+        btn.classList.add('active')
+        
+        if (mode === 'dark') {
+          document.body.classList.add('dark-mode')
+        } else {
+          document.body.classList.remove('dark-mode')
         }
-      };
-
-      if (widgetInstance) {
-        widgetInstance.destroy();
-      }
-
-      // Asegurar que PaseoLibreChat esté disponible
-      if (!window.PaseoLibreChat) {
-        try {
-          const module = await import('/standalone.tsx');
-          window.PaseoLibreChat = module.default;
-        } catch (error) {
-          console.error('Error cargando módulo:', error);
-          return;
-        }
-      }
-
-      widgetInstance = window.PaseoLibreChat.init(config);
-    }
-
-    async function reinitWidget() {
-      await initWidget();
-      alert('Widget reiniciado con nueva configuración!');
-    }
-
-    // Exponer funciones globalmente para onclick
-    window.initWidget = initWidget;
-    window.reinitWidget = reinitWidget;
-
-    // Inicializar al cargar la página
-    window.addEventListener('DOMContentLoaded', () => {
-      setTimeout(() => {
-        initWidget();
-      }, 100);
-    });
+      })
+    })
   </script>
 </body>
 </html>

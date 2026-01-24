@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useRef, useMemo } from 'react'
-import { Play, Pause, Loader2 } from 'lucide-react'
+import { useState, useRef, useMemo, memo } from 'react'
+import { Play, Pause, Loader2 } from './Icons'
 import { cn } from '@/lib/utils'
-import { getSolidStyles, getPrimaryColor } from '../utils/theme'
+import { getPrimaryColor } from '../utils/theme'
 
 interface AudioPlayerProps {
   url: string
@@ -11,14 +11,13 @@ interface AudioPlayerProps {
   primaryColor?: string
 }
 
-export function AudioPlayer({ url, isBot, primaryColor }: AudioPlayerProps) {
+export const AudioPlayer = memo(function AudioPlayer({ url, isBot, primaryColor }: AudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [duration, setDuration] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const audioRef = useRef<HTMLAudioElement>(null)
   
-  const solidStyles = useMemo(() => getSolidStyles(), [])
   const brandColor = useMemo(() => getPrimaryColor({ primaryColor }), [primaryColor])
 
   const togglePlay = () => {
@@ -49,7 +48,7 @@ export function AudioPlayer({ url, isBot, primaryColor }: AudioPlayerProps) {
         disabled={isLoading}
         className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
         style={{
-          backgroundColor: isBot ? brandColor : solidStyles.card,
+          backgroundColor: isBot ? brandColor : 'hsl(var(--card))',
           color: isBot ? 'white' : brandColor,
         }}
       >
@@ -85,4 +84,4 @@ export function AudioPlayer({ url, isBot, primaryColor }: AudioPlayerProps) {
       </div>
     </div>
   )
-}
+})

@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useTranslations } from '@/chat-widget/i18n'
-import { MessageCircle, X } from 'lucide-react'
+import { MessageCircle, X } from './Icons'
 import { cn } from '@/lib/utils'
-import { getPrimaryColor, getSolidStyles } from '../utils/theme'
+import { getPrimaryColor } from '../utils/theme'
 import type { BubbleStyles } from '../types'
+import { logger } from '../utils/logger'
 
 export type BotEmotion =
   | 'default'
@@ -49,9 +50,8 @@ export function Launcher({
   promptPersistence = 'session',
   avatarScale = 1.0,
 }: LauncherProps) {
-  const t = useTranslations('extracted')
+  const { t } = useTranslations('extracted')
   const themeColor = getPrimaryColor({ primaryColor })
-  const solidStyles = useMemo(() => getSolidStyles(), [])
   const customLauncherStyle = styles?.launcher?.bg
   const showPulse = styles?.launcher?.pulse !== false
 
@@ -124,7 +124,7 @@ export function Launcher({
   }, [starterPrompt, isOpen, hasDismissed, promptPersistence, handleClosePrompt])
 
   const handleMainAction = () => {
-    console.log('[Launcher] handleMainAction called, isOpen:', isOpen)
+    logger.debug('Launcher handleMainAction called, isOpen:', isOpen)
     setHasDismissed(true)
     if (promptPersistence === 'forever')
       localStorage.setItem(STORAGE_KEY, 'dismissed')
@@ -160,9 +160,9 @@ export function Launcher({
           style={{ 
             width: 'max-content', 
             maxWidth: '280px',
-            backgroundColor: solidStyles.background,
-            color: solidStyles.foreground,
-            borderColor: solidStyles.border,
+            backgroundColor: 'hsl(var(--background))',
+            color: 'hsl(var(--foreground))',
+            borderColor: 'hsl(var(--border))',
           }}
         >
           <span className="text-sm font-semibold leading-tight tracking-tight whitespace-nowrap">

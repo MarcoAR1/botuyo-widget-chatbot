@@ -1,15 +1,16 @@
 'use client'
 
-import { useEffect, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslations } from '@/chat-widget/i18n'
-import { X, ShieldCheck, Heart } from 'lucide-react'
+import { X, ShieldCheck, Heart } from './Icons'
 import { cn } from '@/lib/utils'
-import type { BubbleStyles, ChatMessage } from '../types'
+import type { BubbleStyles, ChatMessage, MediaConfig } from '../types'
 import { MessageList } from './MessageList'
 import { InputArea } from './InputArea'
-import { getPrimaryColor, getSolidStyles } from '../utils/theme'
+import { getPrimaryColor } from '../utils/theme'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { useDynamicHeight } from '../hooks/useDynamicHeight'
+import { useFocusTrap } from '../hooks/useFocusTrap'
 import { EmotionAvatarMap } from './Launcher'
 
 export interface ChatWindowProps {
@@ -23,6 +24,7 @@ export interface ChatWindowProps {
   inputPlaceholder?: string
   primaryColor?: string
   borderRadius?: string
+  mediaConfig?: MediaConfig
   onClose: () => void
   onSendMessage: (message: string) => void
   position?: 'bottom-right' | 'bottom-left'
@@ -30,6 +32,7 @@ export interface ChatWindowProps {
   avatars?: EmotionAvatarMap
   onSendAttachment?: (file: File, type: 'image' | 'audio' | 'file') => void
   onSendLocation?: (location: { latitude: number; longitude: number }) => void
+  theme?: import('../types').ChatTheme
 }
 
 export function ChatWindow({
@@ -42,20 +45,30 @@ export function ChatWindow({
   welcomeMessage,
   inputPlaceholder,
   primaryColor,
+  mediaConfig,
   onClose,
   onSendMessage,
   bubbleStyles,
   avatars,
   onSendAttachment,
   onSendLocation,
+  theme,
 }: ChatWindowProps) {
-  const t = useTranslations()
+  const [logoError, setLogoError] = useState(false)
+  const { t } = useTranslations()
   const isMobile = useIsMobile()
   const themePrimary = getPrimaryColor({ primaryColor })
-  const dynamicHeightStyles = useDynamicHeight({ isOpen })
+  const dynamicHeightStyles = useDynamicHeight({ 
+    isOpen,
+    height: theme?.height,
+    bottom: theme?.bottom
+  })
   
-  // Generar estilos sólidos desde las variables CSS
-  const solidStyles = useMemo(() => getSolidStyles(), [])
+  // Focus trap para accesibilidad
+  const dialogRef = useFocusTrap({ 
+    enabled: isOpen, 
+    onEscape: onClose 
+  })
 
   useEffect(() => {
     if (!isOpen) return
@@ -75,20 +88,29 @@ export function ChatWindow({
 
   if (!isOpen) return null
 
+  const desktopBottom = theme?.bottom || '24px'
+  const isBottomLeft = theme?.position === 'bottom-left'
+
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
+      aria-labelledby="chat-window-title"
+      aria-describedby="chat-window-description"
+      tabIndex={-1}
       className={cn(
         'flex flex-col overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]',
         'text-foreground z-[9999]',
 
         // 💻 DESKTOP: ANCHO Y ALTO CONTROLADO CON MARGEN DEL TECHO
         !isMobile && [
-          'fixed bottom-6 right-6',
+          'fixed',
+          isBottomLeft ? 'left-6' : 'right-6',
           'w-[350px] min-w-[350px] max-w-[350px]',
           'rounded-[32px] border shadow-soft-2xl',
-          'animate-in fade-in zoom-in-95 slide-in-from-bottom-10',
+          'animate-in fade-in zoom-in-95',
+          isBottomLeft ? 'slide-in-from-bottom-10' : 'slide-in-from-bottom-10',
         ],
 
         // 📱 MOBILE: Full pantalla ajustada al viewport real
@@ -96,18 +118,21 @@ export function ChatWindow({
       )}
       style={{
         ...dynamicHeightStyles,
-        // 🎨 ESTILOS SÓLIDOS APLICADOS DESDE TEMA
-        backgroundColor: solidStyles.background,
-        borderColor: solidStyles.border,
-        color: solidStyles.foreground,
+        // Aplicar bottom personalizado solo en desktop
+        ...(!isMobile && { bottom: desktopBottom }),
+        // 🎨 CSS VARIABLES - Los temas se aplican automáticamente
+        backgroundColor: 'hsl(var(--background))',
+        borderColor: 'hsl(var(--border))',
+        color: 'hsl(var(--foreground))',
       }}
     >
       {/* --- HEADER --- */}
       <header 
-        className="relative shrink-0 p-4 border-b z-20"
+        className="relative shrink-0 border-b z-20"
         style={{
-          backgroundColor: `${solidStyles.background}e6`, // 90% opacity
-          borderColor: solidStyles.border,
+          padding: 'var(--spacing-5)',
+          backgroundColor: 'hsl(var(--background) / 0.9)',
+          borderColor: 'hsl(var(--border))',
           backdropFilter: 'blur(24px)',
         }}
       >
@@ -115,11 +140,20 @@ export function ChatWindow({
           <div className="flex items-center gap-3">
             <div className="relative">
               <div className="h-10 w-10 rounded-2xl overflow-hidden bg-primary/10 border-2 border-background shadow-soft-sm">
-                <img
-                  src={logoUrl || '/avatar/mar_happy.webp'}
-                  alt={botName}
-                  className="h-full w-full object-cover"
-                />
+                {logoError ? (
+                  <div className="h-full w-full flex items-center justify-center bg-muted text-muted-foreground">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                ) : (
+                  <img
+                    src={logoUrl || '/avatar/mar_happy.webp'}
+                    alt={botName}
+                    className="h-full w-full object-cover"
+                    onError={() => setLogoError(true)}
+                  />
+                )}
               </div>
               <div
                 className={cn(
@@ -131,12 +165,15 @@ export function ChatWindow({
 
             <div className="flex flex-col">
               <div className="flex items-center gap-1">
-                <span className="font-black text-xs uppercase tracking-tight text-foreground">
+                <span 
+                  id="chat-window-title"
+                  className="font-black text-xs uppercase tracking-tight text-foreground"
+                >
                   {botName}
                 </span>
                 <ShieldCheck className="h-3 w-3 text-primary fill-primary/10" />
               </div>
-              <div className="flex items-center gap-1.5 mt-0.5">
+              <div id="chat-window-description" className="flex items-center gap-1.5 mt-0.5">
                 <span className="flex h-1 w-1 rounded-full bg-emerald-500" />
                 <span className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.1em]">
                   {isConnected ? t('online') : t('offline')}
@@ -147,6 +184,7 @@ export function ChatWindow({
 
           <button
             onClick={onClose}
+            aria-label={t('cerrar_chat')}
             className="h-8 w-8 flex items-center justify-center rounded-full bg-muted/60 hover:bg-muted text-foreground transition-all active:scale-90"
           >
             <X className="h-4 w-4" />
@@ -158,7 +196,8 @@ export function ChatWindow({
       <main 
         className="flex-1 min-h-0 relative flex flex-col"
         style={{
-          backgroundColor: solidStyles.muted,
+          padding: 'var(--spacing-5)',
+          backgroundColor: 'hsl(var(--muted))',
         }}
       >
         <MessageList
@@ -176,23 +215,35 @@ export function ChatWindow({
 
       {/* --- FOOTER --- */}
       <footer
+        className="border-t"
         style={{
+          paddingTop: 'var(--spacing-5)',
+          paddingLeft: 'var(--spacing-5)',
+          paddingRight: 'var(--spacing-5)',
           paddingBottom: isMobile
-            ? 'max(0.75rem, env(safe-area-inset-bottom))'
-            : '0.75rem',
-          backgroundColor: solidStyles.background,
+            ? 'max(var(--spacing-3), env(safe-area-inset-bottom))'
+            : 'var(--spacing-3)',
+          backgroundColor: 'hsl(var(--background))',
+          borderColor: 'hsl(var(--border))',
         }}
       >
         <InputArea
           isConnected={isConnected}
           placeholder={inputPlaceholder}
           primaryColor={themePrimary}
+          mediaConfig={mediaConfig}
           onSendMessage={onSendMessage}
           onSendAttachment={onSendAttachment}
           onSendLocation={onSendLocation}
         />
 
-        <div className="flex items-center justify-center gap-1 mt-2 pb-0.5 opacity-25 select-none">
+        <div 
+          className="flex items-center justify-center gap-1 opacity-25 select-none"
+          style={{ 
+            marginTop: 'var(--spacing-2)',
+            paddingBottom: 'var(--spacing-1)' 
+          }}
+        >
           <Heart className="h-2 w-2 text-primary fill-primary" />
           <span className="text-[7px] font-bold uppercase tracking-[0.2em]">
             {t('con_amor_paseo_libre')}</span>

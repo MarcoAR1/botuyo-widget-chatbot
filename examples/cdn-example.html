@@ -100,9 +100,9 @@
     </p>
 
     <div class="button-group">
-      <button onclick="widget.open()">🚀 Abrir Chat</button>
-      <button onclick="widget.close()">❌ Cerrar Chat</button>
-      <button onclick="widget.toggle()">🔄 Toggle Chat</button>
+      <button onclick="if(widget) widget.open()">🚀 Abrir Chat</button>
+      <button onclick="if(widget) widget.close()">❌ Cerrar Chat</button>
+      <button onclick="if(widget) widget.toggle()">🔄 Toggle Chat</button>
       <button onclick="sendTestMessage()">💬 Enviar Mensaje</button>
       <button onclick="showState()">📊 Ver Estado</button>
     </div>
@@ -133,8 +133,13 @@
   <script src="../dist/paseo-libre-chat.js"></script>
   
   <script>
-    // Inicializar el widget
-    const widget = PaseoLibreChat.init({
+    // Esperar a que el script esté cargado
+    let widget;
+    
+    // Inicializar el widget cuando PaseoLibreChat esté disponible
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.PaseoLibreChat) {
+        widget = window.PaseoLibreChat.init({
       apiKey: 'demo-api-key-12345',
       apiBaseUrl: 'https://api.paseolibre.com', // Cambiar por tu API real
       
@@ -172,10 +177,18 @@
       },
       
       onEvent: (eventName, data) => {
-        console.log('Evento:', eventName, data);
+          console.log('Evento:', eventName, data);
+        }
+      });
+        
+        // Actualizar estado inicial cuando el widget esté listo
+        setTimeout(() => {
+          updateStatus('Widget listo para usar ✅');
+        }, 1000);
+      } else {
+        updateStatus('❌ Error: PaseoLibreChat no está disponible. Verifica que el script esté cargado.');
       }
     });
-
     // Funciones auxiliares
     function updateStatus(message) {
       const statusEl = document.getElementById('status');
@@ -183,22 +196,25 @@
     }
 
     function sendTestMessage() {
+      if (!widget) {
+        alert('Widget no está inicializado');
+        return;
+      }
       widget.sendMessage('Este es un mensaje de prueba enviado programáticamente 🎯');
       widget.open();
       updateStatus('Mensaje enviado programáticamente');
     }
 
     function showState() {
+      if (!widget) {
+        alert('Widget no está inicializado');
+        return;
+      }
       const state = widget.getState();
       alert(JSON.stringify(state, null, 2));
       updateStatus('Estado mostrado en consola');
       console.log('Estado del widget:', state);
     }
-
-    // Actualizar estado inicial
-    setTimeout(() => {
-      updateStatus('Widget listo para usar ✅');
-    }, 1000);
 
     // Ejemplo de actualización dinámica del tema
     setTimeout(() => {

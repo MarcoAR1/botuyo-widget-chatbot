@@ -12,6 +12,7 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
 import { ChatWidget } from './ChatWidget'
 import type { ChatWidgetProps } from './types'
+import { logger } from './utils/logger'
 
 // ========== Context Types ==========
 
@@ -30,6 +31,18 @@ export interface ChatWidgetContextValue {
   clearMessages: () => void
   /** Número de mensajes no leídos */
   unreadCount: number
+}
+
+// Internal reference to sendMessage callback from ChatWidget
+let _internalSendMessage: ((text: string) => void) | null = null
+let _internalClearMessages: (() => void) | null = null
+
+export function _setInternalSendMessage(fn: ((text: string) => void) | null) {
+  _internalSendMessage = fn
+}
+
+export function _setInternalClearMessages(fn: (() => void) | null) {
+  _internalClearMessages = fn
 }
 
 const ChatWidgetContext = createContext<ChatWidgetContextValue | null>(null)
@@ -100,13 +113,21 @@ export function ChatWidgetProvider({
   }, [onStateChange])
 
   const sendMessage = useCallback((text: string) => {
-    // TODO: Implementar envío directo de mensajes al ChatWidget
-    console.log('[ChatWidgetProvider] sendMessage:', text)
+    if (_internalSendMessage) {
+      _internalSendMessage(text)
+      logger.debug('ChatWidgetProvider sendMessage:', text)
+    } else {
+      logger.warn('sendMessage called but no handler registered')
+    }
   }, [])
 
   const clearMessages = useCallback(() => {
-    // Esta funcionalidad necesitaría ser implementada en el ChatWidget
-    console.log('[ChatWidgetProvider] clearMessages called')
+    if (_internalClearMessages) {
+      _internalClearMessages()
+      logger.debug('ChatWidgetProvider clearMessages called')
+    } else {
+      logger.warn('clearMessages called but no handler registered')
+    }
   }, [])
 
   const contextValue: ChatWidgetContextValue = {

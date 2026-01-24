@@ -3,7 +3,7 @@
  * Exportaciones centrales del sistema de temas
  * 
  * Importa desde aquí todo lo relacionado con temas:
- * import { PASEO_LIBRE_THEME, getSolidStyles, mergeThemeWithDefaults } from './utils/themes'
+ * import { DEFAULT_THEME, getSolidStyles, mergeThemeWithDefaults } from './utils/themes'
  */
 
 // Tipos
@@ -17,10 +17,10 @@ export {
 
 // Temas Predefinidos
 export {
-  PASEO_LIBRE_THEME,
-  PASEO_LIBRE_DARK_THEME,
-  CORPORATE_BLUE_THEME,
-  MINIMALIST_THEME,
+  DEFAULT_THEME,
+  // PASEO_LIBRE_DARK_THEME,
+  // CORPORATE_BLUE_THEME,
+  // MINIMALIST_THEME,
 } from '../theme'
 
 // Utilidades

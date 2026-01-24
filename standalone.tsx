@@ -14,10 +14,34 @@ import React from 'react';
 // Import standalone styles
 import './styles.css';
 
+interface CSSVariables {
+  background?: string;
+  foreground?: string;
+  card?: string;
+  cardForeground?: string;
+  primary?: string;
+  primaryForeground?: string;
+  muted?: string;
+  mutedForeground?: string;
+  border?: string;
+  destructive?: string;
+  radius?: string;
+  spacing1?: string;
+  spacing2?: string;
+  spacing3?: string;
+  spacing4?: string;
+  spacing5?: string;
+  spacing6?: string;
+  spacing8?: string;
+}
+
 interface StandaloneConfig extends Partial<ChatWidgetProps> {
   // Override required fields to make them optional for standalone
   apiKey: string;
   apiBaseUrl: string;
+  theme?: ChatWidgetProps['theme'] & {
+    cssVariables?: CSSVariables;
+  };
 }
 
 class PaseoLibreChatWidget {
@@ -54,16 +78,49 @@ class PaseoLibreChatWidget {
       document.body.appendChild(this.container);
     }
 
+    // Apply CSS variables to container if provided
+    if (this.config.theme?.cssVariables) {
+      const vars = this.config.theme.cssVariables;
+      const varMap: Record<string, string | undefined> = {
+        background: vars.background,
+        foreground: vars.foreground,
+        card: vars.card,
+        cardForeground: vars.cardForeground,
+        primary: vars.primary,
+        primaryForeground: vars.primaryForeground,
+        muted: vars.muted,
+        mutedForeground: vars.mutedForeground,
+        border: vars.border,
+        destructive: vars.destructive,
+        radius: vars.radius,
+        // Design System - Spacing (no spacing7 - no existe en CSSVariables)
+        spacing1: vars.spacing1,
+        spacing2: vars.spacing2,
+        spacing3: vars.spacing3,
+        spacing4: vars.spacing4,
+        spacing5: vars.spacing5,
+        spacing6: vars.spacing6,
+        spacing8: vars.spacing8,
+      };
+
+      Object.entries(varMap).forEach(([key, value]) => {
+        if (value !== undefined) {
+          this.container!.style.setProperty(`--${key}`, value);
+        }
+      });
+    }
+
     // Create React root
     if (!this.root) {
       this.root = createRoot(this.container);
     }
 
-    // Merge config with defaults
+    // Merge config with defaults (user config takes precedence)
     const widgetProps: ChatWidgetProps = {
       apiKey: this.config.apiKey,
       apiBaseUrl: this.config.apiBaseUrl,
       theme: {
+        // Defaults
         primaryColor: '#10b981',
         botName: 'Asistente Virtual',
         logoUrl: '/avatar/mar_default.webp',
@@ -72,6 +129,7 @@ class PaseoLibreChatWidget {
         inputPlaceholder: 'Escribe tu mensaje...',
         borderRadius: '0.75rem',
         launcherBorderRadius: '50%',
+        // User config overrides defaults
         ...this.config.theme,
       },
       userContext: this.config.userContext,

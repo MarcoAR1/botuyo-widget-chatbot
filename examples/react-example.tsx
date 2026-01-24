@@ -1,6 +1,9 @@
+// @ts-nocheck
 /**
  * Ejemplo de uso del Chat Widget en una aplicación React con TypeScript
  * Usando el ChatWidgetProvider para acceso global al estado del chat
+ * 
+ * NOTA: Este es código de ejemplo y no se incluye en el build de producción.
  */
 
 import React from 'react';

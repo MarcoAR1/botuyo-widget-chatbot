@@ -7,13 +7,16 @@ interface DynamicHeightOptions {
   isOpen: boolean
   headerHeight?: number
   marginTop?: number
+  height?: string  // Altura personalizada (ej: '600px', '80vh')
+  bottom?: string  // Distancia desde bottom (ej: '24px', '1.5rem')
 }
 
 const DESKTOP_MAX_HEIGHT = 700
 const DESKTOP_MIN_HEIGHT = 500
 const DESKTOP_MARGIN_TOP = 64 // 4rem
+const DEFAULT_BOTTOM = '24px'
 
-export function useDynamicHeight({ isOpen }: DynamicHeightOptions) {
+export function useDynamicHeight({ isOpen, height, bottom }: DynamicHeightOptions) {
   const isMobile = useIsMobile()
   const [dynamicHeight, setDynamicHeight] = useState<React.CSSProperties>({})
 
@@ -51,16 +54,26 @@ export function useDynamicHeight({ isOpen }: DynamicHeightOptions) {
         window.visualViewport?.removeEventListener('scroll', updateMobileHeight)
       }
     } else {
-      // En desktop, calculamos la altura disponible
-      const availableHeight = window.innerHeight - DESKTOP_MARGIN_TOP
-      const height = Math.min(DESKTOP_MAX_HEIGHT, Math.max(DESKTOP_MIN_HEIGHT, availableHeight))
-      
-      setDynamicHeight({
-        height: `${height}px`,
-        maxHeight: `${availableHeight}px`,
-      })
+      // En desktop, usar altura personalizada o calcular dinámicamente
+      if (height) {
+        // Si hay altura personalizada, usarla directamente
+        setDynamicHeight({
+          height: height,
+          bottom: bottom || DEFAULT_BOTTOM,
+        })
+      } else {
+        // Calcular altura disponible dinámicamente
+        const availableHeight = window.innerHeight - DESKTOP_MARGIN_TOP
+        const calculatedHeight = Math.min(DESKTOP_MAX_HEIGHT, Math.max(DESKTOP_MIN_HEIGHT, availableHeight))
+        
+        setDynamicHeight({
+          height: `${calculatedHeight}px`,
+          maxHeight: `${availableHeight}px`,
+          bottom: bottom || DEFAULT_BOTTOM,
+        })
+      }
     }
-  }, [isMobile])
+  }, [isMobile, height, bottom])
 
   useEffect(() => {
     if (!isOpen) return

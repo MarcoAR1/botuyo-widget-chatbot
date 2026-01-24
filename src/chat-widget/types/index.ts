@@ -10,6 +10,24 @@ import {
 } from '../components/Launcher'
 
 /**
+ * Configuración de funcionalidades multimedia
+ */
+export interface MediaConfig {
+  /** Habilitar envío de imágenes (default: true) */
+  enableImages?: boolean
+  /** Habilitar grabación y envío de audio (default: true) */
+  enableAudio?: boolean
+  /** Habilitar envío de archivos (default: true) */
+  enableFiles?: boolean
+  /** Habilitar compartir ubicación (default: true) */
+  enableLocation?: boolean
+  /** Tipos de archivos permitidos (default: todos) */
+  allowedFileTypes?: string[]
+  /** Tamaño máximo de archivo en MB (default: 10) */
+  maxFileSizeMB?: number
+}
+
+/**
  * Contexto de página que se envía con cada mensaje
  * El padre puede pasar información sobre qué está viendo el usuario
  * IMPORTANTE: Esto NO debe causar reconexiones del socket
@@ -47,6 +65,10 @@ export interface ChatWidgetProps {
 
   // ========== Configuración Visual (White-Labeling) ==========
   theme?: ChatTheme
+
+  // ========== Configuración de Funcionalidades ==========
+  /** Configuración de funcionalidades multimedia (imágenes, audio, archivos, ubicación) */
+  mediaConfig?: MediaConfig
 
   // ========== Identidad del Usuario (Opcional) ==========
   /** Context del usuario si ya está autenticado en la app host */
@@ -118,6 +140,12 @@ export interface ChatTheme {
   /** Border radius del launcher button (CSS value, ej: '50%', '24px') */
   launcherBorderRadius?: string
 
+  /** Altura del chat window en desktop (CSS value, ej: '600px', '80vh') */
+  height?: string
+
+  /** Distancia desde el bottom en desktop (CSS value, ej: '24px', '1.5rem') */
+  bottom?: string
+
   /* Aparece fuera del chat cuando está cerrado. Ej: "¿Necesitas ayuda?" */
   starterPrompt?: string
 
@@ -151,6 +179,22 @@ export interface ChatTheme {
     destructive?: string
     /** Border radius base (ej: "0.5rem") */
     radius?: string
+    
+    // Design System - Spacing
+    /** Spacing 1 - Extra small (ej: "0.25rem") */
+    spacing1?: string
+    /** Spacing 2 - Small (ej: "0.5rem") */
+    spacing2?: string
+    /** Spacing 3 - Medium small (ej: "0.75rem") */
+    spacing3?: string
+    /** Spacing 4 - Medium (ej: "1rem") */
+    spacing4?: string
+    /** Spacing 5 - Default padding (ej: "0.75rem") */
+    spacing5?: string
+    /** Spacing 6 - Large (ej: "1.5rem") */
+    spacing6?: string
+    /** Spacing 8 - Extra large (ej: "2rem") */
+    spacing8?: string
   }
 }
 
@@ -225,12 +269,21 @@ export interface AudioMessage extends BaseMessage {
   content: string // URL o Base64 del audio
 }
 
+export interface FileMessage extends BaseMessage {
+  type: 'file'
+  fileUrl: string
+  fileName: string
+  fileSize?: number
+  mimeType?: string
+}
+
 export type ChatMessage =
   | TextMessage
   | ImageMessage
   | LocationMessage
   | SystemMessage
   | AudioMessage
+  | FileMessage
 
 // ========== Estado del Widget ==========
 export interface ChatState {

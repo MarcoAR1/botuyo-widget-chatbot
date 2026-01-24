@@ -1,13 +1,13 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, lazy, Suspense, memo } from 'react'
 import { useTranslations } from '@/chat-widget/i18n'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { motion } from 'framer-motion'
-import { CheckCheck, MapPin, ExternalLink, ArrowRight } from 'lucide-react'
+import rehypeSanitize from 'rehype-sanitize'
+import { CheckCheck, MapPin, ExternalLink, ArrowRight, FileIcon, Download } from './Icons'
 import { cn } from '@/lib/utils'
-import { getPrimaryColor, getSolidStyles } from '../utils/theme'
+import { getPrimaryColor } from '../utils/theme'
 import type {
   ChatMessage,
   BubbleStyles,
@@ -15,10 +15,13 @@ import type {
   AudioMessage,
   ImageMessage,
   LocationMessage,
+  FileMessage,
 } from '../types'
 import type { EmotionAvatarMap } from './Launcher'
-import { AudioPlayer } from './AudioPlayer'
-import { Gallery } from './Gallery'
+
+// Lazy load componentes pesados
+const AudioPlayer = lazy(() => import('./AudioPlayer').then(m => ({ default: m.AudioPlayer })))
+const Gallery = lazy(() => import('./Gallery').then(m => ({ default: m.Gallery })))
 
 export interface MessageBubbleProps {
   message: ChatMessage
@@ -31,7 +34,7 @@ export interface MessageBubbleProps {
   isLast?: boolean
 }
 
-export function MessageBubble({
+export const MessageBubble = memo(function MessageBubble({
   message,
   primaryColor,
   botAvatar,
@@ -40,13 +43,12 @@ export function MessageBubble({
   isFirst = true,
   isLast = true,
 }: MessageBubbleProps) {
-  const t = useTranslations('extracted')
+  const { t } = useTranslations('extracted')
   const isUser = message.sender === 'user'
   const isSystem = message.type === 'system' || message.sender === 'system'
   const isBot = !isUser && !isSystem
 
   const brandColor = getPrimaryColor({ primaryColor })
-  const solidStyles = useMemo(() => getSolidStyles(), [])
 
   // --- AVATAR LOGIC ---
   const currentAvatar = useMemo(() => {
@@ -92,7 +94,7 @@ export function MessageBubble({
           rel="noopener noreferrer"
           className="block my-2 no-underline group"
         >
-          <span className="flex items-center gap-3 p-3 border rounded-xl shadow-sm group-hover:border-primary/30 transition-all" style={{ backgroundColor: solidStyles.card, borderColor: solidStyles.border }}>
+          <span className="flex items-center gap-3 p-3 border rounded-xl shadow-sm group-hover:border-primary/30 transition-all" style={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}>
             <span
               className="flex-shrink-0 p-2 rounded-full"
               style={{ backgroundColor: `${brandColor}1a`, color: brandColor }}
@@ -139,7 +141,15 @@ export function MessageBubble({
 
   const RenderImage = ({ src, alt }: any) => {
     if (!src) return null
-    return <Gallery images={[{ src, alt }]} radius="rounded-xl" />
+    return (
+      <Suspense fallback={
+        <div className="my-3 animate-pulse">
+          <div className="w-full h-48 bg-muted rounded-xl" />
+        </div>
+      }>
+        <Gallery images={[{ src, alt }]} radius="rounded-xl" />
+      </Suspense>
+    )
   }
 
   // --- CONTENT SWITCHER ---
@@ -147,25 +157,40 @@ export function MessageBubble({
     switch (message.type) {
       case 'audio':
         return (
-          <AudioPlayer
-            url={(message as AudioMessage).content}
-            isBot={isBot}
-            primaryColor={primaryColor}
-          />
+          <Suspense fallback={
+            <div className="flex items-center gap-3 py-1 min-w-[200px] animate-pulse">
+              <div className="w-8 h-8 rounded-full bg-muted" />
+              <div className="flex-1 space-y-1">
+                <div className="h-1 w-full bg-muted rounded-full" />
+              </div>
+            </div>
+          }>
+            <AudioPlayer
+              url={(message as AudioMessage).content}
+              isBot={isBot}
+              primaryColor={primaryColor}
+            />
+          </Suspense>
         )
 
       case 'image': {
         const imgMsg = message as ImageMessage
         return (
-          <Gallery
-            images={[
-              {
-                src: imgMsg.imageUrl || (imgMsg as any).content,
-                alt: imgMsg.altText || 'Imagen',
-              },
-            ]}
-            radius="rounded-xl"
-          />
+          <Suspense fallback={
+            <div className="my-3 animate-pulse">
+              <div className="w-full h-48 bg-muted rounded-xl" />
+            </div>
+          }>
+            <Gallery
+              images={[
+                {
+                  src: imgMsg.imageUrl || (imgMsg as any).content,
+                  alt: imgMsg.altText || 'Imagen',
+                },
+              ]}
+              radius="rounded-xl"
+            />
+          </Suspense>
         )
       }
 
@@ -177,6 +202,50 @@ export function MessageBubble({
           >
             Ver ubicación
           </RenderLink>
+        )
+      }
+
+      case 'file': {
+        const fileMsg = message as FileMessage
+        const fileExtension = fileMsg.fileName?.split('.').pop()?.toLowerCase() || ''
+        const fileSize = fileMsg.fileSize 
+          ? `${(fileMsg.fileSize / 1024 / 1024).toFixed(2)} MB`
+          : ''
+        
+        return (
+          <a
+            href={fileMsg.fileUrl}
+            download={fileMsg.fileName}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 p-3 border rounded-xl transition-all hover:scale-[1.02] group"
+            style={{
+              backgroundColor: isUser ? 'rgba(255,255,255,0.1)' : 'hsl(var(--muted))',
+              borderColor: isUser ? 'rgba(255,255,255,0.2)' : 'hsl(var(--border))',
+            }}
+          >
+            <div 
+              className="flex items-center justify-center w-10 h-10 rounded-lg shrink-0"
+              style={{ 
+                backgroundColor: isUser ? 'rgba(255,255,255,0.2)' : `${brandColor}1a`,
+                color: isUser ? 'white' : brandColor 
+              }}
+            >
+              <FileIcon size={20} strokeWidth={2.5} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold truncate">{fileMsg.fileName}</p>
+              {fileSize && (
+                <p className="text-xs opacity-60 mt-0.5">
+                  {fileExtension?.toUpperCase()} • {fileSize}
+                </p>
+              )}
+            </div>
+            <Download 
+              size={18} 
+              className="shrink-0 opacity-60 group-hover:opacity-100 transition-opacity" 
+            />
+          </a>
         )
       }
 
@@ -192,6 +261,17 @@ export function MessageBubble({
           >
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
+              rehypePlugins={[
+                [rehypeSanitize, {
+                  tagNames: ['p','a','img','strong','em','ul','ol','li','br','span'],
+                  attributes: {
+                    a: ['href', 'target', 'rel'],
+                    img: ['src', 'alt'],
+                    span: ['className'],
+                  },
+                  protocols: { a: { href: ['http','https','mailto','tel'] }, img: { src: ['http','https','data'] } }
+                }]
+              ]}
               components={{
                 a: RenderLink,
                 img: RenderImage,
@@ -213,9 +293,9 @@ export function MessageBubble({
         <span 
           className="px-3 py-1 border rounded-full text-[9px] font-black uppercase tracking-widest"
           style={{
-            backgroundColor: solidStyles.muted,
-            borderColor: solidStyles.border,
-            color: solidStyles.mutedForeground,
+            backgroundColor: 'hsl(var(--muted))',
+            borderColor: 'hsl(var(--border))',
+            color: 'hsl(var(--muted-foreground))',
           }}
         >
           {(message as TextMessage).content}
@@ -225,11 +305,9 @@ export function MessageBubble({
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
+    <div
       className={cn(
-        'flex w-full mb-0.5 group',
+        'flex w-full mb-0.5 group animate-in fade-in slide-in-from-bottom-2 duration-200',
         isUser ? 'justify-end' : 'justify-start gap-3',
         isFirst && 'mt-3',
         isLast && 'mb-3'
@@ -242,8 +320,8 @@ export function MessageBubble({
             <div 
               className="h-9 w-9 rounded-full overflow-hidden border shadow-sm"
               style={{
-                borderColor: solidStyles.border,
-                backgroundColor: solidStyles.background,
+                borderColor: 'hsl(var(--border))',
+                backgroundColor: 'hsl(var(--background))',
               }}
             >
               {currentAvatar ? (
@@ -270,7 +348,7 @@ export function MessageBubble({
       {/* BURBUJA */}
       <div
         className={cn(
-          'max-w-[85%] p-3 px-4 shadow-sm transition-all duration-300 relative',
+          'max-w-[85%] shadow-sm transition-all duration-300 relative',
           isUser
             ? 'text-primary-foreground'
             : 'border',
@@ -292,13 +370,15 @@ export function MessageBubble({
         style={
           isUser
             ? {
+                padding: 'var(--spacing-4) var(--spacing-5)',
                 backgroundColor: brandColor,
                 boxShadow: isLast ? `0 8px 20px -6px ${brandColor}33` : 'none',
               }
             : {
-                backgroundColor: solidStyles.card,
-                borderColor: `${solidStyles.border}99`,
-                color: solidStyles.foreground,
+                padding: 'var(--spacing-4) var(--spacing-5)',
+                backgroundColor: 'hsl(var(--card))',
+                borderColor: 'hsl(var(--border) / 0.6)',
+                color: 'hsl(var(--foreground))',
               }
         }
       >
@@ -319,6 +399,20 @@ export function MessageBubble({
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   )
-}
+}, (prevProps, nextProps) => {
+  // Custom comparator: solo re-render si cambió algo relevante
+  if (prevProps.message.id !== nextProps.message.id) return false
+  if (prevProps.message.timestamp !== nextProps.message.timestamp) return false
+  if (prevProps.primaryColor !== nextProps.primaryColor) return false
+  if (prevProps.botAvatar !== nextProps.botAvatar) return false
+  if (prevProps.botName !== nextProps.botName) return false
+  if (prevProps.isFirst !== nextProps.isFirst) return false
+  if (prevProps.isLast !== nextProps.isLast) return false
+  
+  // Comparar styles profundamente si existe
+  if (JSON.stringify(prevProps.styles) !== JSON.stringify(nextProps.styles)) return false
+  
+  return true // No re-renderizar
+})

@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎨 Theme Builder - Paseo Libre Chat Widget</title>
+  <link rel="stylesheet" href="./dist/paseo-libre-chat.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      /* Usando los mismos colores del theme del widget */
+      --primary: hsl(160, 84%, 39%);
+      --primary-dark: hsl(160, 84%, 32%);
+      --secondary: hsl(160, 70%, 45%);
+      --bg-light: hsl(240, 4.8%, 95.9%);
+      --bg-white: hsl(0, 0%, 100%);
+      --text-dark: hsl(240, 10%, 3.9%);
+      --text-gray: hsl(240, 3.8%, 46.1%);
+      --border: hsl(240, 5.9%, 90%);
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+      --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Dark Mode Variables */
+    body.dark-mode {
+      --primary: hsl(160, 84%, 55%);
+      --primary-dark: hsl(160, 84%, 45%);
+      --secondary: hsl(160, 70%, 60%);
+      --bg-light: hsl(240, 4.8%, 15%);
+      --bg-white: hsl(240, 10%, 10%);
+      --text-dark: hsl(0, 0%, 98%);
+      --text-gray: hsl(240, 3.8%, 70%);
+      --border: hsl(0, 0%, 20%);
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4);
+    }
+
+    body.dark-mode {
+      background: linear-gradient(135deg, hsl(240, 10%, 7%) 0%, hsl(240, 10%, 12%) 100%);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      min-height: 100vh;
+      padding: 1.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .builder-container {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    .builder-header {
+      text-align: center;
+      color: white;
+      margin-bottom: 2rem;
+    }
+
+    .builder-header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .builder-header p {
+      font-size: 1.1rem;
+      opacity: 0.95;
+    }
+
+    .builder-layout {
+      display: grid;
+      grid-template-columns: 380px 1fr 380px;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    @media (max-width: 1400px) {
+      .builder-layout {
+        grid-template-columns: 1fr 1fr;
+      }
+      .preview-panel {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .builder-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--bg-white);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .panel-header h2 {
+      font-size: 1.25rem;
+      color: var(--text-dark);
+      margin: 0;
+    }
+
+    .panel-icon {
+      font-size: 1.5rem;
+    }
+
+    /* Predefined Themes Panel */
+    .theme-grid {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .theme-card {
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .theme-card:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow);
+      transform: translateY(-2px);
+    }
+
+    .theme-card.active {
+      border-color: var(--primary);
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+    }
+
+    .theme-card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .theme-card-emoji {
+      font-size: 1.5rem;
+    }
+
+    .theme-card-name {
+      font-weight: 600;
+      color: var(--text-dark);
+      font-size: 1rem;
+    }
+
+    .theme-card-desc {
+      font-size: 0.875rem;
+      color: var(--text-gray);
+      margin-bottom: 0.75rem;
+    }
+
+    .theme-card-preview {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .color-dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    /* Custom Theme Builder */
+    .builder-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .builder-section-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 1rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-dark);
+      margin-bottom: 0.5rem;
+    }
+
+    .form-input,
+    .form-select {
+      width: 100%;
+      padding: 0.625rem 0.875rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .form-input:focus,
+    .form-select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .color-input-group {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .color-picker {
+      width: 48px;
+      height: 48px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .color-picker:hover {
+      border-color: var(--primary);
+    }
+
+    .spacing-slider {
+      width: 100%;
+    }
+
+    .slider-value {
+      display: inline-block;
+      min-width: 60px;
+      text-align: right;
+      font-size: 0.875rem;
+      color: var(--text-gray);
+      font-family: monospace;
+    }
+
+    /* Code Output Panel */
+    .code-output {
+      background: #1e293b;
+      border-radius: 8px;
+      padding: 1rem;
+      overflow-x: auto;
+      margin-top: 1rem;
+    }
+
+    .code-output pre {
+      margin: 0;
+      color: #e2e8f0;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 0.813rem;
+      line-height: 1.6;
+    }
+
+    .code-keyword { color: #c792ea; }
+    .code-string { color: #c3e88d; }
+    .code-property { color: #82aaff; }
+    .code-value { color: #f78c6c; }
+    .code-comment { color: #546e7a; }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-secondary {
+      background: var(--border);
+      color: var(--text-dark);
+    }
+
+    .btn-secondary:hover {
+      background: #cbd5e0;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .preview-panel {
+      min-height: 600px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
+    }
+
+    .preview-content {
+      text-align: center;
+      color: var(--text-gray);
+    }
+
+    .preview-content h3 {
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+      color: var(--text-dark);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .tab {
+      padding: 0.75rem 1rem;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-gray);
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.2s;
+    }
+
+    .tab:hover {
+      color: var(--text-dark);
+    }
+
+    .tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .success-message {
+      background: #10b981;
+      color: white;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+      display: none;
+      animation: slideIn 0.3s;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .toggle-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .toggle-btn {
+      flex: 1;
+      padding: 0.625rem;
+      border: 2px solid var(--border);
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .toggle-btn:hover {
+      border-color: var(--primary);
+    }
+
+    .toggle-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+
+    /* Quick Dark Mode Toggle */
+    .quick-dark-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10000;
+      display: flex;
+      gap: 0.5rem;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 0.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      backdrop-filter: blur(10px);
+    }
+
+    body.dark-mode .quick-dark-toggle {
+      background: rgba(45, 55, 72, 0.95);
+    }
+
+    .quick-toggle-btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      background: transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.2s;
+      font-weight: 500;
+      color: var(--text-dark);
+    }
+
+    .quick-toggle-btn:hover {
+      background: rgba(102, 126, 234, 0.1);
+    }
+
+    .quick-toggle-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <!-- Quick Dark Mode Toggle -->
+  <div class="quick-dark-toggle">
+    <button class="quick-toggle-btn active" data-page-mode="light">☀️ Claro</button>
+    <button class="quick-toggle-btn" data-page-mode="dark">🌙 Oscuro</button>
+  </div>
+
+  <div class="builder-container">
+    <!-- Header -->
+    <div class="builder-header">
+      <h1>🎨 Theme Builder</h1>
+      <p>Crea y personaliza temas para el Chat Widget en tiempo real</p>
+    </div>
+
+    <div class="builder-layout">
+      <!-- Left Panel: Predefined Themes -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-icon">📚</span>
+          <h2>Temas Predefinidos</h2>
+        </div>
+
+        <div class="theme-grid" id="predefined-themes">
+          <!-- Themes will be injected here -->
+        </div>
+      </div>
+
+      <!-- Middle Panel: Preview -->
+      <div class="panel preview-panel">
+        <div class="preview-content">
+          <h3>👈 Vista Previa en Vivo</h3>
+          <p>El widget aparecerá en la esquina inferior derecha.<br>Selecciona un tema o crea uno personalizado.</p>
+        </div>
+      </div>
+
+      <!-- Right Panel: Custom Theme Builder -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-icon">🎨</span>
+          <h2>Constructor de Tema</h2>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+          <button class="tab active" data-tab="basics">Básico</button>
+          <button class="tab" data-tab="colors">Colores</button>
+          <button class="tab" data-tab="spacing">Espaciado</button>
+          <button class="tab" data-tab="advanced">Avanzado</button>
+        </div>
+
+        <!-- Tab: Basics -->
+        <div class="tab-content active" id="tab-basics">
+          <div class="builder-section">
+            <div class="form-group">
+              <label class="form-label">Nombre del Bot</label>
+              <input type="text" class="form-input" id="input-botName" value="Asistente" placeholder="Asistente">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Mensaje de Bienvenida</label>
+              <input type="text" class="form-input" id="input-welcomeMessage" value="¡Hola! ¿En qué puedo ayudarte?" placeholder="¡Hola! ¿En qué puedo ayudarte?">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Placeholder de Input</label>
+              <input type="text" class="form-input" id="input-placeholder" value="Escribe un mensaje..." placeholder="Escribe un mensaje...">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Posición</label>
+              <select class="form-select" id="input-position">
+                <option value="bottom-right">Inferior Derecha</option>
+                <option value="bottom-left">Inferior Izquierda</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Colors -->
+        <div class="tab-content" id="tab-colors">
+          <div class="builder-section">
+            <div class="builder-section-title">Color Primario</div>
+            <div class="form-group">
+              <div class="color-input-group">
+                <input type="color" class="color-picker" id="color-primary" value="#10b981">
+                <input type="text" class="form-input" id="input-primary" value="hsl(160, 84%, 39%)">
+              </div>
+            </div>
+
+            <div class="builder-section-title">Paleta de Colores</div>
+            
+            <div class="form-group">
+              <label class="form-label">Fondo</label>
+              <div class="color-input-group">
+                <input type="color" class="color-picker" id="color-background" value="#ffffff">
+                <input type="text" class="form-input" id="input-background" value="0 0% 100%" placeholder="0 0% 100%">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Texto Principal</label>
+              <div class="color-input-group">
+                <input type="color" class="color-picker" id="color-foreground" value="#1a1a1a">
+                <input type="text" class="form-input" id="input-foreground" value="240 10% 3.9%" placeholder="240 10% 3.9%">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Bordes</label>
+              <div class="color-input-group">
+                <input type="color" class="color-picker" id="color-border" value="#e5e7eb">
+                <input type="text" class="form-input" id="input-border" value="240 5.9% 90%" placeholder="240 5.9% 90%">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Spacing -->
+        <div class="tab-content" id="tab-spacing">
+          <div class="builder-section">
+            <div class="builder-section-title">Sistema de Espaciado</div>
+            
+            <div class="form-group">
+              <label class="form-label">
+                Padding Principal (spacing-5)
+                <span class="slider-value" id="value-spacing5">12px</span>
+              </label>
+              <input type="range" class="spacing-slider" id="slider-spacing5" min="4" max="32" value="12" step="2">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                Gaps entre Elementos (spacing-3)
+                <span class="slider-value" id="value-spacing3">12px</span>
+              </label>
+              <input type="range" class="spacing-slider" id="slider-spacing3" min="4" max="24" value="12" step="2">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                Border Radius
+                <span class="slider-value" id="value-radius">8px</span>
+              </label>
+              <input type="range" class="spacing-slider" id="slider-radius" min="0" max="24" value="8" step="2">
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Advanced -->
+        <div class="tab-content" id="tab-advanced">
+          <div class="builder-section">
+            <div class="builder-section-title">Dimensiones</div>
+            
+            <div class="form-group">
+              <label class="form-label">Altura del Widget</label>
+              <input type="text" class="form-input" id="input-height" value="600px" placeholder="600px, 80vh, auto">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Distancia desde el Fondo</label>
+              <input type="text" class="form-input" id="input-bottom" value="24px" placeholder="24px, 1.5rem">
+            </div>
+
+            <div class="builder-section-title">Modo Oscuro</div>
+            
+            <div class="form-group">
+              <label class="form-label">Estrategia de Modo Oscuro</label>
+              <select class="form-select" id="input-dark-mode-strategy">
+                <option value="none">❌ Desactivado</option>
+                <option value="auto" selected>🤖 Automático (Invierte Colores)</option>
+                <option value="manual">✋ Manual (Personalizado)</option>
+              </select>
+            </div>
+
+            <!-- Dark Mode Manual Colors (hidden by default) -->
+            <div id="dark-mode-manual-fields" style="display: none;">
+              <div class="form-group">
+                <label class="form-label">Fondo Oscuro</label>
+                <div class="color-input-group">
+                  <input type="color" class="color-picker" id="color-background-dark" value="#1a1a1a">
+                  <input type="text" class="form-input" id="input-background-dark" value="240 10% 7%" placeholder="240 10% 7%">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Texto Oscuro</label>
+                <div class="color-input-group">
+                  <input type="color" class="color-picker" id="color-foreground-dark" value="#fafafa">
+                  <input type="text" class="form-input" id="input-foreground-dark" value="0 0% 98%" placeholder="0 0% 98%">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Bordes Oscuros</label>
+                <div class="color-input-group">
+                  <input type="color" class="color-picker" id="color-border-dark" value="#333333">
+                  <input type="text" class="form-input" id="input-border-dark" value="0 0% 20%" placeholder="0 0% 20%">
+                </div>
+              </div>
+            </div>
+
+            <div class="builder-section-title">Vista Previa</div>
+            <div class="toggle-group">
+              <button class="toggle-btn active" data-mode="light">☀️ Claro</button>
+              <button class="toggle-btn" data-mode="dark">🌙 Oscuro</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="btn-group">
+          <button class="btn btn-primary" id="btn-apply">
+            ✨ Aplicar Cambios
+          </button>
+          <button class="btn btn-secondary" id="btn-reset">
+            🔄 Resetear
+          </button>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-primary" id="btn-copy" style="width: 100%;">
+            📋 Copiar Configuración
+          </button>
+        </div>
+
+        <div class="success-message" id="success-message">
+          ✅ Configuración copiada al portapapeles
+        </div>
+
+        <!-- Code Output -->
+        <div class="code-output">
+          <pre id="code-display"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    // Import the widget
+    const module = await import('./standalone.tsx')
+    const PaseoLibreChat = module.default
+
+    // Predefined themes data
+    const PREDEFINED_THEMES = {
+      default: {
+        emoji: '🌿',
+        name: 'Default',
+        description: 'Tema base con verde Paseo Libre',
+        colors: ['#10b981', '#ffffff', '#f3f4f6'],
+        config: {
+          primaryColor: 'hsl(160, 84%, 39%)',
+          botName: 'Asistente',
+          welcomeMessage: '¡Hola! ¿En qué puedo ayudarte?',
+          cssVariables: {
+            background: '0 0% 100%',
+            foreground: '240 10% 3.9%',
+            primary: '160 84% 39%',
+            border: '240 5.9% 90%',
+            radius: '0.5rem',
+          },
+          darkMode: {
+            strategy: 'auto'
+          }
+        }
+      },
+      ocean: {
+        emoji: '🌊',
+        name: 'Ocean',
+        description: 'Azul profesional corporativo',
+        colors: ['#3b82f6', '#dbeafe', '#1e40af'],
+        config: {
+          primaryColor: 'hsl(211, 100%, 50%)',
+          botName: 'Ocean Assistant',
+          welcomeMessage: 'Bienvenido, ¿cómo puedo ayudarte?',
+          cssVariables: {
+            background: '210 25% 98%',
+            foreground: '210 50% 10%',
+            primary: '211 100% 50%',
+            border: '210 20% 88%',
+            radius: '0.75rem',
+            spacing5: '1rem',
+          }
+        }
+      },
+      sunset: {
+        emoji: '🌅',
+        name: 'Sunset',
+        description: 'Naranja energético y cálido',
+        colors: ['#f97316', '#fed7aa', '#ea580c'],
+        config: {
+          primaryColor: 'hsl(24, 95%, 53%)',
+          botName: 'Sunset Helper',
+          welcomeMessage: '👋 ¡Hola! Estoy aquí para ayudarte',
+          inputPlaceholder: '¿Qué necesitas?',
+          cssVariables: {
+            background: '30 40% 98%',
+            foreground: '20 30% 15%',
+            primary: '24 95% 53%',
+            border: '30 20% 85%',
+            radius: '1.25rem',
+            spacing3: '1rem',
+            spacing5: '1.25rem',
+          }
+        }
+      },
+      midnight: {
+        emoji: '🌙',
+        name: 'Midnight',
+        description: 'Negro premium minimalista',
+        colors: ['#ffffff', '#1f2937', '#111827'],
+        config: {
+          primaryColor: 'hsl(0, 0%, 100%)',
+          botName: 'Midnight AI',
+          welcomeMessage: 'Hello.',
+          inputPlaceholder: 'Type a message...',
+          cssVariables: {
+            background: '0 0% 7%',
+            foreground: '0 0% 98%',
+            primary: '0 0% 100%',
+            border: '0 0% 20%',
+            radius: '0.25rem',
+            spacing5: '0.625rem',
+          }
+        }
+      },
+      nature: {
+        emoji: '🍃',
+        name: 'Nature',
+        description: 'Verde bosque relajante',
+        colors: ['#22c55e', '#dcfce7', '#16a34a'],
+        config: {
+          primaryColor: 'hsl(142, 71%, 45%)',
+          botName: 'Nature Guide',
+          welcomeMessage: '🌿 ¡Hola! ¿En qué puedo asistirte?',
+          cssVariables: {
+            background: '140 30% 97%',
+            foreground: '140 40% 15%',
+            primary: '142 71% 45%',
+            border: '140 20% 85%',
+            radius: '0.875rem',
+          }
+        }
+      }
+    }
+
+    let currentConfig = { ...PREDEFINED_THEMES.default.config }
+    let widgetInitialized = false
+
+    // Render predefined themes
+    function renderPredefinedThemes() {
+      const container = document.getElementById('predefined-themes')
+      container.innerHTML = Object.entries(PREDEFINED_THEMES).map(([key, theme]) => `
+        <div class="theme-card" data-theme="${key}">
+          <div class="theme-card-header">
+            <span class="theme-card-emoji">${theme.emoji}</span>
+            <span class="theme-card-name">${theme.name}</span>
+          </div>
+          <div class="theme-card-desc">${theme.description}</div>
+          <div class="theme-card-preview">
+            ${theme.colors.map(color => `<span class="color-dot" style="background: ${color};"></span>`).join('')}
+          </div>
+        </div>
+      `).join('')
+
+      // Add click handlers
+      container.querySelectorAll('.theme-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const themeKey = card.dataset.theme
+          applyPredefinedTheme(themeKey)
+          
+          // Update active state
+          container.querySelectorAll('.theme-card').forEach(c => c.classList.remove('active'))
+          card.classList.add('active')
+        })
+      })
+    }
+
+    // Apply predefined theme
+    function applyPredefinedTheme(themeKey) {
+      const theme = PREDEFINED_THEMES[themeKey]
+      if (!theme) return
+
+      currentConfig = { ...theme.config }
+      updateFormFromConfig()
+      initOrUpdateWidget()
+      updateCodeDisplay()
+    }
+
+    // Update form inputs from config
+    function updateFormFromConfig() {
+      document.getElementById('input-botName').value = currentConfig.botName || 'Asistente'
+      document.getElementById('input-welcomeMessage').value = currentConfig.welcomeMessage || '¡Hola! ¿En qué puedo ayudarte?'
+      document.getElementById('input-placeholder').value = currentConfig.inputPlaceholder || 'Escribe un mensaje...'
+      document.getElementById('input-position').value = currentConfig.position || 'bottom-right'
+      
+      document.getElementById('input-primary').value = currentConfig.primaryColor || 'hsl(160, 84%, 39%)'
+      document.getElementById('input-background').value = currentConfig.cssVariables?.background || '0 0% 100%'
+      document.getElementById('input-foreground').value = currentConfig.cssVariables?.foreground || '240 10% 3.9%'
+      document.getElementById('input-border').value = currentConfig.cssVariables?.border || '240 5.9% 90%'
+
+      const spacing5 = parseFloat(currentConfig.cssVariables?.spacing5 || '0.75rem') * 16
+      const spacing3 = parseFloat(currentConfig.cssVariables?.spacing3 || '0.75rem') * 16
+      const radius = parseFloat(currentConfig.cssVariables?.radius || '0.5rem') * 16
+
+      document.getElementById('slider-spacing5').value = spacing5
+      document.getElementById('value-spacing5').textContent = `${spacing5}px`
+      document.getElementById('slider-spacing3').value = spacing3
+      document.getElementById('value-spacing3').textContent = `${spacing3}px`
+      document.getElementById('slider-radius').value = radius
+      document.getElementById('value-radius').textContent = `${radius}px`
+
+      document.getElementById('input-height').value = currentConfig.height || '600px'
+      document.getElementById('input-bottom').value = currentConfig.bottom || '24px'
+      
+      // Dark mode fields
+      document.getElementById('input-dark-mode-strategy').value = currentConfig.darkMode?.strategy || 'auto'
+      
+      if (currentConfig.darkMode?.strategy === 'manual') {
+        document.getElementById('input-background-dark').value = currentConfig.darkMode.background || '240 10% 7%'
+        document.getElementById('input-foreground-dark').value = currentConfig.darkMode.foreground || '0 0% 98%'
+        document.getElementById('input-border-dark').value = currentConfig.darkMode.border || '0 0% 20%'
+        document.getElementById('dark-mode-manual-fields').style.display = 'block'
+      } else {
+        document.getElementById('dark-mode-manual-fields').style.display = 'none'
+      }
+    }
+
+    // Build config from form - USANDO LA MISMA ESTRUCTURA QUE EL CÓDIGO REAL
+    function buildConfigFromForm() {
+      // Extraer HSL sin "hsl()" del primaryColor
+      const primaryColor = document.getElementById('input-primary').value
+      const primaryHSL = primaryColor.replace(/hsl\(|\)|%/g, '').trim()
+      
+      const spacing3Value = parseInt(document.getElementById('slider-spacing3').value) / 16
+      const spacing5Value = parseInt(document.getElementById('slider-spacing5').value) / 16
+      const radiusValue = parseInt(document.getElementById('slider-radius').value) / 16
+      
+      const darkModeStrategy = document.getElementById('input-dark-mode-strategy').value
+      
+      const background = document.getElementById('input-background').value
+      const foreground = document.getElementById('input-foreground').value
+      const border = document.getElementById('input-border').value
+      
+      const config = {
+        primaryColor: primaryColor,
+        botName: document.getElementById('input-botName').value,
+        welcomeMessage: document.getElementById('input-welcomeMessage').value,
+        inputPlaceholder: document.getElementById('input-placeholder').value,
+        position: document.getElementById('input-position').value,
+        height: document.getElementById('input-height').value,
+        bottom: document.getElementById('input-bottom').value,
+        cssVariables: {
+          // Colores base
+          background: background,
+          foreground: foreground,
+          card: background, // Mismo que background
+          cardForeground: foreground, // Mismo que foreground
+          primary: primaryHSL,
+          primaryForeground: '0 0% 100%', // Blanco sobre primario
+          muted: '240 4.8% 95.9%', // Gris claro (default)
+          mutedForeground: '240 3.8% 46.1%', // Gris oscuro (default)
+          border: border,
+          destructive: '0 84.2% 60.2%', // Rojo (default)
+          
+          // Radius
+          radius: `${radiusValue}rem`,
+          
+          // Sistema completo de spacing (como en theme.ts)
+          spacing1: `${spacing3Value * 0.33}rem`,
+          spacing2: `${spacing3Value * 0.67}rem`,
+          spacing3: `${spacing3Value}rem`,
+          spacing4: `${spacing5Value * 0.8}rem`,
+          spacing5: `${spacing5Value}rem`,
+          spacing6: `${spacing5Value * 1.33}rem`,
+          spacing8: `${spacing5Value * 2}rem`,
+        }
+      }
+      
+      // Dark mode configuration
+      if (darkModeStrategy !== 'none') {
+        config.darkMode = { strategy: darkModeStrategy }
+        
+        if (darkModeStrategy === 'manual') {
+          config.darkMode.background = document.getElementById('input-background-dark').value
+          config.darkMode.foreground = document.getElementById('input-foreground-dark').value
+          config.darkMode.border = document.getElementById('input-border-dark').value
+        }
+      }
+
+      return config
+    }
+
+    // Initialize or update widget
+    function initOrUpdateWidget() {
+      if (widgetInitialized) {
+        PaseoLibreChat.destroy()
+      }
+
+      setTimeout(() => {
+        PaseoLibreChat.init({
+          apiKey: 'demo-key',
+          apiBaseUrl: 'wss://demo.paseolibre.com',
+          theme: currentConfig
+        })
+        widgetInitialized = true
+      }, 100)
+    }
+
+    // Update code display
+    function updateCodeDisplay() {
+      const vars = currentConfig.cssVariables || {}
+      const darkMode = currentConfig.darkMode
+      
+      let darkModeCode = ''
+      if (darkMode && darkMode.strategy !== 'none') {
+        if (darkMode.strategy === 'auto') {
+          darkModeCode = `,
+  <span class="code-property">darkMode</span>: {
+    <span class="code-property">strategy</span>: <span class="code-string">'auto'</span> <span class="code-comment">// Invierte colores automáticamente</span>
+  }`
+        } else if (darkMode.strategy === 'manual') {
+          darkModeCode = `,
+  <span class="code-property">darkMode</span>: {
+    <span class="code-property">strategy</span>: <span class="code-string">'manual'</span>,
+    <span class="code-property">background</span>: <span class="code-string">'${darkMode.background}'</span>,
+    <span class="code-property">foreground</span>: <span class="code-string">'${darkMode.foreground}'</span>,
+    <span class="code-property">border</span>: <span class="code-string">'${darkMode.border}'</span>
+  }`
+        }
+      }
+      
+      const code = `<span class="code-keyword">const</span> theme = {
+  <span class="code-property">primaryColor</span>: <span class="code-string">'${currentConfig.primaryColor}'</span>,
+  <span class="code-property">botName</span>: <span class="code-string">'${currentConfig.botName}'</span>,
+  <span class="code-property">welcomeMessage</span>: <span class="code-string">'${currentConfig.welcomeMessage}'</span>,
+  <span class="code-property">inputPlaceholder</span>: <span class="code-string">'${currentConfig.inputPlaceholder || 'Escribe un mensaje...'}'</span>,
+  <span class="code-property">position</span>: <span class="code-string">'${currentConfig.position || 'bottom-right'}'</span>,
+  <span class="code-property">height</span>: <span class="code-string">'${currentConfig.height || '600px'}'</span>,
+  <span class="code-property">bottom</span>: <span class="code-string">'${currentConfig.bottom || '24px'}'</span>,
+  <span class="code-property">cssVariables</span>: {
+    <span class="code-comment">// Colores</span>
+    <span class="code-property">background</span>: <span class="code-string">'${vars.background || '0 0% 100%'}'</span>,
+    <span class="code-property">foreground</span>: <span class="code-string">'${vars.foreground || '240 10% 3.9%'}'</span>,
+    <span class="code-property">primary</span>: <span class="code-string">'${vars.primary || '160 84% 39%'}'</span>,
+    <span class="code-property">border</span>: <span class="code-string">'${vars.border || '240 5.9% 90%'}'</span>,
+    
+    <span class="code-comment">// Radius</span>
+    <span class="code-property">radius</span>: <span class="code-string">'${vars.radius || '0.5rem'}'</span>,
+    
+    <span class="code-comment">// Spacing (sistema completo 1-8)</span>
+    <span class="code-property">spacing1</span>: <span class="code-string">'${vars.spacing1}'</span>,
+    <span class="code-property">spacing2</span>: <span class="code-string">'${vars.spacing2}'</span>,
+    <span class="code-property">spacing3</span>: <span class="code-string">'${vars.spacing3}'</span>,
+    <span class="code-property">spacing4</span>: <span class="code-string">'${vars.spacing4}'</span>,
+    <span class="code-property">spacing5</span>: <span class="code-string">'${vars.spacing5}'</span>,
+    <span class="code-property">spacing6</span>: <span class="code-string">'${vars.spacing6}'</span>,
+    <span class="code-property">spacing7</span>: <span class="code-string">'${vars.spacing7}'</span>,
+    <span class="code-property">spacing8</span>: <span class="code-string">'${vars.spacing8}'</span>
+  }${darkModeCode}
+}`
+
+      document.getElementById('code-display').innerHTML = code
+    }
+
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const tabName = tab.dataset.tab
+        
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'))
+        
+        tab.classList.add('active')
+        document.getElementById(`tab-${tabName}`).classList.add('active')
+      })
+    })
+
+    // Color picker sync
+    function hexToHSL(hex) {
+      const r = parseInt(hex.slice(1, 3), 16) / 255
+      const g = parseInt(hex.slice(3, 5), 16) / 255
+      const b = parseInt(hex.slice(5, 7), 16) / 255
+      
+      const max = Math.max(r, g, b)
+      const min = Math.min(r, g, b)
+      const l = (max + min) / 2
+      
+      if (max === min) {
+        return { h: 0, s: 0, l: Math.round(l * 100) }
+      }
+      
+      const d = max - min
+      const s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+      
+      let h
+      switch (max) {
+        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break
+        case g: h = ((b - r) / d + 2) / 6; break
+        case b: h = ((r - g) / d + 4) / 6; break
+      }
+      
+      return { 
+        h: Math.round(h * 360), 
+        s: Math.round(s * 100), 
+        l: Math.round(l * 100) 
+      }
+    }
+
+    function hslToHex(h, s, l) {
+      s /= 100
+      l /= 100
+      
+      const c = (1 - Math.abs(2 * l - 1)) * s
+      const x = c * (1 - Math.abs((h / 60) % 2 - 1))
+      const m = l - c / 2
+      
+      let r, g, b
+      if (h < 60) { r = c; g = x; b = 0 }
+      else if (h < 120) { r = x; g = c; b = 0 }
+      else if (h < 180) { r = 0; g = c; b = x }
+      else if (h < 240) { r = 0; g = x; b = c }
+      else if (h < 300) { r = x; g = 0; b = c }
+      else { r = c; g = 0; b = x }
+      
+      const toHex = (v) => Math.round((v + m) * 255).toString(16).padStart(2, '0')
+      return `#${toHex(r)}${toHex(g)}${toHex(b)}`
+    }
+
+    // Setup color picker syncing
+    function setupColorPicker(pickerId, inputId, updateFn) {
+      const picker = document.getElementById(pickerId)
+      const input = document.getElementById(inputId)
+      
+      picker.addEventListener('input', (e) => {
+        const hsl = hexToHSL(e.target.value)
+        if (updateFn) {
+          input.value = updateFn(hsl)
+        } else {
+          input.value = `${hsl.h} ${hsl.s}% ${hsl.l}%`
+        }
+        autoUpdate()
+      })
+      
+      input.addEventListener('input', () => {
+        autoUpdate()
+      })
+    }
+
+    // Auto-update function
+    let autoUpdateTimeout
+    function autoUpdate() {
+      clearTimeout(autoUpdateTimeout)
+      autoUpdateTimeout = setTimeout(() => {
+        currentConfig = buildConfigFromForm()
+        initOrUpdateWidget()
+        updateCodeDisplay()
+      }, 300) // 300ms debounce
+    }
+
+    // Setup all color pickers
+    setupColorPicker('color-primary', 'input-primary', (hsl) => `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`)
+    setupColorPicker('color-background', 'input-background', (hsl) => `${hsl.h} ${hsl.s}% ${hsl.l}%`)
+    setupColorPicker('color-foreground', 'input-foreground', (hsl) => `${hsl.h} ${hsl.s}% ${hsl.l}%`)
+    setupColorPicker('color-border', 'input-border', (hsl) => `${hsl.h} ${hsl.s}% ${hsl.l}%`)
+    
+    // Dark mode color pickers
+    setupColorPicker('color-background-dark', 'input-background-dark', (hsl) => `${hsl.h} ${hsl.s}% ${hsl.l}%`)
+    setupColorPicker('color-foreground-dark', 'input-foreground-dark', (hsl) => `${hsl.h} ${hsl.s}% ${hsl.l}%`)
+    setupColorPicker('color-border-dark', 'input-border-dark', (hsl) => `${hsl.h} ${hsl.s}% ${hsl.l}%`)
+
+    // Dark mode strategy selector
+    document.getElementById('input-dark-mode-strategy').addEventListener('change', (e) => {
+      const strategy = e.target.value
+      const manualFields = document.getElementById('dark-mode-manual-fields')
+      
+      if (strategy === 'manual') {
+        manualFields.style.display = 'block'
+      } else {
+        manualFields.style.display = 'none'
+      }
+      
+      autoUpdate()
+    })
+
+    // Setup auto-update for all inputs
+    document.querySelectorAll('.form-input, .form-select').forEach(input => {
+      input.addEventListener('input', autoUpdate)
+    })
+
+    // Slider updates with auto-update
+    document.getElementById('slider-spacing5').addEventListener('input', (e) => {
+      document.getElementById('value-spacing5').textContent = `${e.target.value}px`
+      autoUpdate()
+    })
+
+    document.getElementById('slider-spacing3').addEventListener('input', (e) => {
+      document.getElementById('value-spacing3').textContent = `${e.target.value}px`
+      autoUpdate()
+    })
+
+    document.getElementById('slider-radius').addEventListener('input', (e) => {
+      document.getElementById('value-radius').textContent = `${e.target.value}px`
+      autoUpdate()
+    })
+
+    // Apply button (now just for manual refresh if needed)
+    document.getElementById('btn-apply').addEventListener('click', () => {
+      currentConfig = buildConfigFromForm()
+      initOrUpdateWidget()
+      updateCodeDisplay()
+    })
+
+    // Reset button
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      applyPredefinedTheme('default')
+      document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('active'))
+      document.querySelector('[data-theme="default"]').classList.add('active')
+    })
+
+    // Copy button
+    document.getElementById('btn-copy').addEventListener('click', async () => {
+      const configText = JSON.stringify(currentConfig, null, 2)
+      
+      try {
+        await navigator.clipboard.writeText(configText)
+        const successMsg = document.getElementById('success-message')
+        successMsg.style.display = 'block'
+        setTimeout(() => {
+          successMsg.style.display = 'none'
+        }, 3000)
+      } catch (err) {
+        console.error('Error copying to clipboard:', err)
+      }
+    })
+
+    // Dark mode toggle - USA LA ESTRATEGIA CONFIGURADA
+    document.querySelectorAll('[data-mode]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const mode = btn.dataset.mode
+        
+        document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('active'))
+        btn.classList.add('active')
+        
+        const strategy = document.getElementById('input-dark-mode-strategy').value
+        
+        if (mode === 'dark') {
+          // También activar dark mode en la página
+          document.body.classList.add('dark-mode')
+          document.querySelectorAll('[data-page-mode]').forEach(b => b.classList.remove('active'))
+          document.querySelector('[data-page-mode="dark"]').classList.add('active')
+          
+          if (strategy === 'none') {
+            alert('⚠️ Modo oscuro desactivado. Selecciona "Automático" o "Manual" en la configuración.')
+            // Volver al modo claro
+            document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('active'))
+            document.querySelector('[data-mode="light"]').classList.add('active')
+            document.body.classList.remove('dark-mode')
+            document.querySelectorAll('[data-page-mode]').forEach(b => b.classList.remove('active'))
+            document.querySelector('[data-page-mode="light"]').classList.add('active')
+            return
+          }
+          
+          if (strategy === 'auto') {
+            // AUTOMÁTICO: Invertir colores
+            const currentBg = document.getElementById('input-background').value
+            const currentFg = document.getElementById('input-foreground').value
+            const currentBorder = document.getElementById('input-border').value
+            
+            // Guardar colores claros
+            if (!btn.dataset.lightBg) {
+              btn.dataset.lightBg = currentBg
+              btn.dataset.lightFg = currentFg
+              btn.dataset.lightBorder = currentBorder
+            }
+            
+            // Invertir: extraer H y S, invertir L
+            const invertHSL = (hsl) => {
+              const parts = hsl.trim().split(/\s+/)
+              const h = parts[0]
+              const s = parts[1]
+              const l = parseFloat(parts[2])
+              const invertedL = 100 - l
+              return `${h} ${s} ${invertedL}%`
+            }
+            
+            document.getElementById('input-background').value = invertHSL(currentBg)
+            document.getElementById('input-foreground').value = invertHSL(currentFg)
+            document.getElementById('input-border').value = invertHSL(currentBorder)
+            
+          } else if (strategy === 'manual') {
+            // MANUAL: Usar colores dark configurados
+            const darkBg = document.getElementById('input-background-dark').value
+            const darkFg = document.getElementById('input-foreground-dark').value
+            const darkBorder = document.getElementById('input-border-dark').value
+            
+            // Guardar colores claros si no están guardados
+            if (!btn.dataset.lightBg) {
+              btn.dataset.lightBg = document.getElementById('input-background').value
+              btn.dataset.lightFg = document.getElementById('input-foreground').value
+              btn.dataset.lightBorder = document.getElementById('input-border').value
+            }
+            
+            document.getElementById('input-background').value = darkBg
+            document.getElementById('input-foreground').value = darkFg
+            document.getElementById('input-border').value = darkBorder
+          }
+          
+        } else {
+          // MODO CLARO: Restaurar colores guardados
+          document.body.classList.remove('dark-mode')
+          document.querySelectorAll('[data-page-mode]').forEach(b => b.classList.remove('active'))
+          document.querySelector('[data-page-mode="light"]').classList.add('active')
+          
+          const darkBtn = btn.parentElement.querySelector('[data-mode="dark"]')
+          const lightBg = darkBtn.dataset.lightBg || '0 0% 100%'
+          const lightFg = darkBtn.dataset.lightFg || '240 10% 3.9%'
+          const lightBorder = darkBtn.dataset.lightBorder || '240 5.9% 90%'
+          
+          document.getElementById('input-background').value = lightBg
+          document.getElementById('input-foreground').value = lightFg
+          document.getElementById('input-border').value = lightBorder
+        }
+        
+        // NO actualizar auto porque estos son solo para preview
+        // El config real no cambia, solo la visualización
+        currentConfig = buildConfigFromForm()
+        initOrUpdateWidget()
+      })
+    })
+
+    // Initialize
+    renderPredefinedThemes()
+    applyPredefinedTheme('default')
+    document.querySelector('[data-theme="default"]').classList.add('active')
+
+    // Quick Dark Mode Toggle for the page
+    document.querySelectorAll('[data-page-mode]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const mode = btn.dataset.pageMode
+        
+        document.querySelectorAll('[data-page-mode]').forEach(b => b.classList.remove('active'))
+        btn.classList.add('active')
+        
+        if (mode === 'dark') {
+          document.body.classList.add('dark-mode')
+          // También sincronizar con el toggle del widget
+          const widgetToggleDark = document.querySelector('[data-mode="dark"]')
+          if (widgetToggleDark) {
+            widgetToggleDark.click()
+          }
+        } else {
+          document.body.classList.remove('dark-mode')
+          // También sincronizar con el toggle del widget
+          const widgetToggleLight = document.querySelector('[data-mode="light"]')
+          if (widgetToggleLight) {
+            widgetToggleLight.click()
+          }
+        }
+      })
+    })
+
+    console.log('🎨 Theme Builder loaded')
+  </script>
+</body>
+</html>

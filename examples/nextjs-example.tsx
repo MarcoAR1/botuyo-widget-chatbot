@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Ejemplo de uso del Chat Widget en Next.js 13+ (App Router)
  * Con TypeScript, Server Components y Client Components

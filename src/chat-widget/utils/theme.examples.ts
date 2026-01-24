@@ -7,10 +7,10 @@
 
 import { 
   // Temas predefinidos
-  PASEO_LIBRE_THEME,
-  PASEO_LIBRE_DARK_THEME,
-  CORPORATE_BLUE_THEME,
-  MINIMALIST_THEME,
+  DEFAULT_THEME,
+  // PASEO_LIBRE_DARK_THEME,
+  // CORPORATE_BLUE_THEME,
+  // MINIMALIST_THEME,
   
   // Constantes de variables CSS
   DEFAULT_CSS_VARIABLES,
@@ -26,7 +26,7 @@ import {
 // ===================================
 
 // Tema por defecto de Paseo Libre (Light)
-const defaultTheme = PASEO_LIBRE_THEME
+const defaultTheme = DEFAULT_THEME
 /*
 {
   primaryColor: 'hsl(160, 84%, 39%)',
@@ -42,13 +42,13 @@ const defaultTheme = PASEO_LIBRE_THEME
 */
 
 // Tema oscuro
-const darkTheme = PASEO_LIBRE_DARK_THEME
+// const darkTheme = PASEO_LIBRE_DARK_THEME
 
 // Tema corporativo azul
-const corporateTheme = CORPORATE_BLUE_THEME
+// const corporateTheme = CORPORATE_BLUE_THEME
 
 // Tema minimalista
-const minimalistTheme = MINIMALIST_THEME
+// const minimalistTheme = MINIMALIST_THEME
 
 // ===================================
 // 2. CREAR TEMA PERSONALIZADO
@@ -192,81 +192,81 @@ export function MyApp() {
 // ===================================
 
 // Tomar un tema existente y modificarlo
-const extendedTheme = {
-  ...CORPORATE_BLUE_THEME,
-  botName: 'Asistente Corporativo Pro',
-  welcomeMessage: 'Bienvenido a nuestro sistema',
-  cssVariables: {
-    ...CORPORATE_BLUE_THEME.cssVariables,
-    radius: '1rem', // Cambiar solo el radio de bordes
-  }
-}
+// const extendedTheme = {
+//   ...CORPORATE_BLUE_THEME,
+//   botName: 'Asistente Corporativo Pro',
+//   welcomeMessage: 'Bienvenido a nuestro sistema',
+//   cssVariables: {
+//     ...CORPORATE_BLUE_THEME.cssVariables,
+//     radius: '1rem', // Cambiar solo el radio de bordes
+//   }
+// }
 
 // ===================================
 // 8. TEMA CON TONALIDADES DEL MISMO COLOR
 // ===================================
 
 // Crear variaciones de un color base
-const brandColor = '221 83% 53%' // Azul base
+// const brandColor = '221 83% 53%' // Azul base
 
-const monochromeTheme = {
-  primaryColor: `hsl(${brandColor})`,
-  cssVariables: {
-    background: '0 0% 100%',
-    foreground: '221 83% 10%',        // Azul muy oscuro
-    card: '221 20% 98%',              // Azul casi blanco
-    cardForeground: '221 40% 20%',    // Azul oscuro
-    primary: brandColor,               // Azul base
-    primaryForeground: '0 0% 100%',
-    muted: '221 20% 95%',             // Azul muy claro
-    mutedForeground: '221 20% 40%',   // Azul grisáceo
-    border: '221 20% 90%',            // Azul pálido
-    destructive: '0 84% 60%',         // Rojo (contraste)
-    radius: '0.5rem',
-  }
-}
+// const monochromeTheme = {
+//   primaryColor: `hsl(${brandColor})`,
+//   cssVariables: {
+//     background: '0 0% 100%',
+//     foreground: '221 83% 10%',        // Azul muy oscuro
+//     card: '221 20% 98%',              // Azul casi blanco
+//     cardForeground: '221 40% 20%',    // Azul oscuro
+//     primary: brandColor,               // Azul base
+//     primaryForeground: '0 0% 100%',
+//     muted: '221 20% 95%',             // Azul muy claro
+//     mutedForeground: '221 20% 40%',   // Azul grisáceo
+//     border: '221 20% 90%',            // Azul pálido
+//     destructive: '0 84% 60%',         // Rojo (contraste)
+//     radius: '0.5rem',
+//   }
+// }
 
 // ===================================
 // 9. TEMA DE MARCA ESPECÍFICA
 // ===================================
 
 // Ejemplo: Tema de WhatsApp
-const whatsAppTheme = {
-  primaryColor: 'hsl(142, 70%, 49%)',
-  botName: 'WhatsApp Bot',
-  cssVariables: {
-    background: '0 0% 100%',
-    foreground: '0 0% 0%',
-    card: '142 20% 95%',
-    cardForeground: '0 0% 0%',
-    primary: '142 70% 49%',           // Verde WhatsApp
-    primaryForeground: '0 0% 100%',
-    muted: '0 0% 96%',
-    mutedForeground: '0 0% 40%',
-    border: '0 0% 90%',
-    destructive: '0 84% 60%',
-    radius: '0.5rem',
-  }
-}
+// const whatsAppTheme = {
+//   primaryColor: 'hsl(142, 70%, 49%)',
+//   botName: 'WhatsApp Bot',
+//   cssVariables: {
+//     background: '0 0% 100%',
+//     foreground: '0 0% 0%',
+//     card: '142 20% 95%',
+//     cardForeground: '0 0% 0%',
+//     primary: '142 70% 49%',           // Verde WhatsApp
+//     primaryForeground: '0 0% 100%',
+//     muted: '0 0% 96%',
+//     mutedForeground: '0 0% 40%',
+//     border: '0 0% 90%',
+//     destructive: '0 84% 60%',
+//     radius: '0.5rem',
+//   }
+// }
 
 // Ejemplo: Tema de Slack
-const slackTheme = {
-  primaryColor: 'hsl(211, 100%, 50%)',
-  botName: 'Slack Bot',
-  cssVariables: {
-    background: '0 0% 100%',
-    foreground: '0 0% 13%',
-    card: '0 0% 98%',
-    cardForeground: '0 0% 13%',
-    primary: '211 100% 50%',          // Azul Slack
-    primaryForeground: '0 0% 100%',
-    muted: '211 15% 95%',
-    mutedForeground: '0 0% 40%',
-    border: '211 10% 88%',
-    destructive: '0 84% 60%',
-    radius: '0.25rem',
-  }
-}
+// const slackTheme = {
+//   primaryColor: 'hsl(211, 100%, 50%)',
+//   botName: 'Slack Bot',
+//   cssVariables: {
+//     background: '0 0% 100%',
+//     foreground: '0 0% 13%',
+//     card: '0 0% 98%',
+//     cardForeground: '0 0% 13%',
+//     primary: '211 100% 50%',          // Azul Slack
+//     primaryForeground: '0 0% 100%',
+//     muted: '211 15% 95%',
+//     mutedForeground: '0 0% 40%',
+//     border: '211 10% 88%',
+//     destructive: '0 84% 60%',
+//     radius: '0.25rem',
+//   }
+// }
 
 // ===================================
 // 10. EXPORTAR PARA USO
@@ -275,15 +275,12 @@ const slackTheme = {
 export {
   // Temas predefinidos listos para usar
   defaultTheme,
-  darkTheme,
-  corporateTheme,
-  minimalistTheme,
+  // darkTheme,
+  // corporateTheme,
+  // minimalistTheme,
   
   // Temas personalizados
   customSimpleTheme,
   customFullTheme,
-  extendedTheme,
-  monochromeTheme,
-  whatsAppTheme,
-  slackTheme,
+  // extendedTheme,
 }
