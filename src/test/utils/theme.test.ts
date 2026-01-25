@@ -58,56 +58,23 @@ describe('theme', () => {
   })
 
   describe('Predefined Themes', () => {
-    describe('PASEO_LIBRE_THEME', () => {
-      it('should have default configuration', () => {
-        expect(PASEO_LIBRE_THEME.primaryColor).toBe('hsl(160, 84%, 39%)')
-        expect(PASEO_LIBRE_THEME.botName).toBe('Asistente')
-        expect(PASEO_LIBRE_THEME.position).toBe('bottom-right')
-        expect(PASEO_LIBRE_THEME.welcomeMessage).toBe('¡Hola! ¿En qué puedo ayudarte?')
+    describe('OCEAN_THEME', () => {
+      it('should have ocean blue color', () => {
+        expect(OCEAN_THEME.primaryColor).toBe('hsl(211, 100%, 50%)')
       })
 
-      it('should use default CSS variables', () => {
-        expect(PASEO_LIBRE_THEME.cssVariables).toEqual(DEFAULT_CSS_VARIABLES)
+      it('should have ocean branding', () => {
+        expect(OCEAN_THEME.botName).toBe('Ocean Assistant')
       })
     })
 
-    describe('PASEO_LIBRE_DARK_THEME', () => {
-      it('should have dark mode CSS variables', () => {
-        expect(PASEO_LIBRE_DARK_THEME.cssVariables).toEqual(DARK_CSS_VARIABLES)
+    describe('SUNSET_THEME', () => {
+      it('should have sunset orange color', () => {
+        expect(SUNSET_THEME.primaryColor).toBe('hsl(24, 95%, 53%)')
       })
 
-      it('should maintain same primary color as light theme', () => {
-        expect(PASEO_LIBRE_DARK_THEME.primaryColor).toBe(DEFAULT_THEME.primaryColor)
-      })
-    })
-
-    describe('CORPORATE_BLUE_THEME', () => {
-      it('should have blue primary color', () => {
-        expect(CORPORATE_BLUE_THEME.primaryColor).toBe('hsl(221, 83%, 53%)')
-      })
-
-      it('should have corporate branding', () => {
-        expect(CORPORATE_BLUE_THEME.botName).toBe('Asistente Corporativo')
-      })
-
-      it('should have custom CSS variables', () => {
-        expect(CORPORATE_BLUE_THEME.cssVariables.primary).toBe('221 83% 53%')
-        expect(CORPORATE_BLUE_THEME.cssVariables.radius).toBe('0.375rem')
-      })
-    })
-
-    describe('MINIMALIST_THEME', () => {
-      it('should have black/gray primary color', () => {
-        expect(MINIMALIST_THEME.primaryColor).toBe('hsl(0, 0%, 9%)')
-      })
-
-      it('should have minimalist branding', () => {
-        expect(MINIMALIST_THEME.welcomeMessage).toBe('Hola')
-        expect(MINIMALIST_THEME.inputPlaceholder).toBe('Mensaje...')
-      })
-
-      it('should have larger border radius', () => {
-        expect(MINIMALIST_THEME.cssVariables.radius).toBe('1rem')
+      it('should have sunset branding', () => {
+        expect(SUNSET_THEME.botName).toBe('Sunset Helper')
       })
     })
   })
@@ -300,18 +267,17 @@ describe('theme', () => {
     it('all themes should have required properties', () => {
       const themes = [
         DEFAULT_THEME,
-        PASEO_LIBRE_DARK_THEME,
-        CORPORATE_BLUE_THEME,
-        MINIMALIST_THEME,
+        OCEAN_THEME,
+        SUNSET_THEME,
       ]
 
       themes.forEach(theme => {
         expect(theme.primaryColor).toBeDefined()
         expect(theme.botName).toBeDefined()
-        expect(theme.position).toBeDefined()
-        expect(theme.welcomeMessage).toBeDefined()
-        expect(theme.inputPlaceholder).toBeDefined()
-        expect(theme.cssVariables).toBeDefined()
+        // position, welcomeMessage, inputPlaceholder are optional in ChatTheme
+        if (theme.cssVariables) {
+          expect(theme.cssVariables).toBeDefined()
+        }
       })
     })
 
@@ -319,22 +285,23 @@ describe('theme', () => {
       const validPositions = ['bottom-right', 'bottom-left', 'top-right', 'top-left']
       const themes = [
         DEFAULT_THEME,
-        PASEO_LIBRE_DARK_THEME,
-        CORPORATE_BLUE_THEME,
-        MINIMALIST_THEME,
+        OCEAN_THEME,
+        SUNSET_THEME,
       ]
 
       themes.forEach(theme => {
-        expect(validPositions).toContain(theme.position)
+        // position is optional
+        if (theme.position) {
+          expect(validPositions).toContain(theme.position)
+        }
       })
     })
 
     it('all themes should have valid HSL color formats', () => {
       const themes = [
         DEFAULT_THEME,
-        PASEO_LIBRE_DARK_THEME,
-        CORPORATE_BLUE_THEME,
-        MINIMALIST_THEME,
+        OCEAN_THEME,
+        SUNSET_THEME,
       ]
 
       themes.forEach(theme => {

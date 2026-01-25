@@ -1,4 +1,4 @@
-# 🎨 Design System - Paseo Libre Chat Widget
+# 🎨 Design System - BotUyo Chat Widget
 
 ## Variables CSS de Spacing
 

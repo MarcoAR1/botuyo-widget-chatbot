@@ -1,8 +1,8 @@
-# 🤖 ChatWidget - Integración Paseo Libre
+# 🤖 ChatWidget - Integración BotUyo
 
 ## ✅ Integración Completada
 
-El ChatWidget ahora está **activo en todas las pantallas** de Paseo Libre a través del `RootLayout`.
+El ChatWidget ahora está **activo en todas las pantallas** de BotUyo a través del `RootLayout`.
 
 ### 📁 Archivos Creados
 
@@ -22,7 +22,7 @@ src/
 │       └── theme.ts                      # Theming CSS Variables
 │
 ├── components/providers/
-│   └── ChatbotProvider.tsx               # 🆕 Configuración Paseo Libre
+│   └── ChatbotProvider.tsx               # 🆕 Configuración BotUyo
 │
 └── app/
     └── layout.tsx                        # ✏️ Modificado (agregado ChatbotProvider)
@@ -34,17 +34,17 @@ Agregar a tu `.env.local`:
 
 ```bash
 # Chat Widget
-NEXT_PUBLIC_CHAT_API_KEY=paseolibre-prod-key-aqui
-NEXT_PUBLIC_API_URL=https://api.paseolibre.com  # Ya debería existir
+NEXT_PUBLIC_CHAT_API_KEY=botuyo-prod-key-aqui
+NEXT_PUBLIC_API_URL=https://api.botuyo.com  # Ya debería existir
 ```
 
 ### 🎨 Configuración Actual
 
 El widget está configurado con:
 
-- **Color Primario**: `#10b981` (Emerald-500, color brand de Paseo Libre)
+- **Color Primario**: `#10b981` (Emerald-500, color brand de BotUyo)
 - **Posición**: Bottom-right
-- **Nombre Bot**: "Asistente Paseo Libre"
+- **Nombre Bot**: "Asistente BotUyo"
 - **Logo**: `/images/paseo_libre.png`
 
 ### 🔌 Callbacks Implementados
@@ -100,7 +100,7 @@ Trackea analytics cuando se abre/cierra el chat (Google Analytics si está dispo
 
 4. **Estado Aislado**:
    - El widget maneja su propio estado con `useReducer`
-   - No depende de Redux, Router o Contextos de Paseo Libre
+   - No depende de Redux, Router o Contextos de BotUyo
    - Totalmente independiente y portable
 
 ### 📦 Próximos Pasos para SaaS
@@ -137,7 +137,7 @@ Para extraer a un paquete npm (@paseolibre/chat-widget):
    }
    ```
 
-4. **Instalar en Paseo Libre**:
+4. **Instalar en BotUyo**:
    ```bash
    npm install @paseolibre/chat-widget
    ```

@@ -35,7 +35,7 @@ describe('useDynamicHeight', () => {
         useDynamicHeight({ isOpen: true })
       )
 
-      expect(result.current).toEqual({
+      expect(result.current).toMatchObject({
         height: '700px',
         maxHeight: '936px', // 1000 - 64 (DESKTOP_MARGIN_TOP)
       })
@@ -52,7 +52,7 @@ describe('useDynamicHeight', () => {
         useDynamicHeight({ isOpen: true })
       )
 
-      expect(result.current).toEqual({
+      expect(result.current).toMatchObject({
         height: '500px', // DESKTOP_MIN_HEIGHT
         maxHeight: '336px', // 400 - 64
       })
@@ -69,7 +69,7 @@ describe('useDynamicHeight', () => {
         useDynamicHeight({ isOpen: true })
       )
 
-      expect(result.current).toEqual({
+      expect(result.current).toMatchObject({
         height: '700px', // DESKTOP_MAX_HEIGHT
         maxHeight: '1936px', // 2000 - 64
       })

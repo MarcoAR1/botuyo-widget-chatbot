@@ -1,4 +1,4 @@
-# Test Suite - Paseo Libre Chat Widget
+# Test Suite - BotUyo Chat Widget
 
 Suite completa de tests para validar todas las funcionalidades implementadas en Sprint 3.
 

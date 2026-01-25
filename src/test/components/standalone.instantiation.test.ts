@@ -218,7 +218,7 @@ describe('Widget Instantiation - API Tests', () => {
         theme: { primaryColor: 'hsl(210, 100%, 50%)' },
       });
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith('[PaseoLibreChat] Widget not initialized');
+      expect(consoleErrorSpy).toHaveBeenCalledWith('[BotUyoChat] Widget not initialized');
       
       consoleErrorSpy.mockRestore();
     });

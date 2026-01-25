@@ -1,4 +1,4 @@
-# Paseo Libre Chat Widget - Standalone/CDN Version
+# BotUyo Chat Widget - Standalone/CDN Version
 
 Widget de chat embebible enterprise-ready que puede ser usado en cualquier sitio web sin necesidad de React, Next.js u otros frameworks. También disponible como componente React con Provider y hooks.
 
@@ -46,7 +46,7 @@ Características:
 Agrega este código antes del cierre del `</body>` en tu HTML:
 
 ```html
-<!-- Paseo Libre Chat Widget -->
+<!-- BotUyo Chat Widget -->
 <script src="https://cdn.paseolibre.com/chat-widget.js"></script>
 <script>
   PaseoLibreChat.init({
@@ -54,7 +54,7 @@ Agrega este código antes del cierre del `</body>` en tu HTML:
     apiBaseUrl: 'https://api.paseolibre.com',
     theme: {
       primaryColor: 'hsl(160, 84%, 39%)',
-      botName: 'Asistente Paseo Libre',
+      botName: 'Asistente BotUyo',
       position: 'bottom-right',
       // ⚠️ IMPORTANTE: Variables CSS necesarias
       cssVariables: {
@@ -136,7 +136,7 @@ function App() {
 ```typescript
 interface StandaloneConfig {
   // Requerido
-  apiKey: string;              // Tu API key de Paseo Libre
+  apiKey: string;              // Tu API key de BotUyo
   apiBaseUrl: string;          // URL del backend Socket.IO
 
   // Tema (opcional)
@@ -397,7 +397,7 @@ Esto generará:
 
 ## 📄 Licencia
 
-MIT License - © 2025 Paseo Libre
+MIT License - © 2025 BotUyo
 
 ## 🆘 Soporte
 
