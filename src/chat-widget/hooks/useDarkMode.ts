@@ -14,7 +14,7 @@ export function useDarkMode(containerRef: React.RefObject<HTMLDivElement>) {
       // Buscar dark en los PADRES, NO en el widget mismo
       // Empezamos desde el parent para evitar detectar la clase que nosotros mismos agregamos
       const hasClosestDark = !!containerRef.current.parentElement?.closest('.dark')
-      const hasRootDark = !!document.getElementById('paseo-libre-chat-widget-root')?.classList.contains('dark')
+      const hasRootDark = !!document.getElementById('botuyo-chat-widget-root')?.classList.contains('dark')
       const hasDocElementDark = document.documentElement.classList.contains('dark')
       const hasBodyDark = document.body.classList.contains('dark')
       
@@ -42,7 +42,7 @@ export function useDarkMode(containerRef: React.RefObject<HTMLDivElement>) {
     })
     
     // Observar el root standalone container si existe
-    const rootContainer = document.getElementById('paseo-libre-chat-widget-root')
+    const rootContainer = document.getElementById('botuyo-chat-widget-root')
     if (rootContainer) {
       observer.observe(rootContainer, {
         attributes: true,

@@ -8,7 +8,7 @@ import type { ChatState, ChatAction, ChatMessage } from '../types'
 import { logger } from '../utils/logger'
 import { chatStorage } from '../utils/storage'
 
-const STORAGE_KEY = 'paseolibre_chat_v1'
+const STORAGE_KEY = 'botuyo_chat_v1'
 
 const initialState: ChatState = {
   isOpen: false,

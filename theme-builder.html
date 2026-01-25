@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🎨 Theme Builder - Paseo Libre Chat Widget</title>
-  <link rel="stylesheet" href="./dist/paseo-libre-chat.css">
+  <title>🎨 Theme Builder - BotUyo Chat Widget</title>
+  <link rel="stylesheet" href="./dist/botuyo-chat.css">
   <style>
     * {
       margin: 0;
@@ -708,13 +708,14 @@
     // Import the widget
     const module = await import('./standalone.tsx')
     const PaseoLibreChat = module.default
+    const BotUyoChat = module.default
 
     // Predefined themes data
     const PREDEFINED_THEMES = {
       default: {
         emoji: '🌿',
         name: 'Default',
-        description: 'Tema base con verde Paseo Libre',
+        description: 'Tema base con verde BotUyo',
         colors: ['#10b981', '#ffffff', '#f3f4f6'],
         config: {
           primaryColor: 'hsl(160, 84%, 39%)',

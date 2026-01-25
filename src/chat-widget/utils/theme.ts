@@ -38,7 +38,7 @@ export interface CSSVariables {
 }
 
 /**
- * Valores CSS por defecto (Light Mode - Paseo Libre)
+ * Valores CSS por defecto (Light Mode - BotUyo)
  */
 export const DEFAULT_CSS_VARIABLES: CSSVariables = {
   background: '0 0% 100%',           // Blanco

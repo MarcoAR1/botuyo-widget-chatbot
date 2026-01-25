@@ -1,16 +1,16 @@
 {
-  "name": "@paseolibre/chat-widget-standalone",
+  "name": "@botuyo/chat-widget-standalone",
   "version": "1.0.0",
   "type": "module",
-  "description": "Paseo Libre Chat Widget - Standalone CDN version with React/TypeScript support",
-  "main": "dist/paseo-libre-chat.js",
+  "description": "BotUyo Chat Widget - Standalone CDN version with React/TypeScript support",
+  "main": "dist/botuyo-chat.js",
   "module": "dist/index.esm.js",
   "types": "dist/standalone.d.ts",
   "exports": {
     ".": {
       "types": "./dist/standalone.d.ts",
       "import": "./dist/index.esm.js",
-      "require": "./dist/paseo-libre-chat.js"
+      "require": "./dist/botuyo-chat.js"
     },
     "./react": {
       "types": "./dist/chat-widget/index.d.ts",
@@ -35,7 +35,7 @@
     "widget",
     "chatbot",
     "customer-support",
-    "paseo-libre",
+    "botuyo",
     "standalone",
     "cdn",
     "react",
@@ -43,16 +43,16 @@
     "nextjs",
     "socket.io"
   ],
-  "author": "Paseo Libre",
+  "author": "BotUyo",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/paseolibre/chat-widget.git"
+    "url": "https://github.com/botuyo/chat-widget.git"
   },
   "bugs": {
-    "url": "https://github.com/paseolibre/chat-widget/issues"
+    "url": "https://github.com/botuyo/chat-widget/issues"
   },
-  "homepage": "https://github.com/paseolibre/chat-widget#readme",
+  "homepage": "https://github.com/botuyo/chat-widget#readme",
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",
     "@tanstack/react-virtual": "^3.13.18",

@@ -15,7 +15,7 @@ describe('Dark Mode Switch - Functional Test', () => {
   beforeEach(() => {
     // Simular el container que crea standalone.tsx
     standaloneContainer = document.createElement('div')
-    standaloneContainer.id = 'paseo-libre-chat-widget-root'
+    standaloneContainer.id = 'botuyo-chat-widget-root'
     standaloneContainer.style.position = 'fixed'
     standaloneContainer.style.zIndex = '999999'
     document.body.appendChild(standaloneContainer)
@@ -48,7 +48,7 @@ describe('Dark Mode Switch - Functional Test', () => {
     it('debe activar dark mode cuando se agrega clase dark al container standalone', async () => {
       render(<ChatWidget {...baseProps} />, { container })
 
-      const widget = document.getElementById('paseolibre-chat-widget')
+      const widget = document.getElementById('botuyo-chat-widget')
       expect(widget).toBeInTheDocument()
 
       // Inicialmente sin dark mode
@@ -69,7 +69,7 @@ describe('Dark Mode Switch - Functional Test', () => {
 
       render(<ChatWidget {...baseProps} />, { container })
 
-      const widget = document.getElementById('paseolibre-chat-widget')
+      const widget = document.getElementById('botuyo-chat-widget')
 
       // Debe detectar dark mode inicial
       await waitFor(() => {
@@ -94,7 +94,7 @@ describe('Dark Mode Switch - Functional Test', () => {
     it('debe responder a toggles rápidos del switch', async () => {
       render(<ChatWidget {...baseProps} />, { container })
 
-      const widget = document.getElementById('paseolibre-chat-widget')
+      const widget = document.getElementById('botuyo-chat-widget')
 
       // Toggle ON
       standaloneContainer.classList.add('dark')
@@ -119,7 +119,7 @@ describe('Dark Mode Switch - Functional Test', () => {
     it('debe detectar dark mode desde document.body', async () => {
       render(<ChatWidget {...baseProps} />, { container })
 
-      const widget = document.getElementById('paseolibre-chat-widget')
+      const widget = document.getElementById('botuyo-chat-widget')
 
       // Toggle en document.body (como hace el demo)
       document.body.classList.add('dark')
@@ -137,7 +137,7 @@ describe('Dark Mode Switch - Functional Test', () => {
 
       render(<ChatWidget {...baseProps} />, { container })
 
-      const widget = document.getElementById('paseolibre-chat-widget')
+      const widget = document.getElementById('botuyo-chat-widget')
 
       await waitFor(() => {
         expect(widget?.classList.contains('dark')).toBe(true)
@@ -150,7 +150,7 @@ describe('Dark Mode Switch - Functional Test', () => {
     it('debe mantener CSS variables independientemente del dark mode', async () => {
       render(<ChatWidget {...baseProps} />, { container })
 
-      const widget = document.getElementById('paseolibre-chat-widget')
+      const widget = document.getElementById('botuyo-chat-widget')
       const computedStyle = window.getComputedStyle(widget!)
 
       // Variables deben estar en light mode
@@ -173,7 +173,7 @@ describe('Dark Mode Switch - Functional Test', () => {
     it('debe funcionar con el patrón del demo-dev.html', async () => {
       render(<ChatWidget {...baseProps} />, { container })
 
-      const widget = document.getElementById('paseolibre-chat-widget')
+      const widget = document.getElementById('botuyo-chat-widget')
 
       // Simular exactamente lo que hace demo-dev.html:
       // darkModeToggle.addEventListener('change', (e) => {
@@ -208,7 +208,7 @@ describe('Dark Mode Switch - Functional Test', () => {
 
       render(<ChatWidget {...baseProps} />, { container })
 
-      const widget = document.getElementById('paseolibre-chat-widget')
+      const widget = document.getElementById('botuyo-chat-widget')
 
       // Agregar dark al grandparent
       grandparent.classList.add('dark')
@@ -223,7 +223,7 @@ describe('Dark Mode Switch - Functional Test', () => {
     it('debe mostrar información de debug sobre dark mode detection', async () => {
       render(<ChatWidget {...baseProps} />, { container })
 
-      const widget = document.getElementById('paseolibre-chat-widget')
+      const widget = document.getElementById('botuyo-chat-widget')
 
       console.log('🔍 Dark Mode Detection Debug:')
       console.log('  - Widget ID:', widget?.id)
@@ -247,7 +247,7 @@ describe('Dark Mode Switch - Functional Test', () => {
     it('debe verificar que MutationObserver está observando los elementos correctos', async () => {
       const { unmount } = render(<ChatWidget {...baseProps} />, { container })
 
-      const widget = document.getElementById('paseolibre-chat-widget')
+      const widget = document.getElementById('botuyo-chat-widget')
 
       // El widget debe tener MutationObserver configurado
       // Vamos a verificar que reacciona a cambios

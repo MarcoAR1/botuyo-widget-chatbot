@@ -44,7 +44,7 @@ interface StandaloneConfig extends Partial<ChatWidgetProps> {
   };
 }
 
-class PaseoLibreChatWidget {
+class BotUyoChatWidget {
   private root: Root | null = null;
   private container: HTMLElement | null = null;
   private config: StandaloneConfig | null = null;
@@ -65,14 +65,14 @@ class PaseoLibreChatWidget {
    */
   private render(): void {
     if (!this.config) {
-      console.error('[PaseoLibreChat] No configuration provided');
+      console.error('[BotUyoChat] No configuration provided');
       return;
     }
 
     // Create container if it doesn't exist
     if (!this.container) {
       this.container = document.createElement('div');
-      this.container.id = 'paseo-libre-chat-widget-root';
+      this.container.id = 'botuyo-chat-widget-root';
       this.container.style.position = 'fixed';
       this.container.style.zIndex = '999999';
       document.body.appendChild(this.container);
@@ -146,7 +146,7 @@ class PaseoLibreChatWidget {
       React.createElement(ChatWidget, widgetProps)
     );
 
-    console.log('[PaseoLibreChat] Widget initialized', widgetProps);
+    console.log('[BotUyoChat] Widget initialized', widgetProps);
   }
 
   /**
@@ -155,7 +155,7 @@ class PaseoLibreChatWidget {
    */
   update(config: Partial<StandaloneConfig>): void {
     if (!this.config) {
-      console.error('[PaseoLibreChat] Widget not initialized');
+      console.error('[BotUyoChat] Widget not initialized');
       return;
     }
 
@@ -186,7 +186,7 @@ class PaseoLibreChatWidget {
     }
 
     this.config = null;
-    console.log('[PaseoLibreChat] Widget destroyed');
+    console.log('[BotUyoChat] Widget destroyed');
   }
 
   /**
@@ -195,14 +195,14 @@ class PaseoLibreChatWidget {
   open(): void {
     // This will be implemented by dispatching a custom event
     // that the widget listens to
-    window.dispatchEvent(new CustomEvent('paseo-libre-chat:open'));
+    window.dispatchEvent(new CustomEvent('botuyo-chat:open'));
   }
 
   /**
    * Close the chat window programmatically
    */
   close(): void {
-    window.dispatchEvent(new CustomEvent('paseo-libre-chat:close'));
+    window.dispatchEvent(new CustomEvent('botuyo-chat:close'));
   }
 
   /**
@@ -211,7 +211,7 @@ class PaseoLibreChatWidget {
    */
   sendMessage(message: string): void {
     window.dispatchEvent(
-      new CustomEvent('paseo-libre-chat:send-message', {
+      new CustomEvent('botuyo-chat:send-message', {
         detail: { message },
       })
     );
@@ -227,18 +227,18 @@ class PaseoLibreChatWidget {
 }
 
 // Create global instance
-const instance = new PaseoLibreChatWidget();
+const instance = new BotUyoChatWidget();
 
 // Expose to window
 declare global {
   interface Window {
-    PaseoLibreChat: PaseoLibreChatWidget;
+    BotUyoChat: BotUyoChatWidget;
   }
 }
 
-window.PaseoLibreChat = instance;
+window.BotUyoChat = instance;
 
 // Export for module systems
 export default instance;
-export { PaseoLibreChatWidget };
+export { BotUyoChatWidget };
 export type { StandaloneConfig };

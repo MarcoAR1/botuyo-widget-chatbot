@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ejemplo CDN - Paseo Libre Chat Widget</title>
+  <title>Ejemplo CDN - BotUyo Chat Widget</title>
   <style>
     * {
       margin: 0;
@@ -129,19 +129,19 @@
   </div>
 
   <!-- IMPORTANTE: Cargar el script del widget -->
-  <!-- En producción, usar: https://cdn.paseolibre.com/chat-widget.js -->
-  <script src="../dist/paseo-libre-chat.js"></script>
+  <!-- En producción, usar: https://cdn.botuyo.com/chat-widget.js -->
+  <script src="../dist/botuyo-chat.js"></script>
   
   <script>
     // Esperar a que el script esté cargado
     let widget;
     
-    // Inicializar el widget cuando PaseoLibreChat esté disponible
+    // Inicializar el widget cuando BotUyoChat esté disponible
     window.addEventListener('DOMContentLoaded', () => {
-      if (window.PaseoLibreChat) {
-        widget = window.PaseoLibreChat.init({
+      if (window.BotUyoChat) {
+        widget = window.BotUyoChat.init({
       apiKey: 'demo-api-key-12345',
-      apiBaseUrl: 'https://api.paseolibre.com', // Cambiar por tu API real
+      apiBaseUrl: 'https://api.botuyo.com', // Cambiar por tu API real
       
       theme: {
         primaryColor: '#10b981',
@@ -186,7 +186,7 @@
           updateStatus('Widget listo para usar ✅');
         }, 1000);
       } else {
-        updateStatus('❌ Error: PaseoLibreChat no está disponible. Verifica que el script esté cargado.');
+        updateStatus('❌ Error: BotUyoChat no está disponible. Verifica que el script esté cargado.');
       }
     });
     // Funciones auxiliares

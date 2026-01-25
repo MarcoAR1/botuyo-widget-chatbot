@@ -11,7 +11,7 @@ export const translations = {
     connecting: 'Conectando...',
     
     // Footer
-    con_amor_paseo_libre: 'Con ❤️ por Paseo Libre',
+    con_amor_paseo_libre: 'Con ❤️ por BotUyo',
     
     // Input area
     preview: 'Vista previa',
@@ -47,7 +47,7 @@ export const translations = {
     connecting: 'Connecting...',
     
     // Footer
-    con_amor_paseo_libre: 'With ❤️ by Paseo Libre',
+    con_amor_paseo_libre: 'With ❤️ by BotUyo',
     
     // Input area
     preview: 'Preview',
@@ -83,7 +83,7 @@ export const translations = {
     connecting: 'Conectando...',
     
     // Rodapé
-    con_amor_paseo_libre: 'Com ❤️ por Paseo Libre',
+    con_amor_paseo_libre: 'Com ❤️ por BotUyo',
     
     // Área de entrada
     preview: 'Visualizar',

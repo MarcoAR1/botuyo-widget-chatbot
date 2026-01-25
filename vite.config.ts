@@ -9,9 +9,9 @@ export default defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, 'standalone.tsx'),
-      name: 'PaseoLibreChat',
+      name: 'BotUyoChat',
       formats: ['iife'], // Solo IIFE para CDN
-      fileName: () => 'paseo-libre-chat.js',
+      fileName: () => 'botuyo-chat.js',
     },
     rollupOptions: {
       // Externalize dependencies that are too large
@@ -22,7 +22,7 @@ export default defineConfig({
         // Evita la advertencia por usar default + named exports en el entry
         exports: 'named',
         // Inline all assets
-        assetFileNames: 'paseo-libre-chat.[ext]',
+        assetFileNames: 'botuyo-chat.[ext]',
       },
     },
     outDir: 'dist',
@@ -46,7 +46,7 @@ export default defineConfig({
 
   // For development
   server: {
-    port: 3001,
+    port: 3010,
     open: '/index.html',
   },
 

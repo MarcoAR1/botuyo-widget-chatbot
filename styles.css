@@ -10,8 +10,8 @@
    CSS VARIABLES (Design System)
    =================================== */
 
-#paseo-libre-chat-widget-root,
-#paseolibre-chat-widget,
+#botuyo-chat-widget-root,
+#botuyo-chat-widget,
 :root {
   /* Colors - Paseo Libre Brand */
   --background: 0 0% 100%;
@@ -21,7 +21,7 @@
   --popover: 0 0% 100%;
   --popover-foreground: 240 10% 3.9%;
   
-  /* Primary - Emerald (Paseo Libre Green) */
+  /* Primary - Emerald (BotUyo Green) */
   --primary: 160 84% 39%;
   --primary-foreground: 0 0% 100%;
   
@@ -55,8 +55,8 @@
   --spacing8: 2rem;     /* 32px */
 }
 
-#paseo-libre-chat-widget-root.dark,
-#paseolibre-chat-widget.dark,
+#botuyo-chat-widget-root.dark,
+#botuyo-chat-widget.dark,
 .dark {
   --background: 240 10% 3.9%;
   --foreground: 0 0% 98%;
@@ -81,14 +81,14 @@
    RESET & BASE STYLES
    =================================== */
 
-#paseo-libre-chat-widget-root,
-#paseo-libre-chat-widget-root * {
+#botuyo-chat-widget-root,
+#botuyo-chat-widget-root * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-#paseo-libre-chat-widget-root {
+#botuyo-chat-widget-root {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
@@ -169,7 +169,7 @@
    =================================== */
 
 /* Launcher Button */
-#paseo-libre-chat-widget-root .chat-launcher {
+#botuyo-chat-widget-root .chat-launcher {
   position: fixed;
   bottom: 1.5rem;
   right: 1.5rem;
@@ -187,22 +187,22 @@
   z-index: 999999;
 }
 
-#paseo-libre-chat-widget-root .chat-launcher:hover {
+#botuyo-chat-widget-root .chat-launcher:hover {
   transform: scale(1.05);
   box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 }
 
-#paseo-libre-chat-widget-root .chat-launcher.position-bottom-left {
+#botuyo-chat-widget-root .chat-launcher.position-bottom-left {
   left: 1.5rem;
   right: auto;
 }
 
-#paseo-libre-chat-widget-root .chat-launcher.position-top-right {
+#botuyo-chat-widget-root .chat-launcher.position-top-right {
   top: 1.5rem;
   bottom: auto;
 }
 
-#paseo-libre-chat-widget-root .chat-launcher.position-top-left {
+#botuyo-chat-widget-root .chat-launcher.position-top-left {
   top: 1.5rem;
   left: 1.5rem;
   bottom: auto;
@@ -210,7 +210,7 @@
 }
 
 /* Chat Window */
-#paseo-libre-chat-widget-root .chat-window {
+#botuyo-chat-widget-root .chat-window {
   position: fixed;
   bottom: 6rem;
   right: 1.5rem;
@@ -227,13 +227,13 @@
   animation: slideInRight 0.3s ease-out;
 }
 
-#paseo-libre-chat-widget-root .chat-window.closing {
+#botuyo-chat-widget-root .chat-window.closing {
   animation: slideOutRight 0.2s ease-in;
 }
 
 /* Mobile */
 @media (max-width: 640px) {
-  #paseo-libre-chat-widget-root .chat-window {
+  #botuyo-chat-widget-root .chat-window {
     width: 100%;
     height: 100%;
     max-height: 100vh;
@@ -247,44 +247,44 @@
 }
 
 /* Message Bubbles */
-#paseo-libre-chat-widget-root .message-bubble {
+#botuyo-chat-widget-root .message-bubble {
   max-width: 80%;
   padding: 0.75rem 1rem;
   border-radius: 1rem;
   word-wrap: break-word;
 }
 
-#paseo-libre-chat-widget-root .message-bubble.user {
+#botuyo-chat-widget-root .message-bubble.user {
   background-color: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
   margin-left: auto;
 }
 
-#paseo-libre-chat-widget-root .message-bubble.bot {
+#botuyo-chat-widget-root .message-bubble.bot {
   background-color: hsl(var(--muted));
   color: hsl(var(--foreground));
 }
 
 /* Scrollbar */
-#paseo-libre-chat-widget-root .chat-messages::-webkit-scrollbar {
+#botuyo-chat-widget-root .chat-messages::-webkit-scrollbar {
   width: 6px;
 }
 
-#paseo-libre-chat-widget-root .chat-messages::-webkit-scrollbar-track {
+#botuyo-chat-widget-root .chat-messages::-webkit-scrollbar-track {
   background: transparent;
 }
 
-#paseo-libre-chat-widget-root .chat-messages::-webkit-scrollbar-thumb {
+#botuyo-chat-widget-root .chat-messages::-webkit-scrollbar-thumb {
   background: hsl(var(--muted));
   border-radius: 3px;
 }
 
-#paseo-libre-chat-widget-root .chat-messages::-webkit-scrollbar-thumb:hover {
+#botuyo-chat-widget-root .chat-messages::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground));
 }
 
 /* Input */
-#paseo-libre-chat-widget-root .chat-input {
+#botuyo-chat-widget-root .chat-input {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid hsl(var(--border));
@@ -295,7 +295,7 @@
   transition: border-color 0.2s;
 }
 
-#paseo-libre-chat-widget-root .chat-input:focus {
+#botuyo-chat-widget-root .chat-input:focus {
   border-color: hsl(var(--primary));
   box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);
 }
@@ -305,7 +305,7 @@
    =================================== */
 
 @media (max-width: 640px) {
-  #paseo-libre-chat-widget-root .chat-launcher {
+  #botuyo-chat-widget-root .chat-launcher {
     width: 56px;
     height: 56px;
     bottom: 1rem;

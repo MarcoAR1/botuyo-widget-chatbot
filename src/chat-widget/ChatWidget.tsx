@@ -99,9 +99,9 @@ export function ChatWidget(props: ChatWidgetProps) {
   return (
     <div
       ref={containerRef}
-      id="paseolibre-chat-widget"
+      id="botuyo-chat-widget"
       className={cn(
-        'paseolibre-chat-widget flex flex-col',
+        'botuyo-chat-widget flex flex-col',
         !isMobile &&
           (theme?.position === 'bottom-left' ? 'items-start' : 'items-end')
       )}

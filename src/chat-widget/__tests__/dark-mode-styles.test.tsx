@@ -47,25 +47,25 @@ describe('Dark Mode & CSS Variables', () => {
     it('debe inyectar CSS variables al widget container', () => {
       render(<ChatWidget {...baseProps} />, { container })
 
-      const widget = document.getElementById('paseolibre-chat-widget')
+      const widget = document.getElementById('botuyo-chat-widget')
       expect(widget).toBeInTheDocument()
 
       // En el nuevo diseño, solo --chat-primary se aplica inline
       // Las demás CSS variables se aplican en el root container desde standalone.tsx
       const style = widget?.getAttribute('style') || ''
       expect(style).toContain('--chat-primary')
-      expect(widget).toHaveClass('paseolibre-chat-widget')
+      expect(widget).toHaveClass('botuyo-chat-widget')
     })
 
     it('debe aplicar valores correctos de CSS variables', () => {
       render(<ChatWidget {...baseProps} />, { container })
 
-      const widget = document.getElementById('paseolibre-chat-widget')
+      const widget = document.getElementById('botuyo-chat-widget')
       expect(widget).toBeInTheDocument()
 
       // En ambiente de prueba, las CSS variables se heredan de :root en styles.css
       // Solo verificamos que el widget se renderiza correctamente
-      expect(widget).toHaveClass('paseolibre-chat-widget')
+      expect(widget).toHaveClass('botuyo-chat-widget')
       expect(widget?.getAttribute('style')).toContain('--chat-primary')
     })
 
@@ -83,11 +83,11 @@ describe('Dark Mode & CSS Variables', () => {
 
       render(<ChatWidget {...partialProps} />, { container })
 
-      const widget = document.getElementById('paseolibre-chat-widget')
+      const widget = document.getElementById('botuyo-chat-widget')
       expect(widget).toBeInTheDocument()
       
       // Verificar que el widget se renderiza con el tema parcial
-      expect(widget).toHaveClass('paseolibre-chat-widget')
+      expect(widget).toHaveClass('botuyo-chat-widget')
     })
 
     it('debe usar valores por defecto cuando no hay cssVariables', () => {
@@ -102,7 +102,7 @@ describe('Dark Mode & CSS Variables', () => {
 
       render(<ChatWidget {...noVarsProps} />, { container })
 
-      const widget = document.getElementById('paseolibre-chat-widget')
+      const widget = document.getElementById('botuyo-chat-widget')
       expect(widget).toBeInTheDocument()
 
       // Debe tener al menos algunas variables por defecto
@@ -118,7 +118,7 @@ describe('Dark Mode & CSS Variables', () => {
 
       render(<ChatWidget {...baseProps} />, { container })
 
-      const widget = document.getElementById('paseolibre-chat-widget')
+      const widget = document.getElementById('botuyo-chat-widget')
 
       await waitFor(() => {
         expect(widget?.classList.contains('dark')).toBe(true)
@@ -130,7 +130,7 @@ describe('Dark Mode & CSS Variables', () => {
 
       render(<ChatWidget {...baseProps} />, { container })
 
-      const widget = document.getElementById('paseolibre-chat-widget')
+      const widget = document.getElementById('botuyo-chat-widget')
 
       await waitFor(() => {
         expect(widget?.classList.contains('dark')).toBe(true)
@@ -144,7 +144,7 @@ describe('Dark Mode & CSS Variables', () => {
 
       render(<ChatWidget {...baseProps} />, { container })
 
-      const widget = document.getElementById('paseolibre-chat-widget')
+      const widget = document.getElementById('botuyo-chat-widget')
 
       await waitFor(() => {
         expect(widget?.classList.contains('dark')).toBe(true)
@@ -156,7 +156,7 @@ describe('Dark Mode & CSS Variables', () => {
     it('debe reaccionar a cambios dinámicos de dark mode', async () => {
       const { unmount } = render(<ChatWidget {...baseProps} />, { container })
 
-      const widget = document.getElementById('paseolibre-chat-widget')
+      const widget = document.getElementById('botuyo-chat-widget')
 
       // Inicialmente sin dark
       expect(widget?.classList.contains('dark')).toBe(false)
@@ -199,7 +199,7 @@ describe('Dark Mode & CSS Variables', () => {
 
       render(<ChatWidget {...baseProps} />, { container })
 
-      const widget = document.getElementById('paseolibre-chat-widget')
+      const widget = document.getElementById('botuyo-chat-widget')
 
       await waitFor(() => {
         expect(widget?.classList.contains('dark')).toBe(true)
@@ -214,7 +214,7 @@ describe('Dark Mode & CSS Variables', () => {
 
       render(<ChatWidget {...baseProps} />, { container })
 
-      const widget = document.getElementById('paseolibre-chat-widget')
+      const widget = document.getElementById('botuyo-chat-widget')
 
       await waitFor(() => {
         expect(widget?.classList.contains('dark')).toBe(true)
@@ -230,13 +230,13 @@ describe('Dark Mode & CSS Variables', () => {
     it('debe detectar dark mode en container standalone', async () => {
       // Simular el container que crea standalone.tsx
       const standaloneContainer = document.createElement('div')
-      standaloneContainer.id = 'paseo-libre-chat-widget-root'
+      standaloneContainer.id = 'botuyo-chat-widget-root'
       standaloneContainer.classList.add('dark')
       document.body.appendChild(standaloneContainer)
 
       render(<ChatWidget {...baseProps} />, { container: standaloneContainer })
 
-      const widget = document.getElementById('paseolibre-chat-widget')
+      const widget = document.getElementById('botuyo-chat-widget')
 
       await waitFor(() => {
         expect(widget?.classList.contains('dark')).toBe(true)
@@ -247,7 +247,7 @@ describe('Dark Mode & CSS Variables', () => {
 
     it('debe inyectar CSS variables tanto en standalone como en widget', () => {
       const standaloneContainer = document.createElement('div')
-      standaloneContainer.id = 'paseo-libre-chat-widget-root'
+      standaloneContainer.id = 'botuyo-chat-widget-root'
       
       // Simular inyección de variables en standalone container
       standaloneContainer.style.setProperty('--primary', '210 100% 50%')
@@ -258,7 +258,7 @@ describe('Dark Mode & CSS Variables', () => {
       render(<ChatWidget {...baseProps} />, { container: standaloneContainer })
 
       // Verificar que el widget también tenga las variables
-      const widget = document.getElementById('paseolibre-chat-widget')
+      const widget = document.getElementById('botuyo-chat-widget')
       const widgetStyle = widget?.getAttribute('style') || ''
       
       // El widget solo debe tener --chat-primary inline
@@ -291,7 +291,7 @@ describe('Dark Mode & CSS Variables', () => {
 
       render(<ChatWidget {...baseProps} />, { container })
 
-      const widget = document.getElementById('paseolibre-chat-widget')
+      const widget = document.getElementById('botuyo-chat-widget')
       const computedStyle = window.getComputedStyle(widget!)
 
       // En alto contraste, debe usar colores WCAG AAA
@@ -322,7 +322,7 @@ describe('Dark Mode & CSS Variables', () => {
     it('debe manejar cambios múltiples de dark mode rápidamente', async () => {
       render(<ChatWidget {...baseProps} />, { container })
 
-      const widget = document.getElementById('paseolibre-chat-widget')
+      const widget = document.getElementById('botuyo-chat-widget')
 
       // Cambios rápidos
       container.classList.add('dark')

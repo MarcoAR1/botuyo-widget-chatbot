@@ -4,16 +4,16 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { PaseoLibreChatWidget } from '../../../standalone';
+import { BotUyoChatWidget } from '../../../standalone';
 
 describe('Widget Instantiation - API Tests', () => {
   describe('Constructor', () => {
     it('debe crear una nueva instancia sin errores', () => {
-      expect(() => new PaseoLibreChatWidget()).not.toThrow();
+      expect(() => new BotUyoChatWidget()).not.toThrow();
     });
 
     it('debe tener todos los métodos públicos', () => {
-      const widget = new PaseoLibreChatWidget();
+      const widget = new BotUyoChatWidget();
       
       expect(typeof widget.init).toBe('function');
       expect(typeof widget.update).toBe('function');
@@ -27,7 +27,7 @@ describe('Widget Instantiation - API Tests', () => {
 
   describe('Temas Paseolibre - Configuraciones Reales', () => {
     it('debe aceptar PASEOLIBRE_LIGHT_THEME sin errores', () => {
-      const widget = new PaseoLibreChatWidget();
+      const widget = new BotUyoChatWidget();
       const config = {
         apiKey: 'test-key',
         apiBaseUrl: 'wss://test.com',
@@ -49,7 +49,7 @@ describe('Widget Instantiation - API Tests', () => {
     });
 
     it('debe aceptar PASEOLIBRE_DARK_THEME sin errores', () => {
-      const widget = new PaseoLibreChatWidget();
+      const widget = new BotUyoChatWidget();
       const config = {
         apiKey: 'test-key',
         apiBaseUrl: 'wss://test.com',
@@ -80,7 +80,7 @@ describe('Widget Instantiation - API Tests', () => {
 
     brandVariants.forEach(({ name, primary, hsl }) => {
       it(`debe aceptar brand variant ${name} sin errores`, () => {
-        const widget = new PaseoLibreChatWidget();
+        const widget = new BotUyoChatWidget();
         const config = {
           apiKey: 'test-key',
           apiBaseUrl: 'wss://test.com',
@@ -110,7 +110,7 @@ describe('Widget Instantiation - API Tests', () => {
 
     predefinedThemes.forEach(({ name, primaryColor }) => {
       it(`debe aceptar tema ${name} sin errores`, () => {
-        const widget = new PaseoLibreChatWidget();
+        const widget = new BotUyoChatWidget();
         const config = {
           apiKey: 'test-key',
           apiBaseUrl: 'wss://test.com',
@@ -128,7 +128,7 @@ describe('Widget Instantiation - API Tests', () => {
 
   describe('Edge Cases - Casos Extremos', () => {
     it('debe aceptar configuración mínima', () => {
-      const widget = new PaseoLibreChatWidget();
+      const widget = new BotUyoChatWidget();
       const config = {
         apiKey: 'test-key',
         apiBaseUrl: 'wss://test.com',
@@ -139,7 +139,7 @@ describe('Widget Instantiation - API Tests', () => {
     });
 
     it('debe aceptar tema parcial', () => {
-      const widget = new PaseoLibreChatWidget();
+      const widget = new BotUyoChatWidget();
       const config = {
         apiKey: 'test-key',
         apiBaseUrl: 'wss://test.com',
@@ -153,7 +153,7 @@ describe('Widget Instantiation - API Tests', () => {
     });
 
     it('debe aceptar solo cssVariables', () => {
-      const widget = new PaseoLibreChatWidget();
+      const widget = new BotUyoChatWidget();
       const config = {
         apiKey: 'test-key',
         apiBaseUrl: 'wss://test.com',
@@ -169,7 +169,7 @@ describe('Widget Instantiation - API Tests', () => {
     });
 
     it('debe aceptar callbacks opcionales', () => {
-      const widget = new PaseoLibreChatWidget();
+      const widget = new BotUyoChatWidget();
       const onNavigate = vi.fn();
       const onLogin = vi.fn();
       const onEvent = vi.fn();
@@ -191,7 +191,7 @@ describe('Widget Instantiation - API Tests', () => {
 
   describe('Método update()', () => {
     it('debe permitir actualizar tema después de init', () => {
-      const widget = new PaseoLibreChatWidget();
+      const widget = new BotUyoChatWidget();
       
       widget.init({
         apiKey: 'test-key',
@@ -213,7 +213,7 @@ describe('Widget Instantiation - API Tests', () => {
     it('debe mostrar error si se llama update antes de init', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       
-      const widget = new PaseoLibreChatWidget();
+      const widget = new BotUyoChatWidget();
       widget.update({
         theme: { primaryColor: 'hsl(210, 100%, 50%)' },
       });
@@ -226,25 +226,25 @@ describe('Widget Instantiation - API Tests', () => {
 
   describe('Métodos de control', () => {
     it('debe tener método open()', () => {
-      const widget = new PaseoLibreChatWidget();
+      const widget = new BotUyoChatWidget();
       expect(typeof widget.open).toBe('function');
       expect(() => widget.open()).not.toThrow();
     });
 
     it('debe tener método close()', () => {
-      const widget = new PaseoLibreChatWidget();
+      const widget = new BotUyoChatWidget();
       expect(typeof widget.close).toBe('function');
       expect(() => widget.close()).not.toThrow();
     });
 
     it('debe tener método sendMessage()', () => {
-      const widget = new PaseoLibreChatWidget();
+      const widget = new BotUyoChatWidget();
       expect(typeof widget.sendMessage).toBe('function');
       expect(() => widget.sendMessage('Test message')).not.toThrow();
     });
 
     it('debe tener método getState()', () => {
-      const widget = new PaseoLibreChatWidget();
+      const widget = new BotUyoChatWidget();
       expect(typeof widget.getState).toBe('function');
       const state = widget.getState();
       // Por ahora retorna null hasta que se implemente state management
@@ -252,7 +252,7 @@ describe('Widget Instantiation - API Tests', () => {
     });
 
     it('debe tener método destroy()', () => {
-      const widget = new PaseoLibreChatWidget();
+      const widget = new BotUyoChatWidget();
       expect(typeof widget.destroy).toBe('function');
       expect(() => widget.destroy()).not.toThrow();
     });
@@ -260,9 +260,9 @@ describe('Widget Instantiation - API Tests', () => {
 
   describe('Múltiples Instancias', () => {
     it('debe permitir crear múltiples instancias', () => {
-      const widget1 = new PaseoLibreChatWidget();
-      const widget2 = new PaseoLibreChatWidget();
-      const widget3 = new PaseoLibreChatWidget();
+      const widget1 = new BotUyoChatWidget();
+      const widget2 = new BotUyoChatWidget();
+      const widget3 = new BotUyoChatWidget();
 
       expect(widget1).not.toBe(widget2);
       expect(widget2).not.toBe(widget3);
@@ -270,8 +270,8 @@ describe('Widget Instantiation - API Tests', () => {
     });
 
     it('todas las instancias deben ser independientes', () => {
-      const widget1 = new PaseoLibreChatWidget();
-      const widget2 = new PaseoLibreChatWidget();
+      const widget1 = new BotUyoChatWidget();
+      const widget2 = new BotUyoChatWidget();
 
       widget1.init({
         apiKey: 'key-1',
@@ -291,7 +291,7 @@ describe('Widget Instantiation - API Tests', () => {
 
   describe('Chaining API', () => {
     it('init() debe retornar la instancia para chaining', () => {
-      const widget = new PaseoLibreChatWidget();
+      const widget = new BotUyoChatWidget();
       const result = widget.init({
         apiKey: 'test-key',
         apiBaseUrl: 'wss://test.com',
@@ -301,7 +301,7 @@ describe('Widget Instantiation - API Tests', () => {
     });
 
     it('debe permitir chaining de métodos', () => {
-      const widget = new PaseoLibreChatWidget();
+      const widget = new BotUyoChatWidget();
       
       expect(() => {
         widget
