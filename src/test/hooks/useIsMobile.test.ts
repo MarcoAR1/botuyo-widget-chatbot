@@ -135,8 +135,8 @@ describe('useIsMobile', () => {
     })
 
     it('should handle multiple rapid resize events (throttling)', async () => {
-      vi.useFakeTimers()
-
+      // Con React 19, los fake timers pueden causar race conditions
+      // Usar real timers y waitFor para este test
       Object.defineProperty(window, 'innerWidth', {
         writable: true,
         configurable: true,
@@ -153,12 +153,13 @@ describe('useIsMobile', () => {
       window.dispatchEvent(new Event('resize'))
       window.dispatchEvent(new Event('resize'))
 
-      // Avanzar el tiempo del throttle (250ms)
-      await vi.advanceTimersByTimeAsync(300)
-
-      expect(result.current).toBe(true)
-
-      vi.useRealTimers()
+      // Esperar a que el throttle (250ms) procese y React actualice
+      await waitFor(
+        () => {
+          expect(result.current).toBe(true)
+        },
+        { timeout: 500 }
+      )
     })
   })
 

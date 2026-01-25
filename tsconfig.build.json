@@ -1,0 +1,25 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "dist",
+    "skipLibCheck": true,
+    "noEmit": false,
+    "jsx": "react-jsx",
+    "moduleResolution": "bundler"
+  },
+  "include": [
+    "standalone.tsx",
+    "src/chat-widget/**/*",
+    "src/lib/**/*"
+  ],
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "src/test",
+    "node_modules",
+    "dist"
+  ]
+}
