@@ -1,14 +1,30 @@
 /**
- * @package @paseolibre/chat-widget
+ * @package @botuyo/chat-widget
  * Test específico para Dark Mode Toggle/Switch
+ * 
+ * NOTA: Tests temporalmente deshabilitados por timing issues con MutationObserver en jsdom
+ * TODO: Migrar a Playwright para E2E testing o mejorar mocks de MutationObserver
+ * Ver MEJORAS_PROPUESTAS.md sección 3 para detalles
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { render, waitFor } from '@testing-library/react'
+import { act } from 'react'
 import { ChatWidget } from '../../chat-widget/ChatWidget'
 import type { ChatWidgetProps } from '../../chat-widget/types'
 
-describe('Dark Mode Switch - Functional Test', () => {
+/**
+ * Helper para dar tiempo a MutationObserver a procesar cambios en jsdom
+ * MutationObserver callbacks se ejecutan asíncronamente, este helper garantiza
+ * que tanto React (useEffect) como los observers tengan tiempo de procesarse
+ */
+const waitForDarkModeSync = () =>
+  act(async () => {
+    // 100ms es suficiente para que jsdom procese MutationObserver callbacks
+    await new Promise(resolve => setTimeout(resolve, 100))
+  })
+
+describe.skip('Dark Mode Switch - Functional Test', () => {
   let container: HTMLDivElement
   let standaloneContainer: HTMLDivElement
 
@@ -44,8 +60,8 @@ describe('Dark Mode Switch - Functional Test', () => {
     },
   }
 
-  describe('Toggle Dark Mode', () => {
-    it.skip('debe activar dark mode cuando se agrega clase dark al container standalone', async () => {
+  describe.skip('Toggle Dark Mode', () => {
+    it('debe activar dark mode cuando se agrega clase dark al container standalone', async () => {
       render(<ChatWidget {...baseProps} />, { container })
 
       const widget = document.getElementById('botuyo-chat-widget')
@@ -58,12 +74,14 @@ describe('Dark Mode Switch - Functional Test', () => {
       standaloneContainer.classList.add('dark')
 
       // Esperar que el MutationObserver detecte el cambio
+      await waitForDarkModeSync()
+      
       await waitFor(() => {
         expect(widget?.classList.contains('dark')).toBe(true)
-      }, { timeout: 2000 })
+      }, { timeout: 1000 })
     })
 
-    it.skip('debe desactivar dark mode cuando se remueve clase dark', async () => {
+    it('debe desactivar dark mode cuando se remueve clase dark', async () => {
       // Iniciar con dark mode activo
       standaloneContainer.classList.add('dark')
 
@@ -72,51 +90,50 @@ describe('Dark Mode Switch - Functional Test', () => {
       const widget = document.getElementById('botuyo-chat-widget')
 
       // Debe detectar dark mode inicial
+      await waitForDarkModeSync()
       await waitFor(() => {
         expect(widget?.classList.contains('dark')).toBe(true)
-      }, { timeout: 1500 })
+      }, { timeout: 1000 })
 
       // SIMULAR TOGGLE OFF: Remover clase dark
       standaloneContainer.classList.remove('dark')
 
-      // Esperar más tiempo para que el MutationObserver procese
-      await new Promise(resolve => setTimeout(resolve, 200))
+      // Esperar que el MutationObserver procese
+      await waitForDarkModeSync()
 
       await waitFor(() => {
-        const hasDark = widget?.classList.contains('dark')
-        if (hasDark) {
-          console.log('⚠️  Widget todavía tiene dark class:', widget?.className)
-        }
-        expect(hasDark).toBe(false)
-      }, { timeout: 3000 })
+        expect(widget?.classList.contains('dark')).toBe(false)
+      }, { timeout: 1000 })
     })
 
-    it.skip('debe responder a toggles rápidos del switch', async () => {
+    it('debe responder a toggles rápidos del switch', async () => {
       render(<ChatWidget {...baseProps} />, { container })
 
       const widget = document.getElementById('botuyo-chat-widget')
 
       // Toggle ON
       standaloneContainer.classList.add('dark')
+      await waitForDarkModeSync()
       await waitFor(() => {
         expect(widget?.classList.contains('dark')).toBe(true)
-      }, { timeout: 1500 })
+      }, { timeout: 1000 })
 
-      // Toggle OFF - dar más tiempo
+      // Toggle OFF
       standaloneContainer.classList.remove('dark')
-      await new Promise(resolve => setTimeout(resolve, 200))
+      await waitForDarkModeSync()
       await waitFor(() => {
         expect(widget?.classList.contains('dark')).toBe(false)
-      }, { timeout: 3000 })
+      }, { timeout: 1000 })
 
       // Toggle ON again
       standaloneContainer.classList.add('dark')
+      await waitForDarkModeSync()
       await waitFor(() => {
         expect(widget?.classList.contains('dark')).toBe(true)
-      }, { timeout: 1500 })
+      }, { timeout: 1000 })
     })
 
-    it.skip('debe detectar dark mode desde document.body', async () => {
+    it('debe detectar dark mode desde document.body', async () => {
       render(<ChatWidget {...baseProps} />, { container })
 
       const widget = document.getElementById('botuyo-chat-widget')
@@ -124,21 +141,24 @@ describe('Dark Mode Switch - Functional Test', () => {
       // Toggle en document.body (como hace el demo)
       document.body.classList.add('dark')
 
+      await waitForDarkModeSync()
       await waitFor(() => {
         expect(widget?.classList.contains('dark')).toBe(true)
       }, { timeout: 1000 })
 
       // Cleanup
       document.body.classList.remove('dark')
+      await waitForDarkModeSync()
     })
 
-    it.skip('debe aplicar clases dark: de Tailwind cuando dark mode está activo', async () => {
+    it('debe aplicar clases dark: de Tailwind cuando dark mode está activo', async () => {
       standaloneContainer.classList.add('dark')
 
       render(<ChatWidget {...baseProps} />, { container })
 
       const widget = document.getElementById('botuyo-chat-widget')
 
+      await waitForDarkModeSync()
       await waitFor(() => {
         expect(widget?.classList.contains('dark')).toBe(true)
       }, { timeout: 1000 })
@@ -147,7 +167,7 @@ describe('Dark Mode Switch - Functional Test', () => {
       expect(widget?.className).toContain('dark')
     })
 
-    it.skip('debe mantener CSS variables independientemente del dark mode', async () => {
+    it('debe mantener CSS variables independientemente del dark mode', async () => {
       render(<ChatWidget {...baseProps} />, { container })
 
       const widget = document.getElementById('botuyo-chat-widget')
@@ -159,6 +179,7 @@ describe('Dark Mode Switch - Functional Test', () => {
       // Toggle dark mode
       standaloneContainer.classList.add('dark')
 
+      await waitForDarkModeSync()
       await waitFor(() => {
         expect(widget?.classList.contains('dark')).toBe(true)
       }, { timeout: 1000 })
@@ -169,36 +190,31 @@ describe('Dark Mode Switch - Functional Test', () => {
     })
   })
 
-  describe('Integration with Demo', () => {
-    it.skip('debe funcionar con el patrón del demo-dev.html', async () => {
+  describe.skip('Integration with Demo', () => {
+    it('debe funcionar con el patrón del demo-dev.html', async () => {
       render(<ChatWidget {...baseProps} />, { container })
 
       const widget = document.getElementById('botuyo-chat-widget')
 
-      // Simular exactamente lo que hace demo-dev.html:
-      // darkModeToggle.addEventListener('change', (e) => {
-      //   const isDark = e.target.checked
-      //   widgetContainer.classList.toggle('dark', isDark)
-      // })
-
+      // Simular exactamente lo que hace demo-dev.html
       const isDark = true
       standaloneContainer.classList.toggle('dark', isDark)
 
+      await waitForDarkModeSync()
       await waitFor(() => {
         expect(widget?.classList.contains('dark')).toBe(true)
-      }, { timeout: 1500 })
+      }, { timeout: 1000 })
 
-      // Toggle off - dar más tiempo
+      // Toggle off
       standaloneContainer.classList.toggle('dark', false)
 
-      await new Promise(resolve => setTimeout(resolve, 200))
-
+      await waitForDarkModeSync()
       await waitFor(() => {
         expect(widget?.classList.contains('dark')).toBe(false)
-      }, { timeout: 3000 })
+      }, { timeout: 1000 })
     })
 
-    it.skip('debe detectar cambios en cualquier ancestro con clase dark', async () => {
+    it('debe detectar cambios en cualquier ancestro con clase dark', async () => {
       // Crear estructura anidada
       const grandparent = document.createElement('div')
       const parent = document.createElement('div')
@@ -213,38 +229,33 @@ describe('Dark Mode Switch - Functional Test', () => {
       // Agregar dark al grandparent
       grandparent.classList.add('dark')
 
+      await waitForDarkModeSync()
       await waitFor(() => {
         expect(widget?.classList.contains('dark')).toBe(true)
       }, { timeout: 1000 })
     })
   })
 
-  describe('Diagnostics', () => {
-    it.skip('debe mostrar información de debug sobre dark mode detection', async () => {
+  describe.skip('Diagnostics', () => {
+    it('debe mostrar información de debug sobre dark mode detection', async () => {
       render(<ChatWidget {...baseProps} />, { container })
 
       const widget = document.getElementById('botuyo-chat-widget')
 
-      console.log('🔍 Dark Mode Detection Debug:')
-      console.log('  - Widget ID:', widget?.id)
-      console.log('  - Widget class:', widget?.className)
-      console.log('  - Container ID:', container.id)
-      console.log('  - Standalone container ID:', standaloneContainer.id)
-      console.log('  - Body has dark:', document.body.classList.contains('dark'))
-      console.log('  - HTML has dark:', document.documentElement.classList.contains('dark'))
-      console.log('  - Standalone has dark:', standaloneContainer.classList.contains('dark'))
+      expect(widget?.id).toBe('botuyo-chat-widget')
+      expect(container.id).toBe('test-widget-container')
+      expect(standaloneContainer.id).toBe('botuyo-chat-widget-root')
 
       // Agregar dark mode
       standaloneContainer.classList.add('dark')
 
+      await waitForDarkModeSync()
       await waitFor(() => {
-        console.log('  ✅ Dark mode activated')
-        console.log('  - Widget class after toggle:', widget?.className)
         expect(widget?.classList.contains('dark')).toBe(true)
-      }, { timeout: 2000 })
+      }, { timeout: 1000 })
     })
 
-    it.skip('debe verificar que MutationObserver está observando los elementos correctos', async () => {
+    it('debe verificar que MutationObserver está observando los elementos correctos', async () => {
       const { unmount } = render(<ChatWidget {...baseProps} />, { container })
 
       const widget = document.getElementById('botuyo-chat-widget')
@@ -266,6 +277,7 @@ describe('Dark Mode Switch - Functional Test', () => {
       // Trigger cambio
       standaloneContainer.classList.add('dark')
 
+      await waitForDarkModeSync()
       await waitFor(() => {
         expect(changeDetected || widget?.classList.contains('dark')).toBe(true)
       }, { timeout: 1000 })
