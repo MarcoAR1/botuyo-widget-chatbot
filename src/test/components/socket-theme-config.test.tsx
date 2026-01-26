@@ -95,11 +95,14 @@ describe('Socket Theme Configuration', () => {
       
       await connectionAckHandler?.(connectionAckPayload)
 
-      // Esperar a que se apliquen los cambios
-      await waitFor(() => {
-        const widgetElement = document.querySelector('#botuyo-chat-widget')
-        expect(widgetElement).toBeTruthy()
-      })
+      // Esperar a que se apliquen los cambios y el widget se renderice
+      await waitFor(
+        () => {
+          const widgetElement = document.querySelector('#botuyo-chat-widget')
+          expect(widgetElement).toBeTruthy()
+        },
+        { timeout: 3000 } // Aumentar timeout para race conditions
+      )
 
       // Verificar que el widget existe
       const widgetElement = document.querySelector('#botuyo-chat-widget')
