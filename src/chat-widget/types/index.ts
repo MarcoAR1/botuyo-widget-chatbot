@@ -151,6 +151,9 @@ export interface ChatTheme {
 
   avatarScale?: number // Zoom del avatar (ej: 1.2 para 20% más grande)
 
+  /** Idioma por defecto del widget */
+  defaultLocale?: 'es' | 'en' | 'pt' | 'fr'
+
   /** Variables CSS personalizadas para design system */
   cssVariables?: {
     /** Color de fondo principal (formato HSL sin hsl(), ej: "0 0% 100%") */

@@ -116,6 +116,7 @@ export const DEFAULT_THEME: Required<
     | 'avatarScale'
     | 'height'
     | 'bottom'
+    | 'defaultLocale'
   >
 > = {
   primaryColor: 'hsl(160, 84%, 39%)',
@@ -261,6 +262,7 @@ export function mergeThemeWithDefaults(
     | 'avatarScale'
     | 'height'
     | 'bottom'
+    | 'defaultLocale'
   >
 > {
   // Merge de cssVariables con prioridad: user > socket > default

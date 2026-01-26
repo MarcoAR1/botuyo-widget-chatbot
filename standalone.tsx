@@ -14,6 +14,7 @@
 import { createRoot, Root } from 'react-dom/client';
 import React, { lazy, Suspense } from 'react';
 import type { ChatWidgetProps } from './src/chat-widget/types';
+import { LanguageProvider } from './src/chat-widget/i18n/LanguageContext';
 
 // Import standalone styles
 import './styles.css';
@@ -153,44 +154,52 @@ class BotUyoChatWidget {
     };
 
     // Render React component with Suspense for code splitting
-    this.root.render(
-      React.createElement(
-        Suspense,
-        {
-          fallback: React.createElement(
+    const suspenseElement = React.createElement(
+      Suspense,
+      {
+        fallback: React.createElement(
+          'div',
+          {
+            style: {
+              position: 'fixed',
+              bottom: '24px',
+              right: '24px',
+              width: '60px',
+              height: '60px',
+              borderRadius: '50%',
+              backgroundColor: widgetProps.theme?.primaryColor || '#10b981',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+              cursor: 'wait',
+            }
+          },
+          React.createElement(
             'div',
             {
               style: {
-                position: 'fixed',
-                bottom: '24px',
-                right: '24px',
-                width: '60px',
-                height: '60px',
+                width: '24px',
+                height: '24px',
+                border: '3px solid rgba(255, 255, 255, 0.3)',
+                borderTopColor: '#fff',
                 borderRadius: '50%',
-                backgroundColor: widgetProps.theme?.primaryColor || '#10b981',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                cursor: 'wait',
+                animation: 'spin 1s linear infinite',
               }
-            },
-            React.createElement(
-              'div',
-              {
-                style: {
-                  width: '24px',
-                  height: '24px',
-                  border: '3px solid rgba(255, 255, 255, 0.3)',
-                  borderTopColor: '#fff',
-                  borderRadius: '50%',
-                  animation: 'spin 1s linear infinite',
-                }
-              }
-            )
+            }
           )
-        },
-        React.createElement(ChatWidget, widgetProps)
+        )
+      },
+      React.createElement(ChatWidget, widgetProps)
+    );
+
+    this.root.render(
+      React.createElement(
+        LanguageProvider,
+        { 
+          defaultLocale: this.config.theme?.defaultLocale,
+          children: suspenseElement
+        }
       )
     );
 
