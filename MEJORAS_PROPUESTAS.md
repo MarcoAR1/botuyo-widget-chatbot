@@ -544,30 +544,41 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
 
 ---
 
-### 📋 Q1 2026 - Próximas Semanas (Pendiente)
+### 📋 Q1 2026 - Próximas Semanas
 
 #### Semana 4-5: Optimización de Bundle
-**Estado**: 📋 Pendiente  
+**Estado**: 🔄 EN PROGRESO (Iniciado 25 Ene 2026)  
 **Prioridad**: Alta
 
-**Tareas**:
-- 📋 Code splitting implementado
+**Progreso Actual**:
+- ✅ Análisis de bundle generado (dist/stats.html)
+- ✅ Instalado rollup-plugin-visualizer
+- ✅ Plan detallado creado (OPTIMIZATION_PLAN.md)
+- ⏳ Code splitting en implementación
 - 📋 Lazy loading de features (audio, gallery, file upload)
 - 📋 Socket.IO lazy load
-- 📋 Optimización de lucide-react (inline SVGs)
+- ✅ Optimización de lucide-react (ya optimizado)
 
-**Objetivo**: 1,021KB → ~400-500KB
+**Objetivo**: 1,021KB → ~500KB (reducción 50%)
+**Bundle Actual Analizado**: 
+- JavaScript: 1,021.49 KB (306.91 KB gzip)
+- CSS: 45.08 KB (8.67 KB gzip)
+- Sourcemaps: 4,766.76 KB
 
-#### Semana 6-7: Tests E2E
-**Estado**: 📋 Pendiente  
+#### Semana 6-7: Tests E2E con Playwright
+**Estado**: 📅 Planificado (Inicio: 3 Feb 2026)  
 **Prioridad**: Media
 
-**Tareas**:
-- 📋 Instalar Playwright
+**Tareas Planificadas**:
+- 📋 Instalar Playwright + configuración
+- 📋 Crear playwright.config.ts
 - 📋 Migrar 10 tests dark-mode a E2E
+- 📋 Crear demo.html para testing
 - 📋 CI/CD para E2E tests
+- 📋 Cross-browser testing (Chrome, Firefox, Safari)
 
 **Objetivo**: 626/626 tests pasando (100%)
+**Documentación**: Ver detalles en OPTIMIZATION_PLAN.md Fase 3
 
 ---
 

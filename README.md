@@ -4,30 +4,39 @@ Widget de chat embebible enterprise-ready que puede ser usado en cualquier sitio
 
 ## 🎉 Última Actualización (25 Enero 2026)
 
-**Stack Modernizado a Últimas Versiones Estables**
+**Stack Modernizado + Optimización en Progreso**
 
-### ✅ Completado Hoy
+### ✅ Completado
 - 🚀 **React 19.2.3** - Última versión estable con concurrent features
 - ⚡ **Vite 7.3.1** - Build tool más rápido y optimizado
 - 📏 **ESLint 9.39.2** - Migrado a flat config (eslint.config.js)
 - 🟢 **Node.js 22.22.0** - LTS actual
 - 🔧 **TypeScript ESLint 8.53.1** - Mejores reglas de linting
 
+### 🔄 En Progreso (Semana 4)
+- 📦 **Bundle Optimization**: Reduciendo de 1,021KB a ~500KB (50%)
+- ⚡ **Code Splitting**: Lazy loading de componentes
+- 🎯 **Target**: Initial load <100KB (actualmente 306KB gzip)
+
 ### 📊 Estado del Proyecto
 - ✅ **Build**: Exitoso (Vite 7.3.1)
 - ✅ **Tests**: 616/626 pasando (98.4%)
-- ✅ **Bundle**: 1,021 kB JS (306 kB gzip), 45 kB CSS (8.7 kB gzip)
+- 📦 **Bundle**: 1,021 kB JS (306 kB gzip), 45 kB CSS (8.7 kB gzip)
+- ⏳ **Optimización**: Code splitting en implementación
 - ✅ **Lint**: 0 errores, 9 warnings informativos
 - ✅ **TypeScript**: Tipos generados correctamente
 
-### 🔧 Cambios Técnicos
+### 🔧 Cambios Técnicos Recientes
 - Creado `vite.config.mjs` (JavaScript puro, evita transpilación)
 - Migrado a `eslint.config.js` (flat config ESLint 9)
 - Agregado `.nvmrc` para fijar Node 22
 - Actualizado `tsconfig.json` con `esModuleInterop`
 - Test fixes para React 19 concurrent rendering
+- Instalado `rollup-plugin-visualizer` para análisis de bundle
 
-📖 **[Ver roadmap completo en MEJORAS_PROPUESTAS.md](./MEJORAS_PROPUESTAS.md)**
+📖 **[Ver roadmap completo en MEJORAS_PROPUESTAS.md](./MEJORAS_PROPUESTAS.md)**  
+🎯 **[Ver plan de optimización en OPTIMIZATION_PLAN.md](./OPTIMIZATION_PLAN.md)**  
+📊 **[Ver estado actual en STATUS.md](./STATUS.md)**
 
 ---
 
