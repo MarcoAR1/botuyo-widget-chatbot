@@ -201,38 +201,31 @@ test('dark mode toggle funciona correctamente', async ({ page }) => {
   const widget = page.locator('#botuyo-chat-widget')
   await expect(widget).toHaveClass(/dark/)
 })
-
-// Opción B: Mock de MutationObserver para tests unitarios
-import { vi } from 'vitest'
-
-const mockMutationObserver = vi.fn((callback) => ({
-  observe: vi.fn(),
-  disconnect: vi.fn(),
-  takeRecords: vi.fn(),
-  trigger: () => callback([{ type: 'attributes', attributeName: 'class' }], this)
-}))
-
-global.MutationObserver = mockMutationObserver as any
-
-// En tests: podemos disparar callbacks manualmente
-test('dark mode detection', () => {
-  render(<ChatWidget {...props} />)
-  
-  standaloneContainer.classList.add('dark')
-  
-  // Disparar el observer manualmente
-  mockMutationObserver.mock.results[0].value.trigger()
-  
-  expect(widget).toHaveClass('dark')
-})
 ```
 
 **Estado Actual**: 
-- ✅ 616 tests pasando
-- ⚠️ 10 tests de dark-mode skippeados (timing issues con jsdom MutationObserver)
-- 📝 Requiere investigación: Playwright para E2E o mejorar mocks
+- ✅ **Playwright E2E configurado** (25 Ene 2026)
+- ✅ **10 tests dark-mode migrados** de Vitest a Playwright
+- ✅ **demo.html creado** para testing manual e E2E
+- ✅ **Scripts npm añadidos**: `test:e2e`, `test:e2e:ui`, `test:e2e:debug`
+- ✅ **Archivo**: `e2e/dark-mode.spec.ts` con 12 tests
+- 📝 **Resultado**: Tests E2E corren en navegador real (Chromium), eliminando timing issues de jsdom
 
-**Resultado**: +10 tests activos (626 → 636 tests) con approach correcto
+**Tests E2E Incluidos**:
+1. Dark class en standalone container
+2. Dark class en body element
+3. Dark class en html element
+4. Toggle de dark mode (add/remove)
+5. `prefers-color-scheme: dark` detection
+6. `prefers-color-scheme: light` detection
+7. Prioridad de clase explícita sobre prefers-color-scheme
+8. Update cuando dark class se añade después de mount
+9. Múltiples toggles (5 ciclos)
+10. Widget dentro de dark container
+11. Visual regression: light mode screenshot
+12. Visual regression: dark mode screenshot
+
+**Resultado**: +12 tests E2E activos con approach correcto ✅
 
 ---
 
