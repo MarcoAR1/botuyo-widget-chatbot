@@ -121,18 +121,39 @@ npm run test:e2e:debug    # Modo debug</code></pre>
 
   <!-- Load widget from dist -->
   <link rel="stylesheet" href="/dist/botuyo-chat.css">
-  <script type="module">
-    import { initBotuyoChat } from '/dist/botuyo-chat.js';
-    
-    // Initialize widget
+  <script type="module" src="/dist/botuyo-chat.js"></script>
+  <script>
+    // Initialize widget after it loads
     window.addEventListener('DOMContentLoaded', () => {
-      initBotuyoChat({
-        botId: 'demo-bot-e2e',
-        apiUrl: 'https://api.botuyo.com',
-        position: 'bottom-right',
-        primaryColor: '#007bff',
-        enableDarkMode: true
-      });
+      // Wait for module to load
+      setTimeout(() => {
+        if (window.BotUyoChat) {
+          window.BotUyoChat.init({
+            apiKey: 'demo-api-key',
+            apiBaseUrl: 'https://api.botuyo.com',
+            theme: {
+              position: 'bottom-right',
+              primaryColor: '#007bff',
+            },
+            includeSEOMetadata: false
+          });
+        } else {
+          console.error('BotUyoChat not loaded, retrying...');
+          setTimeout(() => {
+            if (window.BotUyoChat) {
+              window.BotUyoChat.init({
+                apiKey: 'demo-api-key',
+                apiBaseUrl: 'https://api.botuyo.com',
+                theme: {
+                  position: 'bottom-right',
+                  primaryColor: '#007bff',
+                },
+                includeSEOMetadata: false
+              });
+            }
+          }, 500);
+        }
+      }, 200);
     });
   </script>
 

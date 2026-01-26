@@ -18,7 +18,10 @@ export function useDarkMode(containerRef: React.RefObject<HTMLDivElement>) {
       const hasDocElementDark = document.documentElement.classList.contains('dark')
       const hasBodyDark = document.body.classList.contains('dark')
       
-      const isDark = hasClosestDark || hasRootDark || hasDocElementDark || hasBodyDark
+      // Detectar prefers-color-scheme: dark
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      
+      const isDark = hasClosestDark || hasRootDark || hasDocElementDark || hasBodyDark || prefersDark
       
       // Aplicar directamente al DOM (más confiable que React state)
       if (containerRef.current) {
@@ -35,6 +38,11 @@ export function useDarkMode(containerRef: React.RefObject<HTMLDivElement>) {
 
     // Ejecutar detectDarkMode cada vez que algo cambie
     detectDarkMode()
+    
+    // Listener para cambios en prefers-color-scheme
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const handleMediaChange = () => detectDarkMode()
+    mediaQuery.addEventListener('change', handleMediaChange)
 
     // Observer global para detectar cambios en cualquier parte del DOM
     const observer = new MutationObserver(() => {
@@ -70,7 +78,10 @@ export function useDarkMode(containerRef: React.RefObject<HTMLDivElement>) {
       parent = parent.parentElement
     }
 
-    return () => observer.disconnect()
+    return () => {
+      observer.disconnect()
+      mediaQuery.removeEventListener('change', handleMediaChange)
+    }
   }, [containerRef])
 
   return isDarkMode

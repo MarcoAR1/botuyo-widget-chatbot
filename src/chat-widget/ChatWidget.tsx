@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 import { useIsMobile } from './hooks/useIsMobile'
 import { useWidgetTheme } from './hooks/useWidgetTheme'
 import { useChatWidget } from './hooks/useChatWidget'
+import { useDarkMode } from './hooks/useDarkMode'
 
 export function ChatWidget(props: ChatWidgetProps) {
   const {
@@ -26,8 +27,11 @@ export function ChatWidget(props: ChatWidgetProps) {
   } = props
 
   // Refs y estado local
-  const containerRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null!)
   const isMobile = useIsMobile()
+  
+  // Dark mode detection - auto-applies 'dark' class to widget
+  useDarkMode(containerRef)
 
   // Estado para tema recibido del socket
   const [socketTheme, setSocketTheme] = useState<ChatWidgetProps['theme'] | undefined>()
