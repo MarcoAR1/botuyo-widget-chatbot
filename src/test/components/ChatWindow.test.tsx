@@ -68,7 +68,7 @@ describe('ChatWindow', () => {
     it('should show close button', () => {
       render(<ChatWindow {...defaultProps} />)
 
-      const closeButton = screen.getByRole('button', { name: /cerrar/i })
+      const closeButton = screen.getByRole('button', { name: /close chat window/i })
       expect(closeButton).toBeInTheDocument()
     })
 
@@ -76,7 +76,7 @@ describe('ChatWindow', () => {
       const user = userEvent.setup()
       render(<ChatWindow {...defaultProps} />)
 
-      const closeButton = screen.getByRole('button', { name: /cerrar/i })
+      const closeButton = screen.getByRole('button', { name: /close chat window/i })
       await user.click(closeButton)
 
       expect(mockOnClose).toHaveBeenCalledTimes(1)
