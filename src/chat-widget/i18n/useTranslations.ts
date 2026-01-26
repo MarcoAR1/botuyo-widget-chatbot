@@ -1,10 +1,11 @@
 /**
  * Hook de internacionalización para el Chat Widget
- * Sistema multi-idioma con detección automática
+ * Sistema multi-idioma con detección automática y contexto global
  */
 
-import { useState, useCallback } from 'react'
-import { translations, detectLanguage, type SupportedLocale } from './translations'
+import { useCallback } from 'react'
+import { translations, type SupportedLocale } from './translations'
+import { useLanguage } from './LanguageContext'
 
 // Función helper para obtener valor anidado
 function getNestedValue(obj: any, path: string): string {
@@ -13,6 +14,7 @@ function getNestedValue(obj: any, path: string): string {
 
 /**
  * Hook para acceder a las traducciones con soporte multi-idioma
+ * Usa el contexto global de idioma automáticamente
  *
  * @example
  * const { t, setLocale, currentLocale } = useTranslations()
@@ -20,10 +22,8 @@ function getNestedValue(obj: any, path: string): string {
  * t('extracted.cerrar') // 'Cerrar'
  * setLocale('en') // Cambiar a inglés
  */
-export function useTranslations(namespace?: string, initialLocale?: SupportedLocale) {
-  const [currentLocale, setCurrentLocale] = useState<SupportedLocale>(
-    initialLocale || detectLanguage()
-  )
+export function useTranslations(namespace?: string) {
+  const { locale: currentLocale, setLocale } = useLanguage()
 
   const t = useCallback(
     (key: string): string => {
@@ -34,12 +34,6 @@ export function useTranslations(namespace?: string, initialLocale?: SupportedLoc
     },
     [currentLocale, namespace]
   )
-
-  const setLocale = useCallback((locale: SupportedLocale) => {
-    if (translations[locale]) {
-      setCurrentLocale(locale)
-    }
-  }, [])
 
   return {
     t,

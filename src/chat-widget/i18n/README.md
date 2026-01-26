@@ -1,136 +1,104 @@
-# Sistema de Internacionalización (i18n)
+# 🌍 Sistema de Internacionalización (i18n)
 
-Sistema de internacionalización personalizado para el Chat Widget de BotUyo, diseñado para reemplazar next-intl y eliminar dependencias externas.
+Sistema multi-idioma del Chat Widget con detección automática de idioma del navegador y persistencia en localStorage.
 
-## Arquitectura
+## 📋 Idiomas Soportados
 
+- 🇪🇸 **Español (es)** - Idioma por defecto
+- 🇬🇧 **Inglés (en)**
+- 🇧🇷 **Portugués (pt)**
+- 🇫🇷 **Francés (fr)**
+
+## 🚀 Uso Básico
+
+### Con ChatWidgetProvider (Recomendado)
+
+```tsx
+import { ChatWidgetProvider } from '@botuyo/chat-widget'
+
+function App() {
+  return (
+    <ChatWidgetProvider
+      apiKey="tu-api-key"
+      apiBaseUrl="https://api.botuyo.com"
+      defaultLocale="en" // Opcional: idioma inicial (auto-detectado si no se especifica)
+    >
+      <YourApp />
+    </ChatWidgetProvider>
+  )
+}
 ```
-src/chat-widget/i18n/
-├── index.ts           # Exportaciones centralizadas
-├── translations.ts    # Diccionario de traducciones
-├── useTranslations.ts # Hook de React para acceder a traducciones
-└── README.md         # Esta documentación
-```
 
-## Uso en Componentes
+### Con Hook useLanguage
 
-### Hook useTranslations()
-
-```typescript
-import { useTranslations } from '@/chat-widget/i18n'
+```tsx
+import { useLanguage } from '@botuyo/chat-widget'
 
 function MyComponent() {
-  const t = useTranslations()
-  
+  const { locale, setLocale } = useLanguage()
+
   return (
     <div>
-      <h1>{t('online')}</h1>
-      <p>{t('extracted.cerrar')}</p>
+      <p>Idioma actual: {locale}</p>
+      <button onClick={() => setLocale('en')}>English</button>
+      <button onClick={() => setLocale('es')}>Español</button>
+      <button onClick={() => setLocale('pt')}>Português</button>
+      <button onClick={() => setLocale('fr')}>Français</button>
     </div>
   )
 }
 ```
 
-### Con Namespace
+### Con Componente LanguageSelector
 
-```typescript
-const t = useTranslations('extracted')
+```tsx
+import { LanguageSelector } from '@botuyo/chat-widget'
 
-// Ahora 'extracted.' se antepone automáticamente
-t('cerrar') // → 'Cerrar'
-t('anterior') // → 'Anterior'
-```
+function MyHeader() {
+  return (
+    <header>
+      <h1>Mi App</h1>
 
-### Función t() directa
+      {/* Dropdown con banderas */}
+      <LanguageSelector variant="dropdown" showFlags />
 
-Para uso fuera de componentes React:
-
-```typescript
-import { t } from '@/chat-widget/i18n'
-
-const mensaje = t('online') // → 'En línea'
-const texto = t('extracted.ver_ubicacion') // → 'Ver ubicación'
-```
-
-## Traducciones Disponibles
-
-### Claves de Primer Nivel
-
-- `online` - Estado en línea
-- `offline` - Estado fuera de línea
-- `con_amor_paseo_libre` - Mensaje de footer
-- `preview` - Vista previa
-- `fotos` - Etiqueta de fotos
-- `ubicacion` - Etiqueta de ubicación
-
-### Namespace: extracted
-
-- `extracted.assistant` - Nombre del asistente
-- `extracted.anterior` - Botón anterior
-- `extracted.siguiente` - Botón siguiente
-- `extracted.cerrar` - Botón cerrar
-- `extracted.ver_ubicacion` - Ver ubicación en mapa
-
-## Agregar Nuevas Traducciones
-
-1. Abre [translations.ts](./translations.ts)
-2. Agrega la clave en ambos idiomas (es/en):
-
-```typescript
-export const translations = {
-  es: {
-    // ... traducciones existentes
-    nueva_clave: 'Nuevo texto en español',
-  },
-  en: {
-    // ... traducciones existentes
-    nueva_clave: 'New text in English',
-  },
+      {/* O botones */}
+      <LanguageSelector variant="buttons" />
+    </header>
+  )
 }
 ```
 
-3. Usa la nueva clave en tu componente:
+## 🔧 Hook useTranslations
 
-```typescript
-const t = useTranslations()
-t('nueva_clave') // → 'Nuevo texto en español'
+```tsx
+import { useTranslations } from '@botuyo/chat-widget'
+
+function MyComponent() {
+  const { t, setLocale, currentLocale } = useTranslations()
+
+  return (
+    <div>
+      <p>{t('online')}</p> {/* 'En línea' / 'Online' / etc */}
+      <p>{t('extracted.cerrar')}</p> {/* Navegación anidada */}
+    </div>
+  )
+}
 ```
 
-## Idiomas Soportados
+## 🔍 Detección Automática
 
-- **Español (es)**: Idioma por defecto
-- **Inglés (en)**: Disponible para expansión futura
+El sistema detecta automáticamente el idioma del navegador en el siguiente orden:
 
-Por ahora el widget usa español por defecto. Para agregar soporte multi-idioma dinámico, se puede extender `useTranslations` para detectar el idioma del navegador o permitir configuración manual.
+1. **Prop `defaultLocale`** en ChatWidgetProvider (si se proporciona)
+2. **localStorage** (si existe preferencia guardada en `botuyo-chat-locale`)
+3. **navigator.language** (idioma del navegador)
+4. **Español** (fallback si no coincide ninguno)
 
-## Ventajas vs next-intl
+## 💾 Persistencia
 
-✅ **Sin dependencias externas** - No requiere next-intl  
-✅ **Más ligero** - Código mínimo, sin peso extra  
-✅ **Standalone** - Compatible con CDN y NPM  
-✅ **TypeScript nativo** - Types completos incluidos  
-✅ **Simple** - API intuitiva y fácil de mantener  
+El idioma seleccionado se guarda automáticamente en `localStorage` con la clave `botuyo-chat-locale`, por lo que la preferencia del usuario se mantiene entre sesiones.
 
-## Migración desde next-intl
+## 📖 API
 
-El sistema es 100% compatible con la API de next-intl usada en el widget:
-
-```typescript
-// Antes (next-intl)
-import { useTranslations } from 'next-intl'
-
-// Después (sistema propio)
-import { useTranslations } from '@/chat-widget/i18n'
-
-// La API es idéntica
-const t = useTranslations()
-t('online') // Funciona igual
-```
-
-## Extensiones Futuras
-
-- [ ] Detección automática de idioma del navegador
-- [ ] API para cambiar idioma dinámicamente
-- [ ] Interpolación de variables en traducciones
-- [ ] Pluralización inteligente
-- [ ] Formateo de fechas y números localizados
+Ver código fuente para documentación completa de tipos y funciones.

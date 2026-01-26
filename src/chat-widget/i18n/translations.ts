@@ -147,6 +147,24 @@ export const translations = {
       abrir_chat: 'Abrir chat',
       ver_ubicacion: 'Ver localização',
     },
+
+    // Acessibilidade (A11y)
+    accessibility: {
+      closeChat: 'Fechar janela de chat',
+      closeChatHint: 'Pressione Escape para fechar',
+      chatMessages: 'Mensagens do chat',
+      messageHistory: 'Histórico de mensagens',
+      dialogDescription:
+        'Janela de chat com {{botName}}. Pressione Escape para fechar. Use Ctrl+Enter para enviar mensagens.',
+      sendMessage: 'Enviar mensagem',
+      sendMessageHint: 'Pressione Enter ou Ctrl+Enter para enviar',
+      typeMessage: 'Digite sua mensagem aqui',
+      botMessage: 'Mensagem do assistente',
+      userMessage: 'Sua mensagem',
+      messageFrom: 'Mensagem de {{sender}}',
+      messageTime: 'Enviado {{time}}',
+      newMessage: 'Nova mensagem recebida',
+    },
   },
   fr: {
     // État de connexion
@@ -182,6 +200,24 @@ export const translations = {
       cerrar_chat: 'Fermer le chat',
       abrir_chat: 'Ouvrir le chat',
       ver_ubicacion: "Voir l'emplacement",
+    },
+
+    // Accessibilité (A11y)
+    accessibility: {
+      closeChat: 'Fermer la fenêtre de chat',
+      closeChatHint: 'Appuyez sur Échap pour fermer',
+      chatMessages: 'Messages du chat',
+      messageHistory: 'Historique des messages',
+      dialogDescription:
+        'Fenêtre de chat avec {{botName}}. Appuyez sur Échap pour fermer. Utilisez Ctrl+Entrée pour envoyer des messages.',
+      sendMessage: 'Envoyer un message',
+      sendMessageHint: 'Appuyez sur Entrée ou Ctrl+Entrée pour envoyer',
+      typeMessage: 'Tapez votre message ici',
+      botMessage: "Message de l'assistant",
+      userMessage: 'Votre message',
+      messageFrom: 'Message de {{sender}}',
+      messageTime: 'Envoyé {{time}}',
+      newMessage: 'Nouveau message reçu',
     },
   },
 }

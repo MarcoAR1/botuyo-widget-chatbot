@@ -13,6 +13,7 @@ import { createContext, useContext, useState, useCallback, ReactNode } from 'rea
 import { ChatWidget } from './ChatWidget'
 import type { ChatWidgetProps } from './types'
 import { logger } from './utils/logger'
+import { LanguageProvider, type SupportedLocale } from './i18n'
 
 // ========== Context Types ==========
 
@@ -57,6 +58,8 @@ export interface ChatWidgetProviderProps extends ChatWidgetProps {
     /** Si el widget debe iniciar abierto */
     isOpen?: boolean
   }
+  /** Idioma inicial del widget (es, en, pt, fr). Si no se especifica, se detecta automáticamente */
+  defaultLocale?: SupportedLocale
 }
 
 // ========== Provider Component ==========
@@ -83,6 +86,7 @@ export interface ChatWidgetProviderProps extends ChatWidgetProps {
  */
 export function ChatWidgetProvider({
   children,
+  defaultLocale,
   initialState,
   onStateChange,
   ...widgetProps
@@ -152,20 +156,22 @@ export function ChatWidgetProvider({
   )
 
   return (
-    <ChatWidgetContext.Provider value={contextValue}>
-      {children}
-      <ChatWidget
-        {...widgetProps}
-        onStateChange={newIsOpen => {
-          setIsOpen(newIsOpen)
-          if (newIsOpen) {
-            setUnreadCount(0)
-          }
-          onStateChange?.(newIsOpen)
-        }}
-        onEvent={handleEvent}
-      />
-    </ChatWidgetContext.Provider>
+    <LanguageProvider defaultLocale={defaultLocale}>
+      <ChatWidgetContext.Provider value={contextValue}>
+        {children}
+        <ChatWidget
+          {...widgetProps}
+          onStateChange={newIsOpen => {
+            setIsOpen(newIsOpen)
+            if (newIsOpen) {
+              setUnreadCount(0)
+            }
+            onStateChange?.(newIsOpen)
+          }}
+          onEvent={handleEvent}
+        />
+      </ChatWidgetContext.Provider>
+    </LanguageProvider>
   )
 }
 
