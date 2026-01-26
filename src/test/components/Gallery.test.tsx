@@ -127,8 +127,8 @@ describe('Gallery', () => {
     it('should have navigation buttons for carousel', () => {
       renderWithI18n(<Gallery images={manyImages} />)
 
-      const prevButton = screen.getByLabelText('Previous')
-      const nextButton = screen.getByLabelText('Next')
+      const prevButton = screen.getByLabelText('Anterior')
+      const nextButton = screen.getByLabelText('Siguiente')
 
       expect(prevButton).toBeInTheDocument()
       expect(nextButton).toBeInTheDocument()
@@ -137,7 +137,7 @@ describe('Gallery', () => {
     it('should navigate to next image when next button clicked', async () => {
       renderWithI18n(<Gallery images={manyImages} />)
 
-      const nextButton = screen.getByLabelText('Next')
+      const nextButton = screen.getByLabelText('Siguiente')
       await userEvent.click(nextButton)
 
       // Verificar que navegó (buscar contador actualizado)
@@ -147,10 +147,10 @@ describe('Gallery', () => {
     it('should navigate to previous image when prev button clicked', async () => {
       renderWithI18n(<Gallery images={manyImages} />)
 
-      const nextButton = screen.getByLabelText('Next')
+      const nextButton = screen.getByLabelText('Siguiente')
       await userEvent.click(nextButton)
 
-      const prevButton = screen.getByLabelText('Previous')
+      const prevButton = screen.getByLabelText('Anterior')
       await userEvent.click(prevButton)
 
       // Debería volver a 1
@@ -161,7 +161,7 @@ describe('Gallery', () => {
     it('should loop from last to first image', async () => {
       renderWithI18n(<Gallery images={manyImages} />)
 
-      const prevButton = screen.getByLabelText('Previous')
+      const prevButton = screen.getByLabelText('Anterior')
       await userEvent.click(prevButton)
 
       // Debería ir a la imagen 5

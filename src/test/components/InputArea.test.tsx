@@ -421,7 +421,7 @@ describe('InputArea', () => {
         const menuText = Array.from(menuButtons)
           .map(btn => btn.textContent?.toUpperCase())
           .join(' ')
-        expect(menuText).toContain('PHOTOS')
+        expect(menuText).toContain('FOTOS')
       })
 
       const menuButtons = container.querySelectorAll('button')
@@ -504,14 +504,14 @@ describe('InputArea', () => {
         const menuText = Array.from(menuButtons)
           .map(btn => btn.textContent?.toUpperCase())
           .join(' ')
-        expect(menuText).toContain('LOCATION')
+        expect(menuText).toContain('UBICACIÓN')
       })
 
       const menuButtons = container.querySelectorAll('button')
       const menuText = Array.from(menuButtons)
         .map(btn => btn.textContent?.toUpperCase())
         .join(' ')
-      expect(menuText).not.toContain('PHOTOS')
+      expect(menuText).not.toContain('FOTOS')
       expect(menuText).not.toContain('ARCHIVOS')
     })
 
@@ -546,7 +546,7 @@ describe('InputArea', () => {
         const menuText = Array.from(menuButtons)
           .map(btn => btn.textContent?.toUpperCase())
           .join(' ')
-        expect(menuText).toContain('PHOTOS')
+        expect(menuText).toContain('FOTOS')
         expect(menuText).toContain('ARCHIVOS')
       })
     })
@@ -594,7 +594,7 @@ describe('InputArea', () => {
         const menuText = Array.from(menuButtons)
           .map(btn => btn.textContent?.toUpperCase())
           .join(' ')
-        expect(menuText).toContain('PHOTOS')
+        expect(menuText).toContain('FOTOS')
       })
 
       const menuButtons = container.querySelectorAll('button')
