@@ -143,25 +143,26 @@ test.describe('Dark Mode Detection and Application', () => {
     }
   });
 
-  test.skip('should work when widget is inside a dark container', async ({ page }) => {
-    // NOTE: This test is skipped because when the widget container is moved in the DOM,
-    // the MutationObserver loses reference to the new parent. In real-world usage,
-    // the widget should detect dark mode from body/html/root elements, not from
-    // dynamically created containers that manipulate the widget's DOM position.
-    
-    // Create a dark container and move widget inside
+  test('should work when widget is inside a dark container', async ({ page }) => {
+    // Instead of moving widget (which causes React to recreate it),
+    // we wrap the existing widget-root parent in a dark container
     await page.evaluate(() => {
+      const widgetRoot = document.getElementById('botuyo-chat-widget-root');
+      if (!widgetRoot || !widgetRoot.parentElement) return;
+      
+      // Create dark wrapper
       const darkDiv = document.createElement('div');
       darkDiv.id = 'dark-container';
       darkDiv.classList.add('dark');
-      document.body.appendChild(darkDiv);
-
-      const widget = document.getElementById('botuyo-chat-widget-root');
-      if (widget) {
-        darkDiv.appendChild(widget);
-      }
+      
+      // Insert dark wrapper BEFORE widget-root
+      widgetRoot.parentElement.insertBefore(darkDiv, widgetRoot);
+      
+      // Move widget-root INTO dark wrapper
+      darkDiv.appendChild(widgetRoot);
     });
 
+    // Wait for polling interval to detect the change (100ms interval)
     await page.waitForTimeout(500);
 
     const widgetContainer = page.locator('#botuyo-chat-widget, [data-testid="chat-widget"]');

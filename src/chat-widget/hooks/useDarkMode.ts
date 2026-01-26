@@ -8,20 +8,26 @@ export function useDarkMode(containerRef: React.RefObject<HTMLDivElement>) {
   const [isDarkMode, setIsDarkMode] = useState(false)
 
   useEffect(() => {
+    let lastParent: Element | null = null
+    
     const detectDarkMode = () => {
       if (!containerRef.current) return
       
       // Buscar dark en los PADRES, NO en el widget mismo
-      // Empezamos desde el parent para evitar detectar la clase que nosotros mismos agregamos
       const hasClosestDark = !!containerRef.current.parentElement?.closest('.dark')
       const hasRootDark = !!document.getElementById('botuyo-chat-widget-root')?.classList.contains('dark')
+      
+      // También buscar dark en CUALQUIER ANCESTOR del widget-root (para casos donde se mueve el widget)
+      const widgetRoot = document.getElementById('botuyo-chat-widget-root')
+      const hasRootParentDark = !!widgetRoot?.parentElement?.closest('.dark')
+      
       const hasDocElementDark = document.documentElement.classList.contains('dark')
       const hasBodyDark = document.body.classList.contains('dark')
       
       // Detectar prefers-color-scheme: dark
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
       
-      const isDark = hasClosestDark || hasRootDark || hasDocElementDark || hasBodyDark || prefersDark
+      const isDark = hasClosestDark || hasRootDark || hasRootParentDark || hasDocElementDark || hasBodyDark || prefersDark
       
       // Aplicar directamente al DOM (más confiable que React state)
       if (containerRef.current) {
@@ -44,7 +50,7 @@ export function useDarkMode(containerRef: React.RefObject<HTMLDivElement>) {
     const handleMediaChange = () => detectDarkMode()
     mediaQuery.addEventListener('change', handleMediaChange)
 
-    // Observer global para detectar cambios en cualquier parte del DOM
+    // Observer para detectar cambios de clase
     const observer = new MutationObserver(() => {
       detectDarkMode()
     })
@@ -56,6 +62,16 @@ export function useDarkMode(containerRef: React.RefObject<HTMLDivElement>) {
         attributes: true,
         attributeFilter: ['class']
       })
+      
+      // Observar el parent del root container también
+      if (rootContainer.parentElement) {
+        observer.observe(rootContainer.parentElement, {
+          attributes: true,
+          attributeFilter: ['class'],
+          childList: true // Para detectar cuando el widget se mueve
+        })
+        lastParent = rootContainer.parentElement
+      }
     }
     
     // Observar document.documentElement y body
@@ -68,7 +84,7 @@ export function useDarkMode(containerRef: React.RefObject<HTMLDivElement>) {
       attributeFilter: ['class']
     })
     
-    // Observar todos los contenedores padre
+    // Observar todos los contenedores padre actuales
     let parent = containerRef.current?.parentElement
     while (parent) {
       observer.observe(parent, {
@@ -77,10 +93,30 @@ export function useDarkMode(containerRef: React.RefObject<HTMLDivElement>) {
       })
       parent = parent.parentElement
     }
+    
+    // Polling ligero para detectar cuando el widget-root cambia de parent
+    // Esto es necesario porque MutationObserver no puede seguir un elemento cuando se mueve
+    const pollInterval = setInterval(() => {
+      const widgetRoot = document.getElementById('botuyo-chat-widget-root')
+      if (widgetRoot && widgetRoot.parentElement !== lastParent) {
+        // El widget se movió a un nuevo parent
+        if (lastParent && widgetRoot.parentElement) {
+          // Observar el nuevo parent
+          observer.observe(widgetRoot.parentElement, {
+            attributes: true,
+            attributeFilter: ['class'],
+            childList: true
+          })
+          lastParent = widgetRoot.parentElement
+        }
+        detectDarkMode()
+      }
+    }, 100) // Check cada 100ms - más frecuente para detectar movimientos rápidos
 
     return () => {
       observer.disconnect()
       mediaQuery.removeEventListener('change', handleMediaChange)
+      clearInterval(pollInterval)
     }
   }, [containerRef])
 
