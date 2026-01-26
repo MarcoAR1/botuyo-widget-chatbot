@@ -55,8 +55,8 @@ function ErrorTrigger() {
 }
 
 export const Default: Story = {
-  render: () => (
-    <ErrorBoundary>
+  args: {
+    children: (
       <div className="p-6 bg-white rounded-lg shadow">
         <h3 className="text-lg font-bold mb-2">Contenido Normal</h3>
         <p className="text-gray-600">
@@ -64,43 +64,47 @@ export const Default: Story = {
           se mostrará un mensaje de fallback en lugar de romper toda la aplicación.
         </p>
       </div>
-    </ErrorBoundary>
-  ),
+    ),
+  },
+  render: (args) => <ErrorBoundary {...args} />,
 }
 
 export const WithError: Story = {
-  render: () => (
-    <ErrorBoundary>
-      <ThrowError shouldThrow={true} />
-    </ErrorBoundary>
-  ),
+  args: {
+    children: <ThrowError shouldThrow={true} />,
+  },
+  render: (args) => <ErrorBoundary {...args} />,
 }
 
 export const CustomFallback: Story = {
-  render: () => (
-    <ErrorBoundary
-      fallback={
-        <div className="p-8 bg-yellow-50 border-2 border-yellow-300 rounded-lg text-center">
-          <div className="text-4xl mb-3">🚨</div>
-          <h3 className="text-lg font-bold text-yellow-900 mb-2">
-            Error Personalizado
-          </h3>
-          <p className="text-sm text-yellow-700">
-            Este es un mensaje de error personalizado
-          </p>
-        </div>
-      }
-    >
-      <ThrowError shouldThrow={true} />
-    </ErrorBoundary>
-  ),
+  args: {
+    children: <ThrowError shouldThrow={true} />,
+    fallback: (
+      <div className="p-8 bg-yellow-50 border-2 border-yellow-300 rounded-lg text-center">
+        <div className="text-4xl mb-3">🚨</div>
+        <h3 className="text-lg font-bold text-yellow-900 mb-2">
+          Error Personalizado
+        </h3>
+        <p className="text-sm text-yellow-700">
+          Este es un mensaje de error personalizado
+        </p>
+      </div>
+    ),
+  },
+  render: (args) => <ErrorBoundary {...args} />,
 }
 
 export const Interactive: Story = {
+  args: {
+    children: <div />,
+  },
   render: () => <ErrorTrigger />,
 }
 
 export const NestedErrorBoundaries: Story = {
+  args: {
+    children: <div />,
+  },
   render: () => (
     <div className="space-y-4">
       <ErrorBoundary>
@@ -130,15 +134,12 @@ export const NestedErrorBoundaries: Story = {
 }
 
 export const WithErrorCallback: Story = {
-  render: () => (
-    <ErrorBoundary
-      onError={(error, errorInfo) => {
-        console.log('Error capturado:', error.message)
-        console.log('Información del error:', errorInfo)
-        // Aquí podrías enviar el error a un servicio de logging
-      }}
-    >
-      <ThrowError shouldThrow={true} />
-    </ErrorBoundary>
-  ),
+  args: {
+    children: <ThrowError shouldThrow={true} />,
+    onError: (error, errorInfo) => {
+      console.log('Error capturado:', error.message)
+      console.log('Información del error:', errorInfo)
+    },
+  },
+  render: (args) => <ErrorBoundary {...args} />,
 }

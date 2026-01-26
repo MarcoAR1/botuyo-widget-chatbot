@@ -66,7 +66,7 @@ function extractSEOMetadata() {
         try {
           const data = JSON.parse(script.textContent || '')
           structuredData.push(data)
-        } catch (e) {
+        } catch {
           // Ignorar errores de parsing
         }
       })
@@ -74,7 +74,7 @@ function extractSEOMetadata() {
         metadata.structuredData = structuredData
       }
     }
-  } catch (e) {
+  } catch {
     // Ignorar errores
   }
 

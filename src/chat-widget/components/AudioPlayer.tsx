@@ -11,6 +11,8 @@ interface AudioPlayerProps {
   primaryColor?: string
 }
 
+export type { AudioPlayerProps }
+
 export const AudioPlayer = memo(function AudioPlayer({ url, isBot, primaryColor }: AudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [duration, setDuration] = useState(0)

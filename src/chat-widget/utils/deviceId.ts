@@ -36,7 +36,7 @@ export function getOrCreateDeviceId(): string {
     localStorage.setItem(DEVICE_ID_KEY, newDeviceId)
     
     return newDeviceId
-  } catch (error) {
+  } catch {
     // Fallback si localStorage no está disponible (ej: modo privado)
     logger.warn('localStorage not available, using session-only device ID')
     return generateUUID()
@@ -49,7 +49,7 @@ export function getOrCreateDeviceId(): string {
 export function clearDeviceId(): void {
   try {
     localStorage.removeItem(DEVICE_ID_KEY)
-  } catch (error) {
+  } catch {
     logger.warn('Could not clear device ID')
   }
 }
@@ -60,7 +60,7 @@ export function clearDeviceId(): void {
 export function getDeviceId(): string | null {
   try {
     return localStorage.getItem(DEVICE_ID_KEY)
-  } catch (error) {
+  } catch {
     return null
   }
 }

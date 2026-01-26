@@ -46,6 +46,7 @@ export const Default: Story = {
     isConnected: true,
     placeholder: 'Escribe un mensaje...',
     primaryColor: '#10b981',
+    onSendMessage: (msg: string) => console.log('Message sent:', msg),
   },
 }
 

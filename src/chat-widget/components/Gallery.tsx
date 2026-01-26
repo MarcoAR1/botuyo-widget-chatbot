@@ -15,6 +15,8 @@ interface GalleryProps {
   radius?: string
 }
 
+export type { GalleryProps }
+
 export const Gallery = memo(function Gallery({ images, radius = 'rounded-lg' }: GalleryProps) {
   const { t } = useTranslations('extracted')
   const [currentIndex, setCurrentIndex] = useState(0)

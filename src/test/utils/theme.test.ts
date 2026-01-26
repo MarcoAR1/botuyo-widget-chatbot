@@ -1,7 +1,6 @@
 /**
  * @vitest-environment happy-dom
  */
-// @ts-nocheck - Tests need to be updated for new theme names
 import { describe, it, expect } from 'vitest'
 import {
   DEFAULT_CSS_VARIABLES,

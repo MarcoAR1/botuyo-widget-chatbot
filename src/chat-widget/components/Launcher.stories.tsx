@@ -29,14 +29,13 @@ const meta = {
       control: 'color',
       description: 'Color primario del tema',
     },
-    botName: {
-      control: 'text',
-      description: 'Nombre del bot',
-    },
-    botEmotion: {
+    emotion: {
       control: 'select',
-      options: ['happy', 'thinking', 'sad', 'confused', 'surprised'],
+      options: ['happy', 'thinking', 'sorry', 'confused', 'default'],
       description: 'Emoción actual del bot',
+      table: {
+        category: 'Appearance',
+      },
     },
   },
 } satisfies Meta<typeof Launcher>
@@ -52,8 +51,8 @@ export const Closed: Story = {
     isOpen: false,
     unreadCount: 0,
     primaryColor: '#10b981',
-    botName: 'BotUyo',
-    botEmotion: 'happy',
+    emotion: 'happy',
+    onClick: () => console.log('Launcher clicked'),
   },
 }
 
@@ -65,8 +64,8 @@ export const ClosedWithUnread: Story = {
     isOpen: false,
     unreadCount: 3,
     primaryColor: '#10b981',
-    botName: 'BotUyo',
-    botEmotion: 'thinking',
+    emotion: 'thinking',
+    onClick: () => console.log('Launcher clicked'),
   },
 }
 
@@ -78,8 +77,8 @@ export const ClosedWithManyUnread: Story = {
     isOpen: false,
     unreadCount: 99,
     primaryColor: '#10b981',
-    botName: 'BotUyo',
-    botEmotion: 'surprised',
+    emotion: 'happy',
+    onClick: () => console.log('Launcher clicked'),
   },
 }
 
@@ -91,8 +90,8 @@ export const Open: Story = {
     isOpen: true,
     unreadCount: 0,
     primaryColor: '#10b981',
-    botName: 'BotUyo',
-    botEmotion: 'happy',
+    emotion: 'happy',
+    onClick: () => console.log('Launcher clicked'),
   },
 }
 
@@ -104,8 +103,8 @@ export const CustomColor: Story = {
     isOpen: false,
     unreadCount: 0,
     primaryColor: '#3b82f6',
-    botName: 'BotUyo',
-    botEmotion: 'happy',
+    emotion: 'happy',
+    onClick: () => console.log('Launcher clicked'),
   },
 }
 
@@ -117,8 +116,8 @@ export const BotThinking: Story = {
     isOpen: false,
     unreadCount: 0,
     primaryColor: '#10b981',
-    botName: 'BotUyo',
-    botEmotion: 'thinking',
+    emotion: 'thinking',
+    onClick: () => console.log('Launcher clicked'),
   },
 }
 
@@ -130,7 +129,7 @@ export const BotConfused: Story = {
     isOpen: false,
     unreadCount: 1,
     primaryColor: '#10b981',
-    botName: 'BotUyo',
-    botEmotion: 'confused',
+    emotion: 'confused',
+    onClick: () => console.log('Launcher clicked'),
   },
 }

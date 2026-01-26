@@ -202,7 +202,7 @@ export function InputArea({
       mediaRecorder.start()
       setIsRecording(true)
       timerRef.current = setInterval(() => setRecordingTime((v) => v + 1), 1000)
-    } catch (err) {
+    } catch {
       alert('Micrófono denegado o no disponible')
     }
   }

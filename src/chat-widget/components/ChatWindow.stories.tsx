@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { ChatWindow } from './ChatWindow'
-import type { ChatMessage } from '../types'
+import type { ChatMessage, TextMessage, ImageMessage, LocationMessage, FileMessage, AudioMessage } from '../types'
 
 const meta = {
   title: 'Components/ChatWindow',
@@ -56,22 +56,25 @@ type Story = StoryObj<typeof meta>
 const sampleMessages: ChatMessage[] = [
   {
     id: '1',
-    text: '¡Hola! ¿En qué puedo ayudarte hoy?',
+    type: 'text',
+    content: '¡Hola! ¿En qué puedo ayudarte hoy?',
     sender: 'bot',
     timestamp: new Date(Date.now() - 5 * 60 * 1000),
-  },
+  } as TextMessage,
   {
     id: '2',
-    text: 'Hola, necesito información sobre sus servicios',
+    type: 'text',
+    content: 'Hola, necesito información sobre sus servicios',
     sender: 'user',
     timestamp: new Date(Date.now() - 4 * 60 * 1000),
-  },
+  } as TextMessage,
   {
     id: '3',
-    text: 'Con gusto te ayudo. Ofrecemos varios servicios:\n\n1. **Consultoría**\n2. **Desarrollo**\n3. **Soporte técnico**\n\n¿Cuál te interesa más?',
+    type: 'text',
+    content: 'Con gusto te ayudo. Ofrecemos varios servicios:\n\n1. **Consultoría**\n2. **Desarrollo**\n3. **Soporte técnico**\n\n¿Cuál te interesa más?',
     sender: 'bot',
     timestamp: new Date(Date.now() - 3 * 60 * 1000),
-  },
+  } as TextMessage,
 ]
 
 export const Default: Story = {
@@ -85,6 +88,8 @@ export const Default: Story = {
     inputPlaceholder: 'Escribe un mensaje...',
     primaryColor: '#10b981',
     position: 'bottom-right',
+    onClose: () => console.log('Chat closed'),
+    onSendMessage: (msg: string) => console.log('Message sent:', msg),
   },
 }
 
@@ -116,24 +121,12 @@ export const WithGallery: Story = {
       ...sampleMessages,
       {
         id: '4',
-        text: 'Aquí tienes algunas imágenes de nuestros productos:',
+        type: 'image',
+        imageUrl: 'https://picsum.photos/400/300?random=1',
+        altText: 'Producto',
         sender: 'bot',
         timestamp: new Date(Date.now() - 2 * 60 * 1000),
-        gallery: [
-          {
-            url: 'https://picsum.photos/400/300?random=1',
-            alt: 'Producto 1',
-          },
-          {
-            url: 'https://picsum.photos/400/300?random=2',
-            alt: 'Producto 2',
-          },
-          {
-            url: 'https://picsum.photos/400/300?random=3',
-            alt: 'Producto 3',
-          },
-        ],
-      },
+      } as ImageMessage,
     ],
   },
 }
@@ -145,15 +138,13 @@ export const WithLocation: Story = {
       ...sampleMessages,
       {
         id: '4',
-        text: 'Aquí está nuestra ubicación:',
+        type: 'location',
+        latitude: 40.7128,
+        longitude: -74.0060,
+        name: 'Nueva York, NY',
         sender: 'bot',
         timestamp: new Date(Date.now() - 2 * 60 * 1000),
-        location: {
-          latitude: 40.7128,
-          longitude: -74.0060,
-          address: 'Nueva York, NY',
-        },
-      },
+      } as LocationMessage,
     ],
   },
 }
@@ -165,12 +156,12 @@ export const WithFile: Story = {
       ...sampleMessages,
       {
         id: '4',
-        text: 'Te envío el documento solicitado',
-        sender: 'bot',
-        timestamp: new Date(Date.now() - 2 * 60 * 1000),
+        type: 'file',
         fileUrl: 'https://example.com/document.pdf',
         fileName: 'Propuesta_Comercial.pdf',
-      },
+        sender: 'bot',
+        timestamp: new Date(Date.now() - 2 * 60 * 1000),
+      } as FileMessage,
     ],
   },
 }
@@ -182,11 +173,11 @@ export const WithAudio: Story = {
       ...sampleMessages,
       {
         id: '4',
-        text: 'Aquí está el mensaje de voz',
+        type: 'audio',
+        content: 'https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav',
         sender: 'bot',
         timestamp: new Date(Date.now() - 2 * 60 * 1000),
-        audioUrl: 'https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav',
-      },
+      } as AudioMessage,
     ],
   },
 }
@@ -198,28 +189,32 @@ export const LongConversation: Story = {
       ...sampleMessages,
       {
         id: '4',
-        text: 'Me interesa el desarrollo',
+        type: 'text',
+        content: 'Me interesa el desarrollo',
         sender: 'user',
         timestamp: new Date(Date.now() - 2 * 60 * 1000),
-      },
+      } as TextMessage,
       {
         id: '5',
-        text: '¡Excelente! Nuestro equipo de desarrollo puede ayudarte con:\n\n- Aplicaciones web\n- Aplicaciones móviles\n- APIs y backends\n- Integraciones',
+        type: 'text',
+        content: '¡Excelente! Nuestro equipo de desarrollo puede ayudarte con:\n\n- Aplicaciones web\n- Aplicaciones móviles\n- APIs y backends\n- Integraciones',
         sender: 'bot',
         timestamp: new Date(Date.now() - 1 * 60 * 1000),
-      },
+      } as TextMessage,
       {
         id: '6',
-        text: '¿Tienen experiencia con React?',
+        type: 'text',
+        content: '¿Tienen experiencia con React?',
         sender: 'user',
         timestamp: new Date(Date.now() - 30 * 1000),
-      },
+      } as TextMessage,
       {
         id: '7',
-        text: 'Sí, somos expertos en React y todo el ecosistema moderno de JavaScript. También trabajamos con TypeScript, Next.js, y otras tecnologías.',
+        type: 'text',
+        content: 'Sí, somos expertos en React y todo el ecosistema moderno de JavaScript. También trabajamos con TypeScript, Next.js, y otras tecnologías.',
         sender: 'bot',
         timestamp: new Date(),
-      },
+      } as TextMessage,
     ],
   },
 }

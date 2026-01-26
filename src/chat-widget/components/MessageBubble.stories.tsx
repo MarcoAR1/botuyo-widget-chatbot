@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { MessageBubble } from './MessageBubble'
-import type { Message } from '../types'
+import type { TextMessage, ImageMessage, LocationMessage, FileMessage, AudioMessage } from '../types'
 
 /**
  * MessageBubble muestra un mensaje individual en el chat.
@@ -25,13 +25,12 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-const baseMessage: Message = {
+const baseMessage: TextMessage = {
   id: '1',
-  sessionId: 'session-1',
+  type: 'text',
+  content: 'Hola, ¿en qué puedo ayudarte hoy?',
   sender: 'bot',
-  text: 'Hola, ¿en qué puedo ayudarte hoy?',
-  timestamp: new Date().toISOString(),
-  status: 'sent',
+  timestamp: new Date(),
 }
 
 /**
@@ -41,7 +40,7 @@ export const BotMessage: Story = {
   args: {
     message: baseMessage,
     primaryColor: '#10b981',
-    emotionAvatars: {},
+    avatars: {},
   },
 }
 
@@ -54,10 +53,10 @@ export const UserMessage: Story = {
       ...baseMessage,
       id: '2',
       sender: 'user',
-      text: '¿Cuáles son tus horarios de atención?',
+      content: '¿Cuáles son tus horarios de atención?',
     },
     primaryColor: '#10b981',
-    emotionAvatars: {},
+    avatars: {},
   },
 }
 
@@ -69,7 +68,7 @@ export const MessageWithMarkdown: Story = {
     message: {
       ...baseMessage,
       id: '3',
-      text: `# Título importante
+      content: `# Título importante
 
 **Texto en negrita** y *texto en cursiva*.
 
@@ -86,49 +85,40 @@ console.log(hello);
 [Enlace a documentación](https://docs.example.com)`,
     },
     primaryColor: '#10b981',
-    emotionAvatars: {},
+    avatars: {},
   },
 }
 
 /**
- * Mensaje con enlace
+ * Mensaje con enlace en markdown
  */
 export const MessageWithLink: Story = {
   args: {
     message: {
       ...baseMessage,
       id: '4',
-      text: 'Aquí está el enlace que solicitaste',
-      links: [
-        {
-          url: 'https://example.com',
-          title: 'Documentación Completa',
-          description: 'Guía paso a paso para comenzar',
-        },
-      ],
+      content: 'Aquí está el enlace que solicitaste: [Documentación Completa](https://example.com)',
     },
     primaryColor: '#10b981',
-    emotionAvatars: {},
+    avatars: {},
   },
 }
 
 /**
- * Mensaje con galería de imágenes
+ * Mensaje con imagen
  */
 export const MessageWithGallery: Story = {
   args: {
     message: {
-      ...baseMessage,
       id: '5',
-      text: 'Aquí están las imágenes que solicitaste:',
-      gallery: [
-        { url: 'https://via.placeholder.com/400x300', title: 'Imagen 1' },
-        { url: 'https://via.placeholder.com/400x300', title: 'Imagen 2' },
-        { url: 'https://via.placeholder.com/400x300', title: 'Imagen 3' },
-      ],
-    },
+      type: 'image',
+      imageUrl: 'https://via.placeholder.com/400x300',
+      altText: 'Imagen de ejemplo',
+      sender: 'bot',
+      timestamp: new Date(),
+    } as ImageMessage,
     primaryColor: '#10b981',
-    emotionAvatars: {},
+    avatars: {},
   },
 }
 
@@ -138,19 +128,16 @@ export const MessageWithGallery: Story = {
 export const MessageWithLocation: Story = {
   args: {
     message: {
-      ...baseMessage,
       id: '6',
-      text: 'Nuestra ubicación:',
-      locations: [
-        {
-          address: 'Av. Libertador 1234, Buenos Aires, Argentina',
-          latitude: -34.5875,
-          longitude: -58.3974,
-        },
-      ],
-    },
+      type: 'location',
+      latitude: -34.5875,
+      longitude: -58.3974,
+      name: 'Av. Libertador 1234, Buenos Aires, Argentina',
+      sender: 'bot',
+      timestamp: new Date(),
+    } as LocationMessage,
     primaryColor: '#10b981',
-    emotionAvatars: {},
+    avatars: {},
   },
 }
 
@@ -160,19 +147,17 @@ export const MessageWithLocation: Story = {
 export const MessageWithFile: Story = {
   args: {
     message: {
-      ...baseMessage,
       id: '7',
-      text: 'Aquí está el documento que solicitaste',
-      files: [
-        {
-          url: 'https://example.com/document.pdf',
-          filename: 'Informe_Mensual.pdf',
-          size: 2456789,
-        },
-      ],
-    },
+      type: 'file',
+      fileUrl: 'https://example.com/document.pdf',
+      fileName: 'Informe_Mensual.pdf',
+      fileSize: 2456789,
+      mimeType: 'application/pdf',
+      sender: 'bot',
+      timestamp: new Date(),
+    } as FileMessage,
     primaryColor: '#10b981',
-    emotionAvatars: {},
+    avatars: {},
   },
 }
 
@@ -182,18 +167,19 @@ export const MessageWithFile: Story = {
 export const MessageWithAudio: Story = {
   args: {
     message: {
-      ...baseMessage,
       id: '8',
-      text: 'Mensaje de audio',
-      audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-    },
+      type: 'audio',
+      content: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+      sender: 'bot',
+      timestamp: new Date(),
+    } as AudioMessage,
     primaryColor: '#10b981',
-    emotionAvatars: {},
+    avatars: {},
   },
 }
 
 /**
- * Mensaje con estado "enviando"
+ * Mensaje del usuario enviando
  */
 export const MessageSending: Story = {
   args: {
@@ -201,16 +187,15 @@ export const MessageSending: Story = {
       ...baseMessage,
       id: '9',
       sender: 'user',
-      text: 'Este mensaje se está enviando...',
-      status: 'sending',
+      content: 'Este mensaje se está enviando...',
     },
     primaryColor: '#10b981',
-    emotionAvatars: {},
+    avatars: {},
   },
 }
 
 /**
- * Mensaje con error
+ * Mensaje con error (ejemplo visual)
  */
 export const MessageError: Story = {
   args: {
@@ -218,11 +203,10 @@ export const MessageError: Story = {
       ...baseMessage,
       id: '10',
       sender: 'user',
-      text: 'Este mensaje falló al enviarse',
-      status: 'error',
+      content: 'Este mensaje falló al enviarse ❌',
     },
     primaryColor: '#10b981',
-    emotionAvatars: {},
+    avatars: {},
   },
 }
 
@@ -234,9 +218,9 @@ export const LongMessage: Story = {
     message: {
       ...baseMessage,
       id: '11',
-      text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+      content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
     },
     primaryColor: '#10b981',
-    emotionAvatars: {},
+    avatars: {},
   },
 }
