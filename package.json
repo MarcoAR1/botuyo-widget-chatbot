@@ -25,6 +25,7 @@
     "clean": "rm -rf dist && find src -name '*.js' -not -path '*/node_modules/*' -delete && rm -f standalone.js vitest.config.js && find src -name '*.js' -not -path '*/node_modules/*' -delete",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
