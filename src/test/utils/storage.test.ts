@@ -97,16 +97,16 @@ describe('ChatStorage', () => {
       sessionId: 'old-session',
     }
 
-    localStorage.setItem('paseolibre_chat_v1', JSON.stringify(oldData))
+    localStorage.setItem('botuyo_chat_v1', JSON.stringify(oldData))
 
     await chatStorage.migrateFromLocalStorage()
 
     // localStorage debería estar vacío después de migración
-    expect(localStorage.getItem('paseolibre_chat_v1')).toBeNull()
+    expect(localStorage.getItem('botuyo_chat_v1')).toBeNull()
   })
 
   it('should handle migration errors gracefully', async () => {
-    localStorage.setItem('paseolibre_chat_v1', 'invalid-json')
+    localStorage.setItem('botuyo_chat_v1', 'invalid-json')
 
     await expect(chatStorage.migrateFromLocalStorage()).resolves.not.toThrow()
   })

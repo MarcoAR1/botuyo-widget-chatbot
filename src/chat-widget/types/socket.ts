@@ -1,5 +1,5 @@
 /**
- * @package @paseolibre/chat-widget
+ * @package @botuyo/chat-widget
  * Tipos de eventos Socket.IO del protocolo Backend
  */
 

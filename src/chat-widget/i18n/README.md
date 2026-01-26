@@ -1,6 +1,6 @@
 # Sistema de Internacionalización (i18n)
 
-Sistema de internacionalización personalizado para el Chat Widget de Paseo Libre, diseñado para reemplazar next-intl y eliminar dependencias externas.
+Sistema de internacionalización personalizado para el Chat Widget de BotUyo, diseñado para reemplazar next-intl y eliminar dependencias externas.
 
 ## Arquitectura
 

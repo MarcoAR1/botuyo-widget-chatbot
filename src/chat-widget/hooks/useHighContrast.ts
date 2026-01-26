@@ -1,5 +1,5 @@
 /**
- * @package @paseolibre/chat-widget
+ * @package @botuyo/chat-widget
  * Hook para detectar y soportar modo de alto contraste (WCAG AAA)
  */
 

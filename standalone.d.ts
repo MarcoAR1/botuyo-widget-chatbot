@@ -1,16 +1,16 @@
 /**
- * Type definitions for @paseolibre/chat-widget-standalone
+ * Type definitions for @botuyo/chat-widget-standalone
  * TypeScript definitions for CDN and NPM usage
  */
 
-declare module '@paseolibre/chat-widget-standalone' {
+declare module '@botuyo/chat-widget-standalone' {
   // ========== Main Export ==========
-  const PaseoLibreChat: PaseoLibreChatWidget
+  const BotUyoChat: BotUyoChatWidget
   // @ts-expect-error - Default export for CDN compatibility
-  export default PaseoLibreChat
+  export default BotUyoChat
 
   // ========== Widget Class ==========
-  export class PaseoLibreChatWidget {
+  export class BotUyoChatWidget {
     /**
      * Initialize the chat widget
      * @param config - Widget configuration
@@ -211,6 +211,6 @@ declare module '@paseolibre/chat-widget-standalone' {
 // @ts-expect-error - Extend global window object for CDN script access
 declare global {
   interface Window {
-    PaseoLibreChat: import('@paseolibre/chat-widget-standalone').PaseoLibreChatWidget
+    BotUyoChat: import('@botuyo/chat-widget-standalone').BotUyoChatWidget
   }
 }

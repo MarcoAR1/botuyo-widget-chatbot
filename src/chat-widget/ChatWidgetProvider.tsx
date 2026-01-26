@@ -1,5 +1,5 @@
 /**
- * @package @paseolibre/chat-widget
+ * @package @botuyo/chat-widget
  * ChatWidgetProvider - React Context Provider para el widget
  * 
  * Este provider permite usar el widget de chat como un componente React estándar
@@ -66,13 +66,13 @@ export interface ChatWidgetProviderProps extends ChatWidgetProps {
  * 
  * @example
  * ```tsx
- * import { ChatWidgetProvider } from '@paseolibre/chat-widget'
+ * import { ChatWidgetProvider } from '@botuyo/chat-widget'
  * 
  * function App() {
  *   return (
  *     <ChatWidgetProvider
  *       apiKey="tu-api-key"
- *       apiBaseUrl="https://api.paseolibre.com"
+ *       apiBaseUrl="https://api.botuyo.com"
  *       theme={{ primaryColor: '#10b981' }}
  *     >
  *       <YourApp />

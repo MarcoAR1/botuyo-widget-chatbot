@@ -1,5 +1,5 @@
 /**
- * @package @paseolibre/chat-widget
+ * @package @botuyo/chat-widget
  * Hook optimizado para producción con soporte extendido de medios.
  */
 

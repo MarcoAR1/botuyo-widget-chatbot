@@ -78,11 +78,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ⚛️ React-based chat widget with TypeScript
 - 🔌 Socket.IO real-time integration
 - 📦 CDN distribution via IIFE bundle
-- 📚 NPM package support (`@paseolibre/chat-widget`)
+- 📚 NPM package support (`@botuyo/chat-widget`)
 - 🎨 Configurable theming (colors, bot name, logo, position)
 - 📱 Mobile-responsive design (fullscreen on mobile, modal on desktop)
 - 🌙 Dark mode support with CSS variables
-- 🔧 Public API (`window.PaseoLibreChat`)
+- 🔧 Public API (`window.BotUyoChat`)
   - `init()` - Initialize widget
   - `open()` - Open chat programmatically
   - `close()` - Close chat programmatically

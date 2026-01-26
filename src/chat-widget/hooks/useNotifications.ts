@@ -1,5 +1,5 @@
 /**
- * @package @paseolibre/chat-widget
+ * @package @botuyo/chat-widget
  * Hook para notificaciones desktop y sonoras
  */
 

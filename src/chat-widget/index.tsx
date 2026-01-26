@@ -1,5 +1,5 @@
 /**
- * @package @paseolibre/chat-widget
+ * @package @botuyo/chat-widget
  * Entry Point - Exporta el componente principal, Provider y tipos
  */
 

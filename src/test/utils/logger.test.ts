@@ -29,11 +29,11 @@ describe('logger', () => {
   })
 
   describe('logger.log', () => {
-    it('should prefix messages with [PaseoLibre]', () => {
+    it('should prefix messages with [BotUyo]', () => {
       logger.log('Test message')
       
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        '[PaseoLibre] Test message'
+        '[BotUyo] Test message'
       )
     })
 
@@ -42,7 +42,7 @@ describe('logger', () => {
       logger.log('Message', obj, 123)
       
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        '[PaseoLibre] Message',
+        '[BotUyo] Message',
         obj,
         123
       )
@@ -54,7 +54,7 @@ describe('logger', () => {
       logger.warn('Warning message')
       
       expect(consoleWarnSpy).toHaveBeenCalledWith(
-        '[PaseoLibre] Warning message'
+        '[BotUyo] Warning message'
       )
     })
 
@@ -62,7 +62,7 @@ describe('logger', () => {
       logger.warn('Warning', 'detail1', 'detail2')
       
       expect(consoleWarnSpy).toHaveBeenCalledWith(
-        '[PaseoLibre] Warning',
+        '[BotUyo] Warning',
         'detail1',
         'detail2'
       )
@@ -77,7 +77,7 @@ describe('logger', () => {
       logger.error('Error message')
       
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        '[PaseoLibre] Error message'
+        '[BotUyo] Error message'
       )
     })
 
@@ -86,7 +86,7 @@ describe('logger', () => {
       logger.error('Error occurred', error)
       
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        '[PaseoLibre] Error occurred',
+        '[BotUyo] Error occurred',
         error
       )
     })
@@ -97,7 +97,7 @@ describe('logger', () => {
       logger.debug('Debug message')
       
       expect(consoleDebugSpy).toHaveBeenCalledWith(
-        '[PaseoLibre] Debug message'
+        '[BotUyo] Debug message'
       )
     })
   })
@@ -107,7 +107,7 @@ describe('logger', () => {
       logger.info('Info message')
       
       expect(consoleInfoSpy).toHaveBeenCalledWith(
-        '[PaseoLibre] Info message'
+        '[BotUyo] Info message'
       )
     })
   })
@@ -176,7 +176,7 @@ describe('logger', () => {
     it('should handle empty messages', () => {
       logger.log('')
       
-      expect(consoleLogSpy).toHaveBeenCalledWith('[PaseoLibre] ')
+      expect(consoleLogSpy).toHaveBeenCalledWith('[BotUyo] ')
     })
 
     it('should handle multiple line messages', () => {
@@ -184,7 +184,7 @@ describe('logger', () => {
       logger.log(multiline)
       
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        `[PaseoLibre] ${multiline}`
+        `[BotUyo] ${multiline}`
       )
     })
 
@@ -192,7 +192,7 @@ describe('logger', () => {
       logger.log('Special chars: 你好 🎉 €')
       
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        '[PaseoLibre] Special chars: 你好 🎉 €'
+        '[BotUyo] Special chars: 你好 🎉 €'
       )
     })
 
@@ -200,7 +200,7 @@ describe('logger', () => {
       logger.log('Values:', null, undefined)
       
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        '[PaseoLibre] Values:',
+        '[BotUyo] Values:',
         null,
         undefined
       )
@@ -213,7 +213,7 @@ describe('logger', () => {
       logger.log('Data:', obj, arr)
       
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        '[PaseoLibre] Data:',
+        '[BotUyo] Data:',
         obj,
         arr
       )

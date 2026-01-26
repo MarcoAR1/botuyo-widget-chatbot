@@ -12,12 +12,12 @@ import {
   useChatWidget,
   type ChatWidgetProviderProps as _ChatWidgetProviderProps,
   type ChatTheme 
-} from '@paseolibre/chat-widget-standalone';
+} from '@botuyo/chat-widget-standalone';
 
 // ========== Configuración del Tema ==========
 const chatTheme: ChatTheme = {
   primaryColor: '#10b981',
-  botName: 'Asistente Paseo Libre',
+  botName: 'Asistente BotUyo',
   logoUrl: '/logo.png',
   position: 'bottom-right',
   welcomeMessage: '¡Hola! 👋 ¿En qué puedo ayudarte hoy?',
@@ -156,7 +156,7 @@ export default function App() {
     <ChatWidgetProvider
       // Configuración requerida
       apiKey={process.env.REACT_APP_CHAT_API_KEY || 'demo-api-key'}
-      apiBaseUrl={process.env.REACT_APP_CHAT_API_URL || 'https://api.paseolibre.com'}
+      apiBaseUrl={process.env.REACT_APP_CHAT_API_URL || 'https://api.botuyo.com'}
       
       // Tema personalizado
       theme={chatTheme}
@@ -217,5 +217,5 @@ import type {
   AudioMessage,
   LocationMessage,
   AuthenticatedUser
-} from '@paseolibre/chat-widget-standalone';
+} from '@botuyo/chat-widget-standalone';
 */

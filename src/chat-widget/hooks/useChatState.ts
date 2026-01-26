@@ -1,5 +1,5 @@
 /**
- * @package @paseolibre/chat-widget
+ * @package @botuyo/chat-widget
  * Hook de estado global con persistencia de historial y fix de renderizado inmediato.
  */
 

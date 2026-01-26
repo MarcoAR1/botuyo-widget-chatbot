@@ -1,8 +1,8 @@
 /**
- * Paseo Libre Chat Widget - Standalone Version
+ * BotUyo Chat Widget - Standalone Version
  * Entry point for CDN distribution
  * 
- * This file creates a global `PaseoLibreChat` object that can be used
+ * This file creates a global `BotUyoChat` object that can be used
  * to initialize the chat widget on any website without React/Next.js
  * 
  * OPTIMIZATION: Code splitting enabled

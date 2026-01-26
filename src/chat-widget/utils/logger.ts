@@ -1,5 +1,5 @@
 /**
- * @package @paseolibre/chat-widget
+ * @package @botuyo/chat-widget
  * Centralized logger with DEBUG flag for production builds
  * 
  * Principio: Single Responsibility - solo gestionar logging
@@ -45,30 +45,30 @@ function isDebugEnabled(): boolean {
 export const logger: Logger = {
   log: (message: string, ...args: any[]) => {
     if (isDebugEnabled()) {
-      console.log(`[PaseoLibre] ${message}`, ...args)
+      console.log(`[BotUyo] ${message}`, ...args)
     }
   },
   
   warn: (message: string, ...args: any[]) => {
     if (isDebugEnabled()) {
-      console.warn(`[PaseoLibre] ${message}`, ...args)
+      console.warn(`[BotUyo] ${message}`, ...args)
     }
   },
   
   error: (message: string, ...args: any[]) => {
     // Errores siempre se muestran
-    console.error(`[PaseoLibre] ${message}`, ...args)
+    console.error(`[BotUyo] ${message}`, ...args)
   },
   
   debug: (message: string, ...args: any[]) => {
     if (isDebugEnabled()) {
-      console.debug(`[PaseoLibre] ${message}`, ...args)
+      console.debug(`[BotUyo] ${message}`, ...args)
     }
   },
   
   info: (message: string, ...args: any[]) => {
     if (isDebugEnabled()) {
-      console.info(`[PaseoLibre] ${message}`, ...args)
+      console.info(`[BotUyo] ${message}`, ...args)
     }
   },
 }

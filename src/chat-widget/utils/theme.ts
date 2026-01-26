@@ -1,5 +1,5 @@
 /**
- * @package @paseolibre/chat-widget
+ * @package @botuyo/chat-widget
  * Sistema de Temas y CSS Variables
  * 
  * Este módulo centraliza toda la gestión de temas del widget.
@@ -45,7 +45,7 @@ export const DEFAULT_CSS_VARIABLES: CSSVariables = {
   foreground: '240 10% 3.9%',        // Negro azulado
   card: '0 0% 100%',                 // Blanco
   cardForeground: '240 10% 3.9%',    // Negro azulado
-  primary: '160 84% 39%',            // Verde Paseo Libre
+  primary: '160 84% 39%',            // Verde BotUyo
   primaryForeground: '0 0% 100%',    // Blanco
   muted: '240 4.8% 95.9%',           // Gris claro
   mutedForeground: '240 3.8% 46.1%', // Gris oscuro
@@ -71,7 +71,7 @@ export const DARK_CSS_VARIABLES: CSSVariables = {
   foreground: '0 0% 98%',            // Texto claro
   card: '240 10% 10%',               // Tarjetas oscuras
   cardForeground: '0 0% 98%',        // Texto claro
-  primary: '160 84% 39%',            // Verde Paseo Libre
+  primary: '160 84% 39%',            // Verde BotUyo
   primaryForeground: '0 0% 100%',    // Blanco
   muted: '240 3.7% 15.9%',           // Gris oscuro
   mutedForeground: '240 5% 64.9%',   // Gris claro
@@ -100,7 +100,7 @@ export const DARK_CSS_VARIABLES: CSSVariables = {
  */
 
 /**
- * TEMA DEFAULT - Paseo Libre (Verde Fresco)
+ * TEMA DEFAULT - BotUyo (Verde Fresco)
  * Tema por defecto cuando no se envía configuración
  */
 export const DEFAULT_THEME: Required<Omit<ChatTheme, 'avatars' | 'emotion' | 'starterPrompt' | 'launcherBorderRadius' | 'borderRadius' | 'bubbleStyles' | 'promptPersistence' | 'avatarScale' | 'height' | 'bottom'>> = {

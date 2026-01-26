@@ -1,5 +1,5 @@
 /**
- * @package @paseolibre/chat-widget
+ * @package @botuyo/chat-widget
  * Gallery - Componente visual para mostrar galerías de imágenes
  */
 

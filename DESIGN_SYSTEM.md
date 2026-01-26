@@ -40,7 +40,7 @@ Todos los componentes principales usan estas variables:
 Puedes personalizar el spacing pasando las variables en el tema:
 
 ```typescript
-PaseoLibreChat.init({
+BotUyoChat.init({
   theme: {
     cssVariables: {
       // Spacing compacto

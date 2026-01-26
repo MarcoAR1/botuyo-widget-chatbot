@@ -1,5 +1,5 @@
 /**
- * @package @paseolibre/chat-widget
+ * @package @botuyo/chat-widget
  * Exportaciones centrales del sistema de temas
  * 
  * Importa desde aquí todo lo relacionado con temas:

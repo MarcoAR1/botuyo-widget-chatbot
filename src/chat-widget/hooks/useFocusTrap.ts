@@ -1,5 +1,5 @@
 /**
- * @package @paseolibre/chat-widget
+ * @package @botuyo/chat-widget
  * Focus management hook for accessible dialogs
  * 
  * Principio: Single Responsibility - solo gestionar el foco del teclado

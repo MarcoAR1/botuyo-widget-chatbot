@@ -12,7 +12,7 @@
  */
 
 // ========== app/layout.tsx (Root Layout) ==========
-import { ChatWidgetProvider } from '@paseolibre/chat-widget-standalone';
+import { ChatWidgetProvider } from '@botuyo/chat-widget-standalone';
 import type { Metadata } from 'next';
 import './globals.css';
 
@@ -34,7 +34,7 @@ export default function RootLayout({
           apiBaseUrl={process.env.NEXT_PUBLIC_CHAT_API_URL!}
           theme={{
             primaryColor: '#10b981',
-            botName: 'Asistente Paseo Libre',
+            botName: 'Asistente BotUyo',
             position: 'bottom-right',
             welcomeMessage: '¡Hola! 👋 ¿Cómo puedo ayudarte?',
             bubbleStyles: {
@@ -85,7 +85,7 @@ export default function HomePage() {
 // ========== components/ChatButton.tsx (Client Component) ==========
 'use client';
 
-import { useChatWidget } from '@paseolibre/chat-widget-standalone';
+import { useChatWidget } from '@botuyo/chat-widget-standalone';
 
 export function ChatButton() {
   const chat = useChatWidget();
@@ -123,7 +123,7 @@ export function ChatButton() {
 'use client';
 
 import { useEffect as _useEffect } from 'react';
-import { ChatWidgetProvider } from '@paseolibre/chat-widget-standalone';
+import { ChatWidgetProvider } from '@botuyo/chat-widget-standalone';
 
 export default function ProductPage({ params }: { params: { id: string } }) {
   return (
@@ -152,7 +152,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
 // ========== .env.local ==========
 /*
 NEXT_PUBLIC_CHAT_API_KEY=your-api-key-here
-NEXT_PUBLIC_CHAT_API_URL=https://api.paseolibre.com
+NEXT_PUBLIC_CHAT_API_URL=https://api.botuyo.com
 */
 
 // ========== next.config.js ==========
@@ -160,7 +160,7 @@ NEXT_PUBLIC_CHAT_API_URL=https://api.paseolibre.com
 /** @type {import('next').NextConfig} *\/
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['@paseolibre/chat-widget-standalone'],
+  transpilePackages: ['@botuyo/chat-widget-standalone'],
 }
 
 module.exports = nextConfig
@@ -211,7 +211,7 @@ module.exports = nextConfig
     "lint": "next lint"
   },
   "dependencies": {
-    "@paseolibre/chat-widget-standalone": "^1.0.0",
+    "@botuyo/chat-widget-standalone": "^1.0.0",
     "next": "^14.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"

@@ -119,7 +119,7 @@ export const translations = {
     connecting: 'Connexion...',
     
     // Pied de page
-    con_amor_paseo_libre: 'Avec ❤️ par Paseo Libre',
+    con_amor_paseo_libre: 'Avec ❤️ par BotUyo',
     
     // Zone de saisie
     preview: 'Aperçu',

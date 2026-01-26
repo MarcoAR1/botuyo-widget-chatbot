@@ -707,7 +707,7 @@
   <script type="module">
     // Import the widget
     const module = await import('./standalone.tsx')
-    const PaseoLibreChat = module.default
+    const BotUyoChat = module.default
     const BotUyoChat = module.default
 
     // Predefined themes data
@@ -963,13 +963,13 @@
     // Initialize or update widget
     function initOrUpdateWidget() {
       if (widgetInitialized) {
-        PaseoLibreChat.destroy()
+        BotUyoChat.destroy()
       }
 
       setTimeout(() => {
-        PaseoLibreChat.init({
+        BotUyoChat.init({
           apiKey: 'demo-key',
-          apiBaseUrl: 'wss://demo.paseolibre.com',
+          apiBaseUrl: 'wss://demo.botuyo.com',
           theme: currentConfig
         })
         widgetInitialized = true

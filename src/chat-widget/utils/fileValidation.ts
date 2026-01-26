@@ -1,5 +1,5 @@
 /**
- * @package @paseolibre/chat-widget
+ * @package @botuyo/chat-widget
  * File validation utilities with magic bytes verification
  * 
  * Validates file types by checking magic bytes (file signatures)

@@ -18,7 +18,7 @@ exports.default = HomePage;
 exports.ChatButton = ChatButton;
 exports.default = ProductPage;
 // ========== app/layout.tsx (Root Layout) ==========
-var chat_widget_standalone_1 = require("@paseolibre/chat-widget-standalone");
+var chat_widget_standalone_1 = require("@botuyo/chat-widget-standalone");
 require("./globals.css");
 exports.metadata = {
     title: 'Mi App con Chat Widget',
@@ -30,7 +30,7 @@ function RootLayout(_a) {
       <body>
         <chat_widget_standalone_1.ChatWidgetProvider apiKey={process.env.NEXT_PUBLIC_CHAT_API_KEY} apiBaseUrl={process.env.NEXT_PUBLIC_CHAT_API_URL} theme={{
             primaryColor: '#10b981',
-            botName: 'Asistente Paseo Libre',
+            botName: 'Asistente BotUyo',
             position: 'bottom-right',
             welcomeMessage: '¡Hola! 👋 ¿Cómo puedo ayudarte?',
             bubbleStyles: {
@@ -71,7 +71,7 @@ function HomePage() {
 }
 // ========== components/ChatButton.tsx (Client Component) ==========
 'use client';
-var chat_widget_standalone_2 = require("@paseolibre/chat-widget-standalone");
+var chat_widget_standalone_2 = require("@botuyo/chat-widget-standalone");
 function ChatButton() {
     var chat = (0, chat_widget_standalone_2.useChatWidget)();
     return (<div className="space-y-4">
@@ -114,14 +114,14 @@ function ProductPage(_a) {
 // ========== .env.local ==========
 /*
 NEXT_PUBLIC_CHAT_API_KEY=your-api-key-here
-NEXT_PUBLIC_CHAT_API_URL=https://api.paseolibre.com
+NEXT_PUBLIC_CHAT_API_URL=https://api.botuyo.com
 */
 // ========== next.config.js ==========
 /*
 /** @type {import('next').NextConfig} *\/
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['@paseolibre/chat-widget-standalone'],
+  transpilePackages: ['@botuyo/chat-widget-standalone'],
 }
 
 module.exports = nextConfig
@@ -170,7 +170,7 @@ module.exports = nextConfig
     "lint": "next lint"
   },
   "dependencies": {
-    "@paseolibre/chat-widget-standalone": "^1.0.0",
+    "@botuyo/chat-widget-standalone": "^1.0.0",
     "next": "^14.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"

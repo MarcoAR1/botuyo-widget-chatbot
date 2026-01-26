@@ -1,7 +1,7 @@
 /**
- * Paseo Libre Chat Widget - Standalone CSS
+ * BotUyo Chat Widget - Standalone CSS
  * Este archivo contiene todos los estilos necesarios para el widget
- * incluyendo variables CSS del design system de Paseo Libre
+ * incluyendo variables CSS del design system de BotUyo
  */
 
 @import "tailwindcss";
@@ -26,7 +26,7 @@
 #botuyo-chat-widget-root,
 #botuyo-chat-widget,
 :root {
-  /* Colors - Paseo Libre Brand */
+  /* Colors - BotUyo Brand */
   --background: 0 0% 100%;
   --foreground: 240 10% 3.9%;
   --card: 0 0% 100%;

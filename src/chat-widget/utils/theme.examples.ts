@@ -25,7 +25,7 @@ import {
 // 1. USAR TEMA PREDEFINIDO
 // ===================================
 
-// Tema por defecto de Paseo Libre (Light)
+// Tema por defecto de BotUyo (Light)
 const defaultTheme = DEFAULT_THEME
 /*
 {

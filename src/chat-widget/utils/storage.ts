@@ -1,5 +1,5 @@
 /**
- * @package @paseolibre/chat-widget
+ * @package @botuyo/chat-widget
  * Storage persistente con IndexedDB para chat offline-first
  */
 
@@ -21,7 +21,7 @@ interface ChatDB extends DBSchema {
 
 class ChatStorage {
   private db: IDBPDatabase<ChatDB> | null = null
-  private readonly DB_NAME = 'paseolibre-chat'
+  private readonly DB_NAME = 'botuyo-chat'
   private readonly DB_VERSION = 1
 
   async init() {
@@ -147,7 +147,7 @@ class ChatStorage {
   // Método para migrar desde localStorage (compatibilidad)
   async migrateFromLocalStorage() {
     try {
-      const STORAGE_KEY = 'paseolibre_chat_v1'
+      const STORAGE_KEY = 'botuyo_chat_v1'
       const saved = localStorage.getItem(STORAGE_KEY)
       
       if (!saved) return

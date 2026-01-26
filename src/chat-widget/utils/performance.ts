@@ -1,5 +1,5 @@
 /**
- * @package @paseolibre/chat-widget
+ * @package @botuyo/chat-widget
  * Performance utilities - throttle, debounce, lazy loading
  * 
  * Principio: Single Responsibility - solo optimizaciones de rendimiento

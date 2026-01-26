@@ -9,11 +9,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = App;
 var react_1 = require("react");
-var chat_widget_standalone_1 = require("@paseolibre/chat-widget-standalone");
+var chat_widget_standalone_1 = require("@botuyo/chat-widget-standalone");
 // ========== Configuración del Tema ==========
 var chatTheme = {
     primaryColor: '#10b981',
-    botName: 'Asistente Paseo Libre',
+    botName: 'Asistente BotUyo',
     logoUrl: '/logo.png',
     position: 'bottom-right',
     welcomeMessage: '¡Hola! 👋 ¿En qué puedo ayudarte hoy?',
@@ -117,7 +117,7 @@ function AppContent() {
 function App() {
     return (<chat_widget_standalone_1.ChatWidgetProvider 
     // Configuración requerida
-    apiKey={process.env.REACT_APP_CHAT_API_KEY || 'demo-api-key'} apiBaseUrl={process.env.REACT_APP_CHAT_API_URL || 'https://api.paseolibre.com'} 
+    apiKey={process.env.REACT_APP_CHAT_API_KEY || 'demo-api-key'} apiBaseUrl={process.env.REACT_APP_CHAT_API_URL || 'https://api.botuyo.com'} 
     // Tema personalizado
     theme={chatTheme} 
     // Contexto de página
@@ -164,5 +164,5 @@ import type {
   AudioMessage,
   LocationMessage,
   AuthenticatedUser
-} from '@paseolibre/chat-widget-standalone';
+} from '@botuyo/chat-widget-standalone';
 */

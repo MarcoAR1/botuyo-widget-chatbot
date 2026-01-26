@@ -83,7 +83,7 @@ Trackea analytics cuando se abre/cierra el chat (Google Analytics si está dispo
 2. **Handshake Socket.IO**:
    ```typescript
    {
-     apiKey: 'paseolibre-prod-key',
+     apiKey: 'botuyo-prod-key',
      deviceId: 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx',
      token: undefined // Se envía si el usuario ya está logueado
    }
@@ -105,7 +105,7 @@ Trackea analytics cuando se abre/cierra el chat (Google Analytics si está dispo
 
 ### 📦 Próximos Pasos para SaaS
 
-Para extraer a un paquete npm (@paseolibre/chat-widget):
+Para extraer a un paquete npm (@botuyo/chat-widget):
 
 1. **Crear Componentes UI Faltantes**:
    - `Launcher.tsx` (botón flotante)
@@ -114,8 +114,8 @@ Para extraer a un paquete npm (@paseolibre/chat-widget):
 
 2. **Mover a Repositorio Independiente**:
    ```bash
-   mkdir paseolibre-chat-widget
-   cd paseolibre-chat-widget
+   mkdir botuyo-chat-widget
+   cd botuyo-chat-widget
    npm init -y
    # Copiar src/chat-widget/* aquí
    # Configurar build con tsup o rollup
@@ -124,7 +124,7 @@ Para extraer a un paquete npm (@paseolibre/chat-widget):
 3. **Configurar Build**:
    ```json
    {
-     "name": "@paseolibre/chat-widget",
+     "name": "@botuyo/chat-widget",
      "main": "dist/index.js",
      "types": "dist/index.d.ts",
      "exports": {
@@ -139,16 +139,16 @@ Para extraer a un paquete npm (@paseolibre/chat-widget):
 
 4. **Instalar en BotUyo**:
    ```bash
-   npm install @paseolibre/chat-widget
+   npm install @botuyo/chat-widget
    ```
 
 5. **Inyección vía Script (White-Label)**:
    ```html
-   <script src="https://cdn.paseolibre.com/chat-widget.js"></script>
+   <script src="https://cdn.botuyo.com/chat-widget.js"></script>
    <script>
-     PaseoLibreChat.init({
+     BotUyoChat.init({
        apiKey: 'cliente-xyz-key',
-       apiBaseUrl: 'https://api.paseolibre.com',
+       apiBaseUrl: 'https://api.botuyo.com',
        theme: {
          primaryColor: '#ff6b6b',
          botName: 'Mi Asistente'

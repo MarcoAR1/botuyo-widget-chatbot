@@ -26,7 +26,7 @@ describe('Widget Instantiation - API Tests', () => {
   });
 
   describe('Temas Paseolibre - Configuraciones Reales', () => {
-    it('debe aceptar PASEOLIBRE_LIGHT_THEME sin errores', () => {
+    it('debe aceptar BOTUYO_LIGHT_THEME sin errores', () => {
       const widget = new BotUyoChatWidget();
       const config = {
         apiKey: 'test-key',
@@ -48,7 +48,7 @@ describe('Widget Instantiation - API Tests', () => {
       expect(result).toBe(widget);
     });
 
-    it('debe aceptar PASEOLIBRE_DARK_THEME sin errores', () => {
+    it('debe aceptar BOTUYO_DARK_THEME sin errores', () => {
       const widget = new BotUyoChatWidget();
       const config = {
         apiKey: 'test-key',

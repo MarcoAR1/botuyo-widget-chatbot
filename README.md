@@ -73,11 +73,11 @@ Agrega este código antes del cierre del `</body>` en tu HTML:
 
 ```html
 <!-- BotUyo Chat Widget -->
-<script src="https://cdn.paseolibre.com/chat-widget.js"></script>
+<script src="https://cdn.botuyo.com/chat-widget.js"></script>
 <script>
-  PaseoLibreChat.init({
+  BotUyoChat.init({
     apiKey: 'tu-api-key-aqui',
-    apiBaseUrl: 'https://api.paseolibre.com',
+    apiBaseUrl: 'https://api.botuyo.com',
     theme: {
       primaryColor: 'hsl(160, 84%, 39%)',
       botName: 'Asistente BotUyo',
@@ -98,18 +98,18 @@ Agrega este código antes del cierre del `</body>` en tu HTML:
 
 **Instalación:**
 ```bash
-npm install @paseolibre/chat-widget-standalone
+npm install @botuyo/chat-widget-standalone
 ```
 
 **Uso con Provider:**
 ```tsx
-import { ChatWidgetProvider, useChatWidget } from '@paseolibre/chat-widget-standalone';
+import { ChatWidgetProvider, useChatWidget } from '@botuyo/chat-widget-standalone';
 
 function App() {
   return (
     <ChatWidgetProvider
       apiKey="tu-api-key-aqui"
-      apiBaseUrl="https://api.paseolibre.com"
+      apiBaseUrl="https://api.botuyo.com"
       theme={{ 
         primaryColor: 'hsl(160, 84%, 39%)',
         // ⚠️ IMPORTANTE: Variables CSS necesarias
@@ -135,13 +135,13 @@ function MyComponent() {
 
 **Uso directo:**
 ```tsx
-import { ChatWidget } from '@paseolibre/chat-widget-standalone';
+import { ChatWidget } from '@botuyo/chat-widget-standalone';
 
 function App() {
   return (
     <ChatWidget
       apiKey="tu-api-key-aqui"
-      apiBaseUrl="https://api.paseolibre.com"
+      apiBaseUrl="https://api.botuyo.com"
       theme={{ 
         primaryColor: 'hsl(160, 84%, 39%)',
         cssVariables: {
@@ -215,9 +215,9 @@ interface StandaloneConfig {
 <body>
   <h1>Bienvenido a mi sitio</h1>
   
-  <script src="https://cdn.paseolibre.com/chat-widget.js"></script>
+  <script src="https://cdn.botuyo.com/chat-widget.js"></script>
   <script>
-    PaseoLibreChat.init({
+    BotUyoChat.init({
       apiKey: 'demo-key-12345',
       apiBaseUrl: 'http://localhost:4000'
     });
@@ -230,9 +230,9 @@ interface StandaloneConfig {
 
 ```html
 <script>
-  PaseoLibreChat.init({
+  BotUyoChat.init({
     apiKey: 'mi-api-key',
-    apiBaseUrl: 'https://api.paseolibre.com',
+    apiBaseUrl: 'https://api.botuyo.com',
     
     theme: {
       primaryColor: '#ff6b6b',
@@ -284,34 +284,34 @@ interface StandaloneConfig {
 ```html
 <script>
   // Inicializar
-  const chat = PaseoLibreChat.init({
+  const chat = BotUyoChat.init({
     apiKey: 'demo-key',
     apiBaseUrl: 'http://localhost:4000'
   });
 
   // Abrir el chat programáticamente
   document.getElementById('btnAbrir').addEventListener('click', () => {
-    PaseoLibreChat.open();
+    BotUyoChat.open();
   });
 
   // Cerrar el chat programáticamente
   document.getElementById('btnCerrar').addEventListener('click', () => {
-    PaseoLibreChat.close();
+    BotUyoChat.close();
   });
 
   // Enviar un mensaje programáticamente
   document.getElementById('btnEnviar').addEventListener('click', () => {
-    PaseoLibreChat.sendMessage('Hola, necesito ayuda');
+    BotUyoChat.sendMessage('Hola, necesito ayuda');
   });
 
   // Destruir el widget
   document.getElementById('btnDestruir').addEventListener('click', () => {
-    PaseoLibreChat.destroy();
+    BotUyoChat.destroy();
   });
 
   // Actualizar configuración
   document.getElementById('btnActualizar').addEventListener('click', () => {
-    PaseoLibreChat.update({
+    BotUyoChat.update({
       theme: {
         primaryColor: '#ff6b6b',
         botName: 'Nuevo Nombre'
@@ -323,35 +323,35 @@ interface StandaloneConfig {
 
 ## 🛠️ API Pública
 
-### `PaseoLibreChat.init(config)`
+### `BotUyoChat.init(config)`
 
 Inicializa el widget con la configuración proporcionada.
 
 **Retorna**: Instancia del widget para encadenamiento.
 
-### `PaseoLibreChat.open()`
+### `BotUyoChat.open()`
 
 Abre la ventana del chat programáticamente.
 
-### `PaseoLibreChat.close()`
+### `BotUyoChat.close()`
 
 Cierra la ventana del chat programáticamente.
 
-### `PaseoLibreChat.sendMessage(message)`
+### `BotUyoChat.sendMessage(message)`
 
 Envía un mensaje al chat programáticamente.
 
 **Parámetros**:
 - `message` (string): El mensaje a enviar.
 
-### `PaseoLibreChat.update(config)`
+### `BotUyoChat.update(config)`
 
 Actualiza la configuración del widget sin reiniciarlo.
 
 **Parámetros**:
 - `config` (Partial<StandaloneConfig>): Configuración parcial a actualizar.
 
-### `PaseoLibreChat.destroy()`
+### `BotUyoChat.destroy()`
 
 Destruye el widget y limpia todos los recursos.
 
@@ -362,7 +362,7 @@ El widget utiliza variables CSS que puedes sobrescribir:
 ```html
 <style>
   /* Sobrescribir estilos del widget */
-  #paseo-libre-chat-widget-root {
+  #botuyo-chat-widget-root {
     /* Tus estilos personalizados */
   }
 
@@ -409,9 +409,9 @@ npm run build
 ```
 
 Esto generará:
-- `dist/paseo-libre-chat.js` - Bundle minificado para CDN
-- `dist/paseo-libre-chat.css` - Estilos del widget
-- `dist/paseo-libre-chat.js.map` - Source map para debugging
+- `dist/botuyo-chat.js` - Bundle minificado para CDN
+- `dist/botuyo-chat.css` - Estilos del widget
+- `dist/botuyo-chat.js.map` - Source map para debugging
 
 ## 🌐 Compatibilidad
 
@@ -427,12 +427,12 @@ MIT License - © 2025 BotUyo
 
 ## 🆘 Soporte
 
-- 📧 Email: soporte@paseolibre.com
-- 💬 Chat: https://paseolibre.com/soporte
-- 📖 Docs: https://docs.paseolibre.com/chat-widget
+- 📧 Email: soporte@botuyo.com
+- 💬 Chat: https://botuyo.com/soporte
+- 📖 Docs: https://docs.botuyo.com/chat-widget
 
 ## 🔗 Links
 
-- [Documentación completa](https://docs.paseolibre.com)
-- [Ejemplos en vivo](https://paseolibre.com/widget-demo)
-- [Repositorio GitHub](https://github.com/paseolibre/chat-widget)
+- [Documentación completa](https://docs.botuyo.com)
+- [Ejemplos en vivo](https://botuyo.com/widget-demo)
+- [Repositorio GitHub](https://github.com/botuyo/chat-widget)
