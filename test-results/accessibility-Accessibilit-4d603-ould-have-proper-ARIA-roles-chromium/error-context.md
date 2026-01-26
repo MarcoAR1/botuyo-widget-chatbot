@@ -1,0 +1,41 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - button "☀️" [ref=e3] [cursor=pointer]
+    - button "🌙" [ref=e4] [cursor=pointer]
+  - generic [ref=e5]:
+    - heading "🤖 BotUyo Chat Widget" [level=1] [ref=e6]
+    - paragraph [ref=e7]: Herramientas de Demo y Personalización
+    - generic [ref=e8]:
+      - link "🎨 Theme Builder PRINCIPAL Crea y personaliza temas en tiempo real. Herramienta oficial para generar configuraciones." [ref=e9] [cursor=pointer]:
+        - /url: ./theme-builder.html
+        - generic [ref=e10]: 🎨
+        - generic [ref=e11]:
+          - generic [ref=e12]:
+            - text: Theme Builder
+            - generic [ref=e13]: PRINCIPAL
+          - generic [ref=e14]: Crea y personaliza temas en tiempo real. Herramienta oficial para generar configuraciones.
+      - link "📦 Ejemplo CDN Integración completa vía CDN - Sin frameworks, solo JavaScript vanilla." [ref=e15] [cursor=pointer]:
+        - /url: ./examples/cdn-example.html
+        - generic [ref=e16]: 📦
+        - generic [ref=e17]:
+          - generic [ref=e18]: Ejemplo CDN
+          - generic [ref=e19]: Integración completa vía CDN - Sin frameworks, solo JavaScript vanilla.
+    - generic [ref=e20]:
+      - heading "💡 Información" [level=3] [ref=e21]
+      - paragraph [ref=e22]:
+        - strong [ref=e23]: El widget aparecerá en la esquina inferior derecha
+        - text: cuando abras cualquiera de las demos.
+      - paragraph [ref=e24]:
+        - text: Para crear un tema personalizado, usa el
+        - strong [ref=e25]: Theme Builder
+        - text: "que incluye:"
+      - list [ref=e26]:
+        - listitem [ref=e27]: ✅ Temas predefinidos listos para usar
+        - listitem [ref=e28]: ✅ Editor visual de colores y espaciado
+        - listitem [ref=e29]: ✅ Preview en tiempo real con sincronización automática
+        - listitem [ref=e30]: ✅ Modo oscuro automático o manual
+        - listitem [ref=e31]: ✅ Exportación de configuración JSON
+```

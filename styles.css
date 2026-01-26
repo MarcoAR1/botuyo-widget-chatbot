@@ -4,7 +4,13 @@
  * incluyendo variables CSS del design system de BotUyo
  */
 
-@import "tailwindcss";
+@import 'tailwindcss';
+
+/* ===================================
+   ACCESSIBILITY (A11y)
+   =================================== */
+
+@import './src/chat-widget/styles/accessibility.css';
 
 /* ===================================
    LOADING ANIMATION (Code Splitting)
@@ -33,39 +39,39 @@
   --card-foreground: 240 10% 3.9%;
   --popover: 0 0% 100%;
   --popover-foreground: 240 10% 3.9%;
-  
+
   /* Primary - Emerald (BotUyo Green) */
   --primary: 160 84% 39%;
   --primary-foreground: 0 0% 100%;
-  
+
   /* Muted */
   --muted: 240 4.8% 95.9%;
   --muted-foreground: 240 3.8% 46.1%;
-  
+
   /* Accent */
   --accent: 240 4.8% 95.9%;
   --accent-foreground: 240 5.9% 10%;
-  
+
   /* Destructive */
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
-  
+
   /* Border & Ring */
   --border: 240 5.9% 90%;
   --input: 240 5.9% 90%;
   --ring: 160 84% 39%;
-  
+
   /* Radius */
   --radius: 0.5rem;
-  
+
   /* Design System - Spacing (sin guiones para compatibilidad con standalone.tsx) */
-  --spacing1: 0.25rem;  /* 4px */
-  --spacing2: 0.5rem;   /* 8px */
-  --spacing3: 0.75rem;  /* 12px */
-  --spacing4: 1rem;     /* 16px */
-  --spacing5: 0.75rem;  /* 12px - default padding */
-  --spacing6: 1.5rem;   /* 24px */
-  --spacing8: 2rem;     /* 32px */
+  --spacing1: 0.25rem; /* 4px */
+  --spacing2: 0.5rem; /* 8px */
+  --spacing3: 0.75rem; /* 12px */
+  --spacing4: 1rem; /* 16px */
+  --spacing5: 0.75rem; /* 12px - default padding */
+  --spacing6: 1.5rem; /* 24px */
+  --spacing8: 2rem; /* 32px */
 }
 
 #botuyo-chat-widget-root.dark,
@@ -102,9 +108,9 @@
 }
 
 #botuyo-chat-widget-root {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
+    'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
@@ -158,7 +164,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -167,7 +174,8 @@
 }
 
 @keyframes bounce {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(-25%);
     animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
   }
@@ -195,14 +203,18 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1);
   transition: all 0.2s;
   z-index: 999999;
 }
 
 #botuyo-chat-widget-root .chat-launcher:hover {
   transform: scale(1.05);
-  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 0.1),
+    0 8px 10px -6px rgb(0 0 0 / 0.1);
 }
 
 #botuyo-chat-widget-root .chat-launcher.position-bottom-left {

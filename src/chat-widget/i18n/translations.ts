@@ -39,6 +39,24 @@ export const translations = {
       abrir_chat: 'Abrir chat',
       ver_ubicacion: 'Ver ubicación',
     },
+
+    // Accesibilidad (A11y)
+    accessibility: {
+      closeChat: 'Cerrar ventana de chat',
+      closeChatHint: 'Presiona Escape para cerrar',
+      chatMessages: 'Mensajes del chat',
+      messageHistory: 'Historial de mensajes',
+      dialogDescription:
+        'Ventana de chat con {{botName}}. Presiona Escape para cerrar. Usa Ctrl+Enter para enviar mensajes.',
+      sendMessage: 'Enviar mensaje',
+      sendMessageHint: 'Presiona Enter o Ctrl+Enter para enviar',
+      typeMessage: 'Escribe tu mensaje aquí',
+      botMessage: 'Mensaje del asistente',
+      userMessage: 'Tu mensaje',
+      messageFrom: 'Mensaje de {{sender}}',
+      messageTime: 'Enviado {{time}}',
+      newMessage: 'Nuevo mensaje recibido',
+    },
   },
   en: {
     // Connection status
@@ -74,6 +92,24 @@ export const translations = {
       cerrar_chat: 'Close chat',
       abrir_chat: 'Open chat',
       ver_ubicacion: 'View location',
+    },
+
+    // Accessibility (A11y)
+    accessibility: {
+      closeChat: 'Close chat window',
+      closeChatHint: 'Press Escape to close',
+      chatMessages: 'Chat messages',
+      messageHistory: 'Message history',
+      dialogDescription:
+        'Chat window with {{botName}}. Press Escape to close. Use Ctrl+Enter to send messages.',
+      sendMessage: 'Send message',
+      sendMessageHint: 'Press Enter or Ctrl+Enter to send',
+      typeMessage: 'Type your message here',
+      botMessage: 'Assistant message',
+      userMessage: 'Your message',
+      messageFrom: 'Message from {{sender}}',
+      messageTime: 'Sent {{time}}',
+      newMessage: 'New message received',
     },
   },
   pt: {

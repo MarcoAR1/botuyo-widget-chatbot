@@ -1,0 +1,212 @@
+/**
+ * 🎯 ESTILOS DE ACCESIBILIDAD (A11y)
+ * 
+ * Mejoras para:
+ * - Alto contraste
+ * - Reducción de movimiento
+ * - Focus visible
+ * - Screen readers
+ */
+
+/* --- UTILIDAD PARA SCREEN READERS --- */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* --- ALTO CONTRASTE --- */
+@media (prefers-contrast: high) {
+  :root {
+    --border-width: 2px;
+    --focus-ring-width: 3px;
+    --focus-ring-color: hsl(var(--primary));
+  }
+
+  /* Bordes más gruesos */
+  [role='dialog'],
+  button,
+  input,
+  textarea,
+  [role='button'] {
+    border-width: var(--border-width) !important;
+  }
+
+  /* Focus más visible */
+  *:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color) !important;
+    outline-offset: 2px !important;
+  }
+
+  /* Mayor contraste en texto */
+  body {
+    --foreground: 0 0% 0%;
+    --background: 0 0% 100%;
+    --muted-foreground: 0 0% 20%;
+  }
+
+  /* Dark mode con alto contraste */
+  .dark {
+    --foreground: 0 0% 100%;
+    --background: 0 0% 0%;
+    --muted-foreground: 0 0% 80%;
+  }
+
+  /* Eliminar transparencias */
+  [style*='opacity'],
+  [class*='opacity-'] {
+    opacity: 1 !important;
+  }
+}
+
+/* --- REDUCCIÓN DE MOVIMIENTO --- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Eliminar animaciones de entrada */
+  [data-state='open'],
+  [data-state='closed'] {
+    animation: none !important;
+  }
+
+  /* Eliminar pulsos */
+  .animate-pulse {
+    animation: none !important;
+  }
+
+  /* Scroll suave deshabilitado */
+  .scroll-smooth {
+    scroll-behavior: auto !important;
+  }
+}
+
+/* --- FOCUS VISIBLE MEJORADO --- */
+*:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+  border-radius: var(--radius, 0.5rem);
+}
+
+/* Focus en botones */
+button:focus-visible,
+[role='button']:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px hsl(var(--primary) / 0.1);
+}
+
+/* Focus en inputs */
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 0;
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);
+}
+
+/* --- NAVEGACIÓN POR TECLADO --- */
+/* Indicador visual para navegación por tab */
+body:has(:focus-visible) [tabindex]:not([tabindex='-1']) {
+  position: relative;
+}
+
+/* Skip links (para saltar al contenido principal) */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  padding: 8px;
+  text-decoration: none;
+  border-radius: 0 0 4px 0;
+  z-index: 100000;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* --- MODO OSCURO FORZADO (para daltonismo) --- */
+@media (prefers-color-scheme: dark) and (prefers-contrast: high) {
+  :root {
+    --primary: 48 96% 89%; /* Amarillo más visible */
+    --destructive: 0 84% 60%; /* Rojo más visible */
+    --success: 142 76% 36%; /* Verde más visible */
+  }
+}
+
+/* --- INDICADORES DE ESTADO ACCESIBLES --- */
+/* Añadir texto para estados solo visuales */
+[data-state]::after {
+  content: attr(data-state);
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* --- MEJORA DE LEGIBILIDAD --- */
+@media (min-resolution: 192dpi) {
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+/* --- TOOLTIPS ACCESIBLES --- */
+[data-tooltip]:hover::after,
+[data-tooltip]:focus::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* --- LIVE REGIONS --- */
+[aria-live='polite'],
+[aria-live='assertive'] {
+  position: relative;
+}
+
+/* Indicador visual sutil de updates en live regions */
+@keyframes live-region-update {
+  0% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+[aria-live]:not([aria-atomic='false']):has(:new) {
+  animation: live-region-update 0.2s ease-in-out;
+}

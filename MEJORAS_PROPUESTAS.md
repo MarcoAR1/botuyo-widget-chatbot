@@ -645,7 +645,81 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
 **Tiempo Real**: 6 horas (vs estimado: 2 semanas)  
 **Documentación**: Completada en MEJORAS_PROPUESTAS.md
 
-**Próximo**: CSS optimization con cssnano (Quick Win #3)
+**Próximo**: Accesibilidad (A11y) - siguiente mejora de alto impacto
+
+#### Semana 8: CI/CD Automation
+
+**Estado**: ✅ COMPLETADO (26 Ene 2026)  
+**Prioridad**: Media → Alta (anticipado)  
+**Tiempo Real**: 2 horas
+
+**Completado**:
+
+- ✅ GitHub Actions workflow (.github/workflows/ci.yml)
+- ✅ 3 jobs paralelos (test, e2e, storybook)
+- ✅ Husky + lint-staged para pre-commit hooks
+- ✅ Prettier configurado y aplicado
+- ✅ Pre-push hooks con tests
+- ✅ Bundle size reporting en GitHub summary
+- ✅ 7-day artifact retention
+- ✅ 90+ archivos formateados con Prettier
+
+**Features CI/CD**:
+
+- ✅ Automated testing (unit + E2E)
+- ✅ Linting y type checking
+- ✅ Build verification
+- ✅ Bundle size reporting
+- ✅ Storybook building
+- ✅ Artifact preservation
+
+**Pre-commit Hooks**:
+
+- ✅ ESLint auto-fix en archivos staged
+- ✅ Prettier auto-format en archivos staged
+- ✅ Previene commits con quality issues
+
+**Beneficios**:
+
+- ✅ Consistent code style (100 char width, single quotes, no semi)
+- ✅ Automated quality checks en cada push/PR
+- ✅ Catch errors antes de merge
+- ✅ Faster code reviews (less style nitpicking)
+
+**Workflow Jobs**:
+
+```yaml
+test:
+  - npm run lint
+  - npm run typecheck
+  - npm run test:run
+  - npm run build
+  - Bundle size report
+
+e2e:
+  - Install Playwright browsers
+  - npm run test:e2e
+
+storybook:
+  - npm run build-storybook
+  - Upload static files
+```
+
+**Prettier Config**:
+
+```yaml
+printWidth: 100
+tabWidth: 2
+useTabs: false
+semi: false
+singleQuote: true
+trailingComma: es5
+arrowParens: avoid
+```
+
+**Commits**: 672df61 (89 files changed, 3,064 insertions, 2,284 deletions)
+
+**Próximo**: Accesibilidad (A11y) improvements
 
 ---
 

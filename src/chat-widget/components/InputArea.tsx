@@ -92,12 +92,19 @@ export function InputArea({
     }
   }
 
-  // 🔥 CAPTURA DE ENTER (Corregido)
+  // 🔥 CAPTURA DE ENTER Y CTRL+ENTER (Accesibilidad mejorada)
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    // Enter sin modificadores: enviar mensaje
+    if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
       e.preventDefault()
       handleSend()
     }
+    // Ctrl+Enter o Cmd+Enter: enviar mensaje (alternativa)
+    else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault()
+      handleSend()
+    }
+    // Shift+Enter: nueva línea (comportamiento por defecto, no hacer nada)
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -447,13 +454,21 @@ export function InputArea({
                 onChange={handleInputChange}
                 onFocus={() => setIsMenuOpen(false)}
                 placeholder={placeholder}
-                className="w-full bg-transparent text-sm py-2.5 outline-none resize-none overflow-hidden leading-tight pr-8 scrollbar-none"
+                aria-label={t('accessibility.typeMessage')}
+                aria-describedby="send-message-hint"
+                aria-invalid={inputValue.length > MAX_CHARS}
+                disabled={!isConnected}
+                className="w-full bg-transparent text-sm py-2.5 outline-none resize-none overflow-hidden leading-tight pr-8 scrollbar-none disabled:opacity-50"
                 style={{
                   scrollbarWidth: 'none',
                   msOverflowStyle: 'none',
                   color: 'hsl(var(--foreground))',
                 }}
               />
+              {/* Hint oculto para lectores de pantalla */}
+              <span id="send-message-hint" className="sr-only">
+                {t('accessibility.sendMessageHint')}
+              </span>
               {inputValue.length > MAX_CHARS * 0.8 && (
                 <span
                   className={cn(
