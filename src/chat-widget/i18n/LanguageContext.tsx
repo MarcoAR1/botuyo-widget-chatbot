@@ -44,6 +44,13 @@ export function LanguageProvider({ children, defaultLocale }: LanguageProviderPr
   })
 
   const setLocale = (newLocale: SupportedLocale) => {
+    // Validar que el locale sea soportado
+    const supportedLocales: SupportedLocale[] = ['es', 'en', 'pt', 'fr']
+    if (!supportedLocales.includes(newLocale)) {
+      console.warn(`[BotUyo] Locale "${newLocale}" no es soportado. Manteniendo "${locale}"`)
+      return
+    }
+
     setLocaleState(newLocale)
     if (typeof window !== 'undefined') {
       localStorage.setItem(LOCALE_STORAGE_KEY, newLocale)

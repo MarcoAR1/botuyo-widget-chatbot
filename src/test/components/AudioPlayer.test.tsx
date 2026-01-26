@@ -2,14 +2,15 @@
  * @vitest-environment happy-dom
  */
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
+import { renderWithI18n } from '../utils/i18n-test-utils'
 import userEvent from '@testing-library/user-event'
 import { AudioPlayer } from '../../chat-widget/components/AudioPlayer'
 
 describe('AudioPlayer', () => {
   describe('Rendering', () => {
     it('should render audio player with play button', () => {
-      const { container } = render(<AudioPlayer url="https://example.com/audio.mp3" isBot={true} />)
+      const { container } = renderWithI18n(<AudioPlayer url="https://example.com/audio.mp3" isBot={true} />)
 
       const button = screen.getByRole('button')
       expect(button).toBeInTheDocument()
@@ -20,14 +21,14 @@ describe('AudioPlayer', () => {
     })
 
     it('should show loading state initially', () => {
-      render(<AudioPlayer url="https://example.com/audio.mp3" isBot={true} />)
+      renderWithI18n(<AudioPlayer url="https://example.com/audio.mp3" isBot={true} />)
 
       const button = screen.getByRole('button')
       expect(button).toBeDisabled()
     })
 
     it('should display duration after audio loads', async () => {
-      const { container } = render(<AudioPlayer url="https://example.com/audio.mp3" isBot={true} />)
+      const { container } = renderWithI18n(<AudioPlayer url="https://example.com/audio.mp3" isBot={true} />)
 
       const audioElement = container.querySelector('audio')
       Object.defineProperty(audioElement, 'duration', {
@@ -47,7 +48,7 @@ describe('AudioPlayer', () => {
 
   describe('Playback Controls', () => {
     it('should play audio when play button is clicked', async () => {
-      const { container } = render(<AudioPlayer url="https://example.com/audio.mp3" isBot={true} />)
+      const { container } = renderWithI18n(<AudioPlayer url="https://example.com/audio.mp3" isBot={true} />)
 
       const audioElement = container.querySelector('audio')!
       const playSpy = vi.spyOn(audioElement, 'play').mockResolvedValue(undefined)
@@ -69,7 +70,7 @@ describe('AudioPlayer', () => {
     })
 
     it('should pause audio when pause button is clicked', async () => {
-      const { container } = render(<AudioPlayer url="https://example.com/audio.mp3" isBot={true} />)
+      const { container } = renderWithI18n(<AudioPlayer url="https://example.com/audio.mp3" isBot={true} />)
 
       const audioElement = container.querySelector('audio')!
       const playSpy = vi.spyOn(audioElement, 'play').mockResolvedValue(undefined)
@@ -96,14 +97,14 @@ describe('AudioPlayer', () => {
 
   describe('Progress Tracking', () => {
     it('should display progress bar', () => {
-      const { container } = render(<AudioPlayer url="https://example.com/audio.mp3" isBot={true} />)
+      const { container } = renderWithI18n(<AudioPlayer url="https://example.com/audio.mp3" isBot={true} />)
 
       const progressBar = container.querySelector('.bg-current\\/20')
       expect(progressBar).toBeInTheDocument()
     })
 
     it('should update progress as audio plays', async () => {
-      const { container } = render(<AudioPlayer url="https://example.com/audio.mp3" isBot={true} />)
+      const { container } = renderWithI18n(<AudioPlayer url="https://example.com/audio.mp3" isBot={true} />)
 
       const audioElement = container.querySelector('audio')!
 
@@ -127,7 +128,7 @@ describe('AudioPlayer', () => {
     })
 
     it('should reset to play button when audio ends', async () => {
-      const { container } = render(<AudioPlayer url="https://example.com/audio.mp3" isBot={true} />)
+      const { container } = renderWithI18n(<AudioPlayer url="https://example.com/audio.mp3" isBot={true} />)
 
       const audioElement = container.querySelector('audio')!
       vi.spyOn(audioElement, 'play').mockResolvedValue(undefined)
@@ -155,11 +156,11 @@ describe('AudioPlayer', () => {
 
   describe('Styling', () => {
     it('should apply different styles for bot vs user messages', () => {
-      const { container: botContainer } = render(
+      const { container: botContainer } = renderWithI18n(
         <AudioPlayer url="https://example.com/audio.mp3" isBot={true} />
       )
 
-      const { container: userContainer } = render(
+      const { container: userContainer } = renderWithI18n(
         <AudioPlayer url="https://example.com/audio.mp3" isBot={false} />
       )
 
@@ -176,7 +177,7 @@ describe('AudioPlayer', () => {
       const formats = ['audio.mp3', 'audio.ogg', 'audio.wav', 'audio.m4a']
 
       formats.forEach(file => {
-        const { container, unmount } = render(
+        const { container, unmount } = renderWithI18n(
           <AudioPlayer url={`https://example.com/${file}`} isBot={true} />
         )
 

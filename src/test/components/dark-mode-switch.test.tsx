@@ -8,7 +8,8 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { render, waitFor } from '@testing-library/react'
+import { waitFor } from '@testing-library/react'
+import { renderWithI18n } from '../utils/i18n-test-utils'
 import { act } from 'react'
 import { ChatWidget } from '../../chat-widget/ChatWidget'
 import type { ChatWidgetProps } from '../../chat-widget/types'
@@ -62,7 +63,7 @@ describe.skip('Dark Mode Switch - Functional Test', () => {
 
   describe.skip('Toggle Dark Mode', () => {
     it('debe activar dark mode cuando se agrega clase dark al container standalone', async () => {
-      render(<ChatWidget {...baseProps} />, { container })
+      renderWithI18n(<ChatWidget {...baseProps} />, { container })
 
       const widget = document.getElementById('botuyo-chat-widget')
       expect(widget).toBeInTheDocument()
@@ -88,7 +89,7 @@ describe.skip('Dark Mode Switch - Functional Test', () => {
       // Iniciar con dark mode activo
       standaloneContainer.classList.add('dark')
 
-      render(<ChatWidget {...baseProps} />, { container })
+      renderWithI18n(<ChatWidget {...baseProps} />, { container })
 
       const widget = document.getElementById('botuyo-chat-widget')
 
@@ -116,7 +117,7 @@ describe.skip('Dark Mode Switch - Functional Test', () => {
     })
 
     it('debe responder a toggles rápidos del switch', async () => {
-      render(<ChatWidget {...baseProps} />, { container })
+      renderWithI18n(<ChatWidget {...baseProps} />, { container })
 
       const widget = document.getElementById('botuyo-chat-widget')
 
@@ -152,7 +153,7 @@ describe.skip('Dark Mode Switch - Functional Test', () => {
     })
 
     it('debe detectar dark mode desde document.body', async () => {
-      render(<ChatWidget {...baseProps} />, { container })
+      renderWithI18n(<ChatWidget {...baseProps} />, { container })
 
       const widget = document.getElementById('botuyo-chat-widget')
 
@@ -175,7 +176,7 @@ describe.skip('Dark Mode Switch - Functional Test', () => {
     it('debe aplicar clases dark: de Tailwind cuando dark mode está activo', async () => {
       standaloneContainer.classList.add('dark')
 
-      render(<ChatWidget {...baseProps} />, { container })
+      renderWithI18n(<ChatWidget {...baseProps} />, { container })
 
       const widget = document.getElementById('botuyo-chat-widget')
 
@@ -192,7 +193,7 @@ describe.skip('Dark Mode Switch - Functional Test', () => {
     })
 
     it('debe mantener CSS variables independientemente del dark mode', async () => {
-      render(<ChatWidget {...baseProps} />, { container })
+      renderWithI18n(<ChatWidget {...baseProps} />, { container })
 
       const widget = document.getElementById('botuyo-chat-widget')
       const computedStyle = window.getComputedStyle(widget!)
@@ -219,7 +220,7 @@ describe.skip('Dark Mode Switch - Functional Test', () => {
 
   describe.skip('Integration with Demo', () => {
     it('debe funcionar con el patrón del demo-dev.html', async () => {
-      render(<ChatWidget {...baseProps} />, { container })
+      renderWithI18n(<ChatWidget {...baseProps} />, { container })
 
       const widget = document.getElementById('botuyo-chat-widget')
 
@@ -255,7 +256,7 @@ describe.skip('Dark Mode Switch - Functional Test', () => {
       parent.appendChild(container)
       standaloneContainer.appendChild(grandparent)
 
-      render(<ChatWidget {...baseProps} />, { container })
+      renderWithI18n(<ChatWidget {...baseProps} />, { container })
 
       const widget = document.getElementById('botuyo-chat-widget')
 
@@ -274,7 +275,7 @@ describe.skip('Dark Mode Switch - Functional Test', () => {
 
   describe.skip('Diagnostics', () => {
     it('debe mostrar información de debug sobre dark mode detection', async () => {
-      render(<ChatWidget {...baseProps} />, { container })
+      renderWithI18n(<ChatWidget {...baseProps} />, { container })
 
       const widget = document.getElementById('botuyo-chat-widget')
 
@@ -295,7 +296,7 @@ describe.skip('Dark Mode Switch - Functional Test', () => {
     })
 
     it('debe verificar que MutationObserver está observando los elementos correctos', async () => {
-      const { unmount } = render(<ChatWidget {...baseProps} />, { container })
+      const { unmount } = renderWithI18n(<ChatWidget {...baseProps} />, { container })
 
       const widget = document.getElementById('botuyo-chat-widget')
 

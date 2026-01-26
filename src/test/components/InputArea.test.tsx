@@ -2,7 +2,8 @@
  * @vitest-environment happy-dom
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
+import { renderWithI18n } from '../utils/i18n-test-utils'
 import userEvent from '@testing-library/user-event'
 import { InputArea } from '../../chat-widget/components/InputArea'
 
@@ -27,14 +28,14 @@ describe('InputArea', () => {
 
   describe('Text Input', () => {
     it('should render input field', () => {
-      render(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
+      renderWithI18n(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
 
       const input = screen.getByPlaceholderText(/escribe un mensaje/i)
       expect(input).toBeInTheDocument()
     })
 
     it('should render with custom placeholder', () => {
-      render(
+      renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}
@@ -47,7 +48,7 @@ describe('InputArea', () => {
 
     it('should send message on Enter key', async () => {
       const user = userEvent.setup()
-      render(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
+      renderWithI18n(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
 
       const input = screen.getByPlaceholderText(/escribe un mensaje/i)
       await user.type(input, 'Hello world{Enter}')
@@ -57,7 +58,7 @@ describe('InputArea', () => {
 
     it('should add new line on Shift+Enter', async () => {
       const user = userEvent.setup()
-      render(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
+      renderWithI18n(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
 
       const input = screen.getByPlaceholderText(/escribe un mensaje/i)
       await user.type(input, 'Line 1{Shift>}{Enter}{/Shift}Line 2')
@@ -68,7 +69,7 @@ describe('InputArea', () => {
 
     it('should not send empty messages', async () => {
       const user = userEvent.setup()
-      render(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
+      renderWithI18n(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
 
       const input = screen.getByPlaceholderText(/escribe un mensaje/i)
       await user.type(input, '{Enter}')
@@ -78,7 +79,7 @@ describe('InputArea', () => {
 
     it('should not send whitespace-only messages', async () => {
       const user = userEvent.setup()
-      render(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
+      renderWithI18n(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
 
       const input = screen.getByPlaceholderText(/escribe un mensaje/i)
       await user.type(input, '   {Enter}')
@@ -88,7 +89,7 @@ describe('InputArea', () => {
 
     it('should trim message before sending', async () => {
       const user = userEvent.setup()
-      render(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
+      renderWithI18n(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
 
       const input = screen.getByPlaceholderText(/escribe un mensaje/i)
       await user.type(input, '  Hello  {Enter}')
@@ -98,7 +99,7 @@ describe('InputArea', () => {
 
     it('should clear input after sending', async () => {
       const user = userEvent.setup()
-      render(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
+      renderWithI18n(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
 
       const input = screen.getByPlaceholderText(/escribe un mensaje/i) as HTMLTextAreaElement
       await user.type(input, 'Test message{Enter}')
@@ -108,7 +109,7 @@ describe('InputArea', () => {
 
     it('should update input value when typing', async () => {
       const user = userEvent.setup()
-      render(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
+      renderWithI18n(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
 
       const input = screen.getByPlaceholderText(/escribe un mensaje/i)
       await user.type(input, 'Hello')
@@ -119,7 +120,7 @@ describe('InputArea', () => {
 
   describe('Character Limit', () => {
     it('should render textarea element', () => {
-      render(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
+      renderWithI18n(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
 
       const input = screen.getByPlaceholderText(/escribe un mensaje/i) as HTMLTextAreaElement
 
@@ -128,7 +129,7 @@ describe('InputArea', () => {
 
     it('should accept short messages', async () => {
       const user = userEvent.setup()
-      render(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
+      renderWithI18n(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
 
       const input = screen.getByPlaceholderText(/escribe un mensaje/i) as HTMLTextAreaElement
 
@@ -140,7 +141,7 @@ describe('InputArea', () => {
 
     it('should allow pasting text', async () => {
       const user = userEvent.setup()
-      render(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
+      renderWithI18n(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
 
       const input = screen.getByPlaceholderText(/escribe un mensaje/i) as HTMLTextAreaElement
 
@@ -153,7 +154,7 @@ describe('InputArea', () => {
 
   describe('File Attachments', () => {
     it('should have hidden file input', () => {
-      render(
+      renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}
@@ -167,7 +168,7 @@ describe('InputArea', () => {
     })
 
     it('should accept image files', () => {
-      render(
+      renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}
@@ -180,7 +181,7 @@ describe('InputArea', () => {
     })
 
     it('should render input area when attachment callback provided', () => {
-      const { container } = render(
+      const { container } = renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}
@@ -208,7 +209,7 @@ describe('InputArea', () => {
         configurable: true,
       })
 
-      render(
+      renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}
@@ -216,7 +217,7 @@ describe('InputArea', () => {
         />
       )
 
-      const { container } = render(
+      const { container } = renderWithI18n(
         <InputArea isConnected={true} onSendMessage={mockOnSendMessage} />
       )
       expect(container).toBeInTheDocument()
@@ -234,7 +235,7 @@ describe('InputArea', () => {
         configurable: true,
       })
 
-      const { container } = render(
+      const { container } = renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}
@@ -258,7 +259,7 @@ describe('InputArea', () => {
         configurable: true,
       })
 
-      const { container } = render(
+      const { container } = renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}
@@ -276,7 +277,7 @@ describe('InputArea', () => {
         configurable: true,
       })
 
-      render(
+      renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}
@@ -291,14 +292,14 @@ describe('InputArea', () => {
 
   describe('Connection State', () => {
     it('should render when not connected', () => {
-      render(<InputArea isConnected={false} onSendMessage={mockOnSendMessage} />)
+      renderWithI18n(<InputArea isConnected={false} onSendMessage={mockOnSendMessage} />)
 
       const input = screen.getByPlaceholderText(/escribe un mensaje/i)
       expect(input).toBeInTheDocument()
     })
 
     it('should render when connected', () => {
-      render(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
+      renderWithI18n(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
 
       const input = screen.getByPlaceholderText(/escribe un mensaje/i)
       expect(input).toBeInTheDocument()
@@ -307,7 +308,7 @@ describe('InputArea', () => {
 
     it('should prevent sending when not connected', async () => {
       const user = userEvent.setup()
-      render(<InputArea isConnected={false} onSendMessage={mockOnSendMessage} />)
+      renderWithI18n(<InputArea isConnected={false} onSendMessage={mockOnSendMessage} />)
 
       const input = screen.getByPlaceholderText(/escribe un mensaje/i)
       await user.type(input, 'Test message{Enter}')
@@ -318,7 +319,7 @@ describe('InputArea', () => {
 
   describe('Accessibility', () => {
     it('should be accessible', () => {
-      render(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
+      renderWithI18n(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
 
       const input = screen.getByPlaceholderText(/escribe un mensaje/i)
       expect(input).toBeInTheDocument()
@@ -326,7 +327,7 @@ describe('InputArea', () => {
     })
 
     it('should have proper structure for screen readers', () => {
-      const { container } = render(
+      const { container } = renderWithI18n(
         <InputArea isConnected={true} onSendMessage={mockOnSendMessage} />
       )
 
@@ -334,7 +335,7 @@ describe('InputArea', () => {
     })
 
     it('should be keyboard navigable', () => {
-      const { container } = render(
+      const { container } = renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}
@@ -350,7 +351,7 @@ describe('InputArea', () => {
 
   describe('MediaConfig - Conditional Features', () => {
     it('should hide media button when all features disabled', () => {
-      const { container } = render(
+      const { container } = renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}
@@ -371,7 +372,7 @@ describe('InputArea', () => {
     })
 
     it('should show media button when at least one feature enabled', () => {
-      const { container } = render(
+      const { container } = renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}
@@ -389,7 +390,7 @@ describe('InputArea', () => {
 
     it('should show only images option when enableImages=true, others false', async () => {
       const user = userEvent.setup()
-      const { container } = render(
+      const { container } = renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}
@@ -432,7 +433,7 @@ describe('InputArea', () => {
 
     it('should show only files option when enableFiles=true, others false', async () => {
       const user = userEvent.setup()
-      const { container } = render(
+      const { container } = renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}
@@ -473,7 +474,7 @@ describe('InputArea', () => {
 
     it('should show only location option when enableLocation=true, others false', async () => {
       const user = userEvent.setup()
-      const { container } = render(
+      const { container } = renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}
@@ -516,7 +517,7 @@ describe('InputArea', () => {
 
     it('should show all options when all features enabled', async () => {
       const user = userEvent.setup()
-      const { container } = render(
+      const { container } = renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}
@@ -551,7 +552,7 @@ describe('InputArea', () => {
     })
 
     it('should use default config when mediaConfig not provided', () => {
-      const { container } = render(
+      const { container } = renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}
@@ -569,7 +570,7 @@ describe('InputArea', () => {
 
     it('should partially override default config', async () => {
       const user = userEvent.setup()
-      const { container } = render(
+      const { container } = renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}
@@ -623,7 +624,7 @@ describe('InputArea', () => {
     })
 
     it('should show microphone button when enableAudio=true and onSendAttachment provided', () => {
-      const { container } = render(
+      const { container } = renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}
@@ -646,7 +647,7 @@ describe('InputArea', () => {
     })
 
     it('should show send button when enableAudio=false', () => {
-      const { container } = render(
+      const { container } = renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}
@@ -666,7 +667,7 @@ describe('InputArea', () => {
     })
 
     it('should show send button when onSendAttachment not provided', () => {
-      const { container } = render(
+      const { container } = renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}
@@ -682,7 +683,7 @@ describe('InputArea', () => {
 
   describe('MediaConfig - File Inputs', () => {
     it('should have image input when enableImages=true', () => {
-      const { container } = render(
+      const { container } = renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}
@@ -696,7 +697,7 @@ describe('InputArea', () => {
     })
 
     it('should have file input when enableFiles=true', () => {
-      const { container } = render(
+      const { container } = renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}
@@ -711,7 +712,7 @@ describe('InputArea', () => {
     })
 
     it('should respect allowedFileTypes configuration', () => {
-      const { container } = render(
+      const { container } = renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}
@@ -735,7 +736,7 @@ describe('InputArea', () => {
     })
 
     it('should have both image and file inputs when both enabled', () => {
-      const { container } = render(
+      const { container } = renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}
@@ -755,7 +756,7 @@ describe('InputArea', () => {
     })
 
     it('should use default allowedFileTypes when not specified', () => {
-      const { container } = render(
+      const { container } = renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}
@@ -775,7 +776,7 @@ describe('InputArea', () => {
     })
 
     it('should set maxFileSizeMB in config', () => {
-      const { container } = render(
+      const { container } = renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}
@@ -795,7 +796,7 @@ describe('InputArea', () => {
   describe('MediaConfig - Text-Only Mode', () => {
     it('should work in text-only mode (all media disabled)', async () => {
       const user = userEvent.setup()
-      render(
+      renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}
@@ -815,7 +816,7 @@ describe('InputArea', () => {
     })
 
     it('should only show send button in text-only mode', () => {
-      const { container } = render(
+      const { container } = renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}
@@ -835,7 +836,7 @@ describe('InputArea', () => {
     })
 
     it('should not show file inputs in text-only mode', () => {
-      const { container } = render(
+      const { container } = renderWithI18n(
         <InputArea
           isConnected={true}
           onSendMessage={mockOnSendMessage}

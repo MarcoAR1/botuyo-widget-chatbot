@@ -2,7 +2,8 @@
  * @vitest-environment happy-dom
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
+import { renderWithI18n } from '../utils/i18n-test-utils'
 import userEvent from '@testing-library/user-event'
 import { ChatWidget } from '../../chat-widget/ChatWidget'
 import type { ChatWidgetProps } from '../../chat-widget/types'
@@ -48,14 +49,14 @@ describe('ChatWidget Integration', () => {
   })
 
   it('should render launcher button', () => {
-    render(<ChatWidget {...defaultProps} />)
+    renderWithI18n(<ChatWidget {...defaultProps} />)
 
     const launcher = screen.getByRole('button', { name: /abrir chat/i })
     expect(launcher).toBeInTheDocument()
   })
 
   it('should open chat window when launcher clicked', async () => {
-    render(<ChatWidget {...defaultProps} />)
+    renderWithI18n(<ChatWidget {...defaultProps} />)
 
     const launcher = screen.getByRole('button', { name: /abrir chat/i })
     await userEvent.click(launcher)
@@ -70,7 +71,7 @@ describe('ChatWidget Integration', () => {
       backgroundColor: '#FFFFFF',
     }
 
-    render(<ChatWidget {...defaultProps} theme={customTheme} />)
+    renderWithI18n(<ChatWidget {...defaultProps} theme={customTheme} />)
 
     const launcher = screen.getByRole('button', { name: /abrir chat/i })
     expect(launcher).toBeInTheDocument()

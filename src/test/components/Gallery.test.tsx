@@ -2,7 +2,8 @@
  * @vitest-environment happy-dom
  */
 import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
+import { renderWithI18n } from '../utils/i18n-test-utils'
 import userEvent from '@testing-library/user-event'
 import { Gallery } from '../../chat-widget/components/Gallery'
 
@@ -30,7 +31,7 @@ describe('Gallery', () => {
 
   describe('Single Image Display', () => {
     it('should render single image correctly', () => {
-      render(<Gallery images={singleImage} />)
+      renderWithI18n(<Gallery images={singleImage} />)
 
       const image = screen.getByAltText('Image 1')
       expect(image).toBeInTheDocument()
@@ -38,14 +39,14 @@ describe('Gallery', () => {
     })
 
     it('should make single image clickable', () => {
-      render(<Gallery images={singleImage} />)
+      renderWithI18n(<Gallery images={singleImage} />)
 
       const image = screen.getByAltText('Image 1')
       expect(image).toHaveClass('cursor-pointer')
     })
 
     it('should use lazy loading for single image', () => {
-      render(<Gallery images={singleImage} />)
+      renderWithI18n(<Gallery images={singleImage} />)
 
       const image = screen.getByAltText('Image 1')
       expect(image).toHaveAttribute('loading', 'lazy')
@@ -53,7 +54,7 @@ describe('Gallery', () => {
 
     it('should have fallback alt text when not provided', () => {
       const imageWithoutAlt = [{ src: 'https://example.com/image.jpg' }]
-      render(<Gallery images={imageWithoutAlt} />)
+      renderWithI18n(<Gallery images={imageWithoutAlt} />)
 
       const image = screen.getByAltText('Imagen')
       expect(image).toBeInTheDocument()
@@ -62,42 +63,42 @@ describe('Gallery', () => {
 
   describe('Grid Display (2-3 images)', () => {
     it('should render 2 images in grid layout', () => {
-      render(<Gallery images={twoImages} />)
+      renderWithI18n(<Gallery images={twoImages} />)
 
       const images = screen.getAllByRole('img')
       expect(images).toHaveLength(2)
     })
 
     it('should render 3 images in grid layout', () => {
-      render(<Gallery images={threeImages} />)
+      renderWithI18n(<Gallery images={threeImages} />)
 
       const images = screen.getAllByRole('img')
       expect(images).toHaveLength(3)
     })
 
     it('should show image counter for grid images', () => {
-      render(<Gallery images={twoImages} />)
+      renderWithI18n(<Gallery images={twoImages} />)
 
       expect(screen.getByText('1/2')).toBeInTheDocument()
       expect(screen.getByText('2/2')).toBeInTheDocument()
     })
 
     it('should apply grid-cols-2 for 2 images', () => {
-      const { container } = render(<Gallery images={twoImages} />)
+      const { container } = renderWithI18n(<Gallery images={twoImages} />)
 
       const grid = container.querySelector('.grid-cols-2')
       expect(grid).toBeInTheDocument()
     })
 
     it('should apply grid-cols-3 for 3 images', () => {
-      const { container } = render(<Gallery images={threeImages} />)
+      const { container } = renderWithI18n(<Gallery images={threeImages} />)
 
       const grid = container.querySelector('.grid-cols-3')
       expect(grid).toBeInTheDocument()
     })
 
     it('all images in grid should be clickable', () => {
-      render(<Gallery images={twoImages} />)
+      renderWithI18n(<Gallery images={twoImages} />)
 
       const images = screen.getAllByRole('img')
       images.forEach(img => {
@@ -108,7 +109,7 @@ describe('Gallery', () => {
 
   describe('Carousel Display (4+ images)', () => {
     it('should render carousel for 4+ images', () => {
-      render(<Gallery images={manyImages} />)
+      renderWithI18n(<Gallery images={manyImages} />)
 
       // Debería mostrar imagen principal y thumbnails
       const images = screen.getAllByRole('img')
@@ -116,7 +117,7 @@ describe('Gallery', () => {
     })
 
     it('should show image counter in carousel', () => {
-      render(<Gallery images={manyImages} />)
+      renderWithI18n(<Gallery images={manyImages} />)
 
       // Buscar el contador
       expect(screen.getByText(/1/)).toBeInTheDocument()
@@ -124,7 +125,7 @@ describe('Gallery', () => {
     })
 
     it('should have navigation buttons for carousel', () => {
-      render(<Gallery images={manyImages} />)
+      renderWithI18n(<Gallery images={manyImages} />)
 
       const prevButton = screen.getByLabelText('Previous')
       const nextButton = screen.getByLabelText('Next')
@@ -134,7 +135,7 @@ describe('Gallery', () => {
     })
 
     it('should navigate to next image when next button clicked', async () => {
-      render(<Gallery images={manyImages} />)
+      renderWithI18n(<Gallery images={manyImages} />)
 
       const nextButton = screen.getByLabelText('Next')
       await userEvent.click(nextButton)
@@ -144,7 +145,7 @@ describe('Gallery', () => {
     })
 
     it('should navigate to previous image when prev button clicked', async () => {
-      render(<Gallery images={manyImages} />)
+      renderWithI18n(<Gallery images={manyImages} />)
 
       const nextButton = screen.getByLabelText('Next')
       await userEvent.click(nextButton)
@@ -158,7 +159,7 @@ describe('Gallery', () => {
     })
 
     it('should loop from last to first image', async () => {
-      render(<Gallery images={manyImages} />)
+      renderWithI18n(<Gallery images={manyImages} />)
 
       const prevButton = screen.getByLabelText('Previous')
       await userEvent.click(prevButton)
@@ -169,7 +170,7 @@ describe('Gallery', () => {
     })
 
     it('should display thumbnails for carousel', () => {
-      const { container } = render(<Gallery images={manyImages} />)
+      const { container } = renderWithI18n(<Gallery images={manyImages} />)
 
       const thumbnailContainer = container.querySelector('.overflow-x-auto')
       expect(thumbnailContainer).toBeInTheDocument()
@@ -178,7 +179,7 @@ describe('Gallery', () => {
 
   describe('Accessibility', () => {
     it('should have proper alt text for all images', () => {
-      render(<Gallery images={threeImages} />)
+      renderWithI18n(<Gallery images={threeImages} />)
 
       const images = screen.getAllByRole('img')
       images.forEach(img => {
@@ -187,7 +188,7 @@ describe('Gallery', () => {
     })
 
     it('should use lazy loading for all images', () => {
-      render(<Gallery images={manyImages} />)
+      renderWithI18n(<Gallery images={manyImages} />)
 
       const images = screen.getAllByRole('img')
       images.forEach(img => {
@@ -196,7 +197,7 @@ describe('Gallery', () => {
     })
 
     it('should have keyboard navigable buttons in carousel', () => {
-      render(<Gallery images={manyImages} />)
+      renderWithI18n(<Gallery images={manyImages} />)
 
       const buttons = screen.getAllByRole('button')
       buttons.forEach(button => {
@@ -207,7 +208,7 @@ describe('Gallery', () => {
 
   describe('Edge Cases', () => {
     it('should handle empty images array gracefully', () => {
-      const { container } = render(<Gallery images={[]} />)
+      const { container } = renderWithI18n(<Gallery images={[]} />)
 
       expect(container).toBeInTheDocument()
     })
@@ -218,7 +219,7 @@ describe('Gallery', () => {
         { src: 'https://example.com/img2.jpg' },
       ]
 
-      render(<Gallery images={imagesNoAlt} />)
+      renderWithI18n(<Gallery images={imagesNoAlt} />)
 
       const images = screen.getAllByRole('img')
       expect(images.length).toBeGreaterThan(0)
@@ -232,14 +233,14 @@ describe('Gallery', () => {
         },
       ]
 
-      render(<Gallery images={longUrlImage} />)
+      renderWithI18n(<Gallery images={longUrlImage} />)
 
       const image = screen.getByAltText('Long URL Image')
       expect(image).toBeInTheDocument()
     })
 
     it('should maintain aspect ratio for images', () => {
-      const { container } = render(<Gallery images={singleImage} />)
+      const { container } = renderWithI18n(<Gallery images={singleImage} />)
 
       const image = container.querySelector('img')
       expect(image).toHaveClass('object-cover')

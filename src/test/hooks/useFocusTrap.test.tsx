@@ -2,7 +2,8 @@
  * @vitest-environment happy-dom
  */
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
+import { renderWithI18n } from '../utils/i18n-test-utils'
 import userEvent from '@testing-library/user-event'
 import { useFocusTrap } from '../../chat-widget/hooks/useFocusTrap'
 
@@ -30,7 +31,7 @@ function TestComponent({
 describe('useFocusTrap', () => {
   describe('Focus Management', () => {
     it('should focus first focusable element when enabled', async () => {
-      render(<TestComponent enabled={true} />)
+      renderWithI18n(<TestComponent enabled={true} />)
 
       // Esperar el setTimeout de 100ms
       await new Promise(resolve => setTimeout(resolve, 150))
@@ -45,7 +46,7 @@ describe('useFocusTrap', () => {
       document.body.appendChild(externalButton)
       externalButton.focus()
 
-      render(<TestComponent enabled={false} />)
+      renderWithI18n(<TestComponent enabled={false} />)
 
       expect(document.activeElement).toBe(externalButton)
 
@@ -56,7 +57,7 @@ describe('useFocusTrap', () => {
   describe('Tab Cycling', () => {
     it('should cycle focus from last to first with Tab key', async () => {
       const user = userEvent.setup()
-      render(<TestComponent enabled={true} />)
+      renderWithI18n(<TestComponent enabled={true} />)
 
       await new Promise(resolve => setTimeout(resolve, 150))
 
@@ -77,7 +78,7 @@ describe('useFocusTrap', () => {
 
     it('should handle Shift+Tab navigation', async () => {
       const user = userEvent.setup()
-      render(<TestComponent enabled={true} />)
+      renderWithI18n(<TestComponent enabled={true} />)
 
       await new Promise(resolve => setTimeout(resolve, 150))
 
@@ -100,7 +101,7 @@ describe('useFocusTrap', () => {
       const user = userEvent.setup()
       const onEscape = vi.fn()
 
-      render(<TestComponent enabled={true} onEscape={onEscape} />)
+      renderWithI18n(<TestComponent enabled={true} onEscape={onEscape} />)
 
       await new Promise(resolve => setTimeout(resolve, 150))
 
@@ -113,7 +114,7 @@ describe('useFocusTrap', () => {
       const user = userEvent.setup()
       const onEscape = vi.fn()
 
-      render(<TestComponent enabled={false} onEscape={onEscape} />)
+      renderWithI18n(<TestComponent enabled={false} onEscape={onEscape} />)
 
       await user.keyboard('{Escape}')
 
@@ -128,7 +129,7 @@ describe('useFocusTrap', () => {
       document.body.appendChild(previousButton)
       previousButton.focus()
 
-      const { unmount } = render(<TestComponent enabled={true} />)
+      const { unmount } = renderWithI18n(<TestComponent enabled={true} />)
 
       await new Promise(resolve => setTimeout(resolve, 150))
 
@@ -148,7 +149,7 @@ describe('useFocusTrap', () => {
         return <div ref={containerRef} data-testid="empty-trap" />
       }
 
-      render(<EmptyComponent enabled={true} />)
+      renderWithI18n(<EmptyComponent enabled={true} />)
 
       await new Promise(resolve => setTimeout(resolve, 150))
 
@@ -160,7 +161,7 @@ describe('useFocusTrap', () => {
     it('should cleanup event listeners on unmount', () => {
       const removeEventListenerSpy = vi.spyOn(document, 'removeEventListener')
 
-      const { unmount } = render(<TestComponent enabled={true} />)
+      const { unmount } = renderWithI18n(<TestComponent enabled={true} />)
 
       unmount()
 

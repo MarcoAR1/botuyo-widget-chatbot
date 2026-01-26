@@ -2,7 +2,8 @@
  * @vitest-environment happy-dom
  */
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
+import { renderWithI18n } from '../utils/i18n-test-utils'
 import { MessageBubble } from '../../chat-widget/components/MessageBubble'
 import type {
   TextMessage,
@@ -24,7 +25,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      render(<MessageBubble message={message} />)
+      renderWithI18n(<MessageBubble message={message} />)
 
       expect(screen.getByText('Hello world')).toBeInTheDocument()
     })
@@ -38,7 +39,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      render(<MessageBubble message={message} botName="Mar" />)
+      renderWithI18n(<MessageBubble message={message} botName="Mar" />)
 
       expect(screen.getByText('Hi there!')).toBeInTheDocument()
     })
@@ -52,7 +53,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      const { container } = render(<MessageBubble message={message} />)
+      const { container } = renderWithI18n(<MessageBubble message={message} />)
 
       const strong = container.querySelector('strong')
       expect(strong).toBeInTheDocument()
@@ -68,7 +69,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      const { container } = render(<MessageBubble message={message} />)
+      const { container } = renderWithI18n(<MessageBubble message={message} />)
 
       const em = container.querySelector('em')
       expect(em).toBeInTheDocument()
@@ -84,7 +85,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      render(<MessageBubble message={message} />)
+      renderWithI18n(<MessageBubble message={message} />)
 
       const link = screen.getByRole('link', { name: /click here/i })
       expect(link).toBeInTheDocument()
@@ -101,7 +102,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      const { container } = render(<MessageBubble message={message} />)
+      const { container } = renderWithI18n(<MessageBubble message={message} />)
 
       const list = container.querySelector('ul')
       expect(list).toBeInTheDocument()
@@ -119,7 +120,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      const { container } = render(<MessageBubble message={message} />)
+      const { container } = renderWithI18n(<MessageBubble message={message} />)
 
       const script = container.querySelector('script')
       expect(script).not.toBeInTheDocument()
@@ -136,7 +137,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      render(<MessageBubble message={message} />)
+      renderWithI18n(<MessageBubble message={message} />)
 
       expect(screen.getByText('User joined the chat')).toBeInTheDocument()
     })
@@ -150,7 +151,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      const { container } = render(<MessageBubble message={message} />)
+      const { container } = renderWithI18n(<MessageBubble message={message} />)
 
       const systemMsg = container.querySelector('.rounded-full')
       expect(systemMsg).toBeInTheDocument()
@@ -167,7 +168,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      const { container } = render(<MessageBubble message={message} />)
+      const { container } = renderWithI18n(<MessageBubble message={message} />)
 
       // AudioPlayer is lazy loaded, wait for it
       await vi.waitFor(
@@ -188,7 +189,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      const { container } = render(<MessageBubble message={message} primaryColor="200 100% 50%" />)
+      const { container } = renderWithI18n(<MessageBubble message={message} primaryColor="200 100% 50%" />)
 
       await vi.waitFor(
         () => {
@@ -211,7 +212,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      render(<MessageBubble message={message} />)
+      renderWithI18n(<MessageBubble message={message} />)
 
       // Gallery is lazy loaded
       await vi.waitFor(
@@ -232,7 +233,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      render(<MessageBubble message={message} />)
+      renderWithI18n(<MessageBubble message={message} />)
 
       await vi.waitFor(
         () => {
@@ -256,7 +257,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      render(<MessageBubble message={message} />)
+      renderWithI18n(<MessageBubble message={message} />)
 
       const link = screen.getByRole('link', { name: /ver ubicación/i })
       expect(link).toBeInTheDocument()
@@ -275,7 +276,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      const { container } = render(<MessageBubble message={message} />)
+      const { container } = renderWithI18n(<MessageBubble message={message} />)
 
       const bubble = container.querySelector('.text-primary-foreground')
       expect(bubble).toBeInTheDocument()
@@ -290,7 +291,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      const { container } = render(<MessageBubble message={message} />)
+      const { container } = renderWithI18n(<MessageBubble message={message} />)
 
       const bubble = container.querySelector('.border')
       expect(bubble).toBeInTheDocument()
@@ -305,7 +306,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      const { container } = render(
+      const { container } = renderWithI18n(
         <MessageBubble message={message} isFirst={true} isLast={false} />
       )
 
@@ -322,7 +323,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      const { container } = render(<MessageBubble message={message} primaryColor="200 100% 50%" />)
+      const { container } = renderWithI18n(<MessageBubble message={message} primaryColor="200 100% 50%" />)
 
       expect(container).toBeInTheDocument()
     })
@@ -338,7 +339,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      const { container } = render(
+      const { container } = renderWithI18n(
         <MessageBubble
           message={message}
           isLast={true}
@@ -360,7 +361,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      const { container } = render(
+      const { container } = renderWithI18n(
         <MessageBubble
           message={message}
           isFirst={false}
@@ -390,7 +391,7 @@ describe('MessageBubble', () => {
         default: 'https://example.com/default.jpg',
       }
 
-      const { container } = render(
+      const { container } = renderWithI18n(
         <MessageBubble message={message} isLast={true} avatars={avatars} botName="Mar" />
       )
 
@@ -410,7 +411,7 @@ describe('MessageBubble', () => {
         timestamp,
       }
 
-      const { container } = render(<MessageBubble message={message} isLast={true} />)
+      const { container } = renderWithI18n(<MessageBubble message={message} isLast={true} />)
 
       // Check for time format HH:MM
       expect(container.textContent).toMatch(/14:30/)
@@ -426,7 +427,7 @@ describe('MessageBubble', () => {
         timestamp,
       }
 
-      const { container } = render(<MessageBubble message={message} isLast={true} />)
+      const { container } = renderWithI18n(<MessageBubble message={message} isLast={true} />)
 
       expect(container.textContent).toMatch(/09:05/)
     })
@@ -442,7 +443,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      const { container } = render(<MessageBubble message={message} />)
+      const { container } = renderWithI18n(<MessageBubble message={message} />)
 
       expect(container.firstChild).toBeInTheDocument()
     })
@@ -457,7 +458,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      render(<MessageBubble message={message} />)
+      renderWithI18n(<MessageBubble message={message} />)
 
       await vi.waitFor(
         () => {
@@ -479,7 +480,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      const { container } = render(<MessageBubble message={message} />)
+      const { container } = renderWithI18n(<MessageBubble message={message} />)
 
       expect(container).toBeInTheDocument()
     })
@@ -494,7 +495,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      render(<MessageBubble message={message} />)
+      renderWithI18n(<MessageBubble message={message} />)
 
       expect(screen.getByText(longContent)).toBeInTheDocument()
     })
@@ -508,7 +509,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      render(<MessageBubble message={message} />)
+      renderWithI18n(<MessageBubble message={message} />)
 
       expect(screen.getByText(/¡Hola!/)).toBeInTheDocument()
     })
@@ -522,7 +523,7 @@ describe('MessageBubble', () => {
         timestamp: new Date('invalid'),
       }
 
-      const { container } = render(<MessageBubble message={message} isLast={true} />)
+      const { container } = renderWithI18n(<MessageBubble message={message} isLast={true} />)
 
       expect(container).toBeInTheDocument()
     })
@@ -539,7 +540,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      render(<MessageBubble message={message} />)
+      renderWithI18n(<MessageBubble message={message} />)
 
       expect(screen.getByText('document.pdf')).toBeInTheDocument()
     })
@@ -555,7 +556,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      const { container } = render(<MessageBubble message={message} />)
+      const { container } = renderWithI18n(<MessageBubble message={message} />)
 
       // Should display "2.00 MB"
       expect(container.textContent).toContain('2.00 MB')
@@ -572,7 +573,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      const { container } = render(<MessageBubble message={message} />)
+      const { container } = renderWithI18n(<MessageBubble message={message} />)
 
       // Should display "XLSX" (uppercase extension)
       expect(container.textContent).toContain('XLSX')
@@ -588,7 +589,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      const { container } = render(<MessageBubble message={message} />)
+      const { container } = renderWithI18n(<MessageBubble message={message} />)
 
       const link = container.querySelector('a[download]')
       expect(link).toBeInTheDocument()
@@ -606,7 +607,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      const { container } = render(<MessageBubble message={message} />)
+      const { container } = renderWithI18n(<MessageBubble message={message} />)
 
       // Check for download icon (lucide-react Download component)
       const svg = container.querySelector('svg')
@@ -623,7 +624,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      const { container } = render(<MessageBubble message={message} />)
+      const { container } = renderWithI18n(<MessageBubble message={message} />)
 
       expect(screen.getByText('notes.txt')).toBeInTheDocument()
       // Sin fileSize, no se muestra la extensión
@@ -640,7 +641,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      const { container: _container } = render(<MessageBubble message={message} />)
+      const { container: _container } = renderWithI18n(<MessageBubble message={message} />)
 
       expect(screen.getByText('README')).toBeInTheDocument()
     })
@@ -656,7 +657,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      const { container } = render(<MessageBubble message={message} />)
+      const { container } = renderWithI18n(<MessageBubble message={message} />)
 
       expect(container.textContent).toContain('50.00 MB')
     })
@@ -672,7 +673,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      const { container } = render(<MessageBubble message={message} />)
+      const { container } = renderWithI18n(<MessageBubble message={message} />)
 
       expect(container.textContent).toContain('0.01 MB')
     })
@@ -688,10 +689,10 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      render(<MessageBubble message={message} />)
+      renderWithI18n(<MessageBubble message={message} />)
 
       expect(screen.getByText('invoice_2024.pdf')).toBeInTheDocument()
-      const { container } = render(<MessageBubble message={message} />)
+      const { container } = renderWithI18n(<MessageBubble message={message} />)
       expect(container.textContent).toContain('PDF')
       expect(container.textContent).toContain('1.00 MB')
     })
@@ -707,7 +708,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      const { container: _container } = render(<MessageBubble message={message} />)
+      const { container: _container } = renderWithI18n(<MessageBubble message={message} />)
 
       expect(screen.getByText('data.json')).toBeInTheDocument()
     })

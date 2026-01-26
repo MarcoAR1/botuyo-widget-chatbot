@@ -1,9 +1,18 @@
 /**
  * @vitest-environment happy-dom
  */
+import React from 'react'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useTranslations } from '../../chat-widget/i18n/useTranslations'
+import { I18nProviderWrapper } from '../utils/i18n-test-utils'
+
+// Helper para crear wrapper con locale específico
+const createWrapper = (defaultLocale?: 'es' | 'en' | 'pt' | 'fr') => {
+  return ({ children }: { children: React.ReactNode }) => (
+    <I18nProviderWrapper defaultLocale={defaultLocale}>{children}</I18nProviderWrapper>
+  )
+}
 
 describe('useTranslations', () => {
   beforeEach(() => {
@@ -15,7 +24,9 @@ describe('useTranslations', () => {
   })
 
   it('should auto-detect Spanish locale from browser', () => {
-    const { result } = renderHook(() => useTranslations())
+    const { result } = renderHook(() => useTranslations(), {
+      wrapper: I18nProviderWrapper,
+    })
 
     expect(result.current.currentLocale).toBe('es')
     expect(result.current.t('online')).toBe('En línea')
@@ -27,7 +38,9 @@ describe('useTranslations', () => {
       value: 'en-US',
     })
 
-    const { result } = renderHook(() => useTranslations())
+    const { result } = renderHook(() => useTranslations(), {
+      wrapper: I18nProviderWrapper,
+    })
 
     expect(result.current.currentLocale).toBe('en')
     expect(result.current.t('online')).toBe('Online')
@@ -39,13 +52,15 @@ describe('useTranslations', () => {
       value: 'de-DE', // Alemán no soportado
     })
 
-    const { result } = renderHook(() => useTranslations())
+    const { result } = renderHook(() => useTranslations(), {
+      wrapper: I18nProviderWrapper,
+    })
 
     expect(result.current.currentLocale).toBe('es')
   })
 
   it('should allow manual locale change', () => {
-    const { result } = renderHook(() => useTranslations())
+    const { result } = renderHook(() => useTranslations(), { wrapper: createWrapper('es') })
 
     expect(result.current.t('online')).toBe('En línea')
 
@@ -58,7 +73,7 @@ describe('useTranslations', () => {
   })
 
   it('should translate all supported languages correctly', () => {
-    const { result } = renderHook(() => useTranslations())
+    const { result } = renderHook(() => useTranslations(), { wrapper: createWrapper('es') })
 
     // Español
     expect(result.current.t('online')).toBe('En línea')
@@ -77,26 +92,30 @@ describe('useTranslations', () => {
   })
 
   it('should handle nested keys with extracted namespace', () => {
-    const { result } = renderHook(() => useTranslations())
+    const { result } = renderHook(() => useTranslations(), { wrapper: createWrapper('es') })
 
     expect(result.current.t('extracted.cerrar_chat')).toBe('Cerrar chat')
   })
 
   it('should return key if translation not found', () => {
-    const { result } = renderHook(() => useTranslations())
+    const { result } = renderHook(() => useTranslations(), {
+      wrapper: I18nProviderWrapper,
+    })
 
     expect(result.current.t('non_existent_key')).toBe('non_existent_key')
   })
 
   it('should support namespace parameter', () => {
-    const { result } = renderHook(() => useTranslations('extracted'))
+    const { result } = renderHook(() => useTranslations('extracted'), {
+      wrapper: createWrapper('es'),
+    })
 
     expect(result.current.t('cerrar_chat')).toBe('Cerrar chat')
     expect(result.current.t('abrir_chat')).toBe('Abrir chat')
   })
 
   it('should handle all error messages', () => {
-    const { result } = renderHook(() => useTranslations())
+    const { result } = renderHook(() => useTranslations(), { wrapper: createWrapper('es') })
 
     expect(result.current.t('rate_limit_exceeded')).toBe(
       'Has enviado demasiados mensajes. Espera un momento.'
@@ -107,7 +126,9 @@ describe('useTranslations', () => {
   })
 
   it('should memoize translation function', () => {
-    const { result, rerender } = renderHook(() => useTranslations())
+    const { result, rerender } = renderHook(() => useTranslations(), {
+      wrapper: I18nProviderWrapper,
+    })
 
     const firstT = result.current.t
     rerender()
@@ -118,7 +139,9 @@ describe('useTranslations', () => {
   })
 
   it('should ignore invalid locale changes', () => {
-    const { result } = renderHook(() => useTranslations())
+    const { result } = renderHook(() => useTranslations(), {
+      wrapper: I18nProviderWrapper,
+    })
 
     const initialLocale = result.current.currentLocale
 

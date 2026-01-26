@@ -2,7 +2,8 @@
  * @vitest-environment happy-dom
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
+import { renderWithI18n } from '../utils/i18n-test-utils'
 import userEvent from '@testing-library/user-event'
 import { ErrorBoundary } from '../../chat-widget/components/ErrorBoundary'
 
@@ -41,7 +42,7 @@ describe('ErrorBoundary', () => {
 
   describe('Normal Rendering', () => {
     it('should render children when no error occurs', () => {
-      render(
+      renderWithI18n(
         <ErrorBoundary>
           <div>Test content</div>
         </ErrorBoundary>
@@ -51,7 +52,7 @@ describe('ErrorBoundary', () => {
     })
 
     it('should render multiple children without errors', () => {
-      render(
+      renderWithI18n(
         <ErrorBoundary>
           <div>First child</div>
           <div>Second child</div>
@@ -67,7 +68,7 @@ describe('ErrorBoundary', () => {
 
   describe('Error Catching', () => {
     it('should catch errors from child components', () => {
-      render(
+      renderWithI18n(
         <ErrorBoundary>
           <ThrowError shouldThrow={true} />
         </ErrorBoundary>
@@ -78,7 +79,7 @@ describe('ErrorBoundary', () => {
     })
 
     it('should display error icon when error occurs', () => {
-      render(
+      renderWithI18n(
         <ErrorBoundary>
           <ThrowError shouldThrow={true} />
         </ErrorBoundary>
@@ -88,7 +89,7 @@ describe('ErrorBoundary', () => {
     })
 
     it('should display error message in fallback UI', () => {
-      render(
+      renderWithI18n(
         <ErrorBoundary>
           <ThrowCustomError message="Custom error text" />
         </ErrorBoundary>
@@ -104,7 +105,7 @@ describe('ErrorBoundary', () => {
         throw err
       }
 
-      render(
+      renderWithI18n(
         <ErrorBoundary>
           <ThrowNoMessage />
         </ErrorBoundary>
@@ -118,7 +119,7 @@ describe('ErrorBoundary', () => {
     it('should render custom fallback when provided', () => {
       const customFallback = <div>Custom error UI</div>
 
-      render(
+      renderWithI18n(
         <ErrorBoundary fallback={customFallback}>
           <ThrowError shouldThrow={true} />
         </ErrorBoundary>
@@ -136,7 +137,7 @@ describe('ErrorBoundary', () => {
         </div>
       )
 
-      render(
+      renderWithI18n(
         <ErrorBoundary fallback={customFallback}>
           <ThrowError shouldThrow={true} />
         </ErrorBoundary>
@@ -151,7 +152,7 @@ describe('ErrorBoundary', () => {
     it('should call onError callback when error occurs', () => {
       const onErrorMock = vi.fn()
 
-      render(
+      renderWithI18n(
         <ErrorBoundary onError={onErrorMock}>
           <ThrowError shouldThrow={true} />
         </ErrorBoundary>
@@ -169,7 +170,7 @@ describe('ErrorBoundary', () => {
     it('should pass correct error to onError callback', () => {
       const onErrorMock = vi.fn()
 
-      render(
+      renderWithI18n(
         <ErrorBoundary onError={onErrorMock}>
           <ThrowCustomError message="Specific error" />
         </ErrorBoundary>
@@ -186,7 +187,7 @@ describe('ErrorBoundary', () => {
 
   describe('Reset Functionality', () => {
     it('should show reset button in default fallback UI', () => {
-      render(
+      renderWithI18n(
         <ErrorBoundary>
           <ThrowError shouldThrow={true} />
         </ErrorBoundary>
@@ -207,7 +208,7 @@ describe('ErrorBoundary', () => {
         return <div>Child component</div>
       }
 
-      render(
+      renderWithI18n(
         <ErrorBoundary>
           <DynamicComponent />
         </ErrorBoundary>
@@ -231,7 +232,7 @@ describe('ErrorBoundary', () => {
 
   describe('Accessibility', () => {
     it('should have accessible error message', () => {
-      render(
+      renderWithI18n(
         <ErrorBoundary>
           <ThrowError shouldThrow={true} />
         </ErrorBoundary>
@@ -242,7 +243,7 @@ describe('ErrorBoundary', () => {
     })
 
     it('should have focusable reset button', () => {
-      render(
+      renderWithI18n(
         <ErrorBoundary>
           <ThrowError shouldThrow={true} />
         </ErrorBoundary>
@@ -259,7 +260,7 @@ describe('ErrorBoundary', () => {
       const outerFallback = <div>Outer error</div>
       const innerFallback = <div>Inner error</div>
 
-      render(
+      renderWithI18n(
         <ErrorBoundary fallback={outerFallback}>
           <div>Outer content</div>
           <ErrorBoundary fallback={innerFallback}>
@@ -275,7 +276,7 @@ describe('ErrorBoundary', () => {
     })
 
     it('should not catch errors from outside its tree', () => {
-      render(
+      renderWithI18n(
         <div>
           <ErrorBoundary>
             <div>Safe content</div>

@@ -2,7 +2,8 @@
  * @vitest-environment happy-dom
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
+import { renderWithI18n } from '../utils/i18n-test-utils'
 import userEvent from '@testing-library/user-event'
 import { ChatWindow } from '../../chat-widget/components/ChatWindow'
 import type { ChatMessage } from '../../chat-widget/types'
@@ -39,13 +40,13 @@ describe('ChatWindow', () => {
 
   describe('Visibility', () => {
     it('should render when isOpen is true', () => {
-      render(<ChatWindow {...defaultProps} />)
+      renderWithI18n(<ChatWindow {...defaultProps} />)
 
       expect(screen.getByRole('dialog')).toBeInTheDocument()
     })
 
     it('should not render when isOpen is false', () => {
-      render(<ChatWindow {...defaultProps} isOpen={false} />)
+      renderWithI18n(<ChatWindow {...defaultProps} isOpen={false} />)
 
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     })
@@ -53,37 +54,37 @@ describe('ChatWindow', () => {
 
   describe('Header', () => {
     it('should display bot name', () => {
-      const { container } = render(<ChatWindow {...defaultProps} botName="Assistant" />)
+      const { container } = renderWithI18n(<ChatWindow {...defaultProps} botName="Assistant" />)
 
       expect(container.textContent).toContain('Assistant')
     })
 
     it('should use default bot name when not provided', () => {
-      const { container } = render(<ChatWindow {...defaultProps} />)
+      const { container } = renderWithI18n(<ChatWindow {...defaultProps} />)
 
       // Verificar que el nombre del bot está en el DOM
       expect(container.textContent).toContain('Mar')
     })
 
     it('should show close button', () => {
-      render(<ChatWindow {...defaultProps} />)
+      renderWithI18n(<ChatWindow {...defaultProps} />)
 
-      const closeButton = screen.getByRole('button', { name: /close chat window/i })
+      const closeButton = screen.getByRole('button', { name: /cerrar ventana de chat/i })
       expect(closeButton).toBeInTheDocument()
     })
 
     it('should call onClose when close button is clicked', async () => {
       const user = userEvent.setup()
-      render(<ChatWindow {...defaultProps} />)
+      renderWithI18n(<ChatWindow {...defaultProps} />)
 
-      const closeButton = screen.getByRole('button', { name: /close chat window/i })
+      const closeButton = screen.getByRole('button', { name: /cerrar ventana de chat/i })
       await user.click(closeButton)
 
       expect(mockOnClose).toHaveBeenCalledTimes(1)
     })
 
     it('should display bot logo', () => {
-      const { container } = render(
+      const { container } = renderWithI18n(
         <ChatWindow {...defaultProps} logoUrl="https://example.com/bot.jpg" botName="Bot" />
       )
 
@@ -93,14 +94,14 @@ describe('ChatWindow', () => {
     })
 
     it('should show connected status indicator', () => {
-      const { container } = render(<ChatWindow {...defaultProps} isConnected={true} />)
+      const { container } = renderWithI18n(<ChatWindow {...defaultProps} isConnected={true} />)
 
       const statusIndicator = container.querySelector('.bg-emerald-500')
       expect(statusIndicator).toBeInTheDocument()
     })
 
     it('should show disconnected status indicator', () => {
-      const { container } = render(<ChatWindow {...defaultProps} isConnected={false} />)
+      const { container } = renderWithI18n(<ChatWindow {...defaultProps} isConnected={false} />)
 
       const statusIndicator = container.querySelector('.bg-amber-500')
       expect(statusIndicator).toBeInTheDocument()
@@ -119,13 +120,13 @@ describe('ChatWindow', () => {
         },
       ]
 
-      render(<ChatWindow {...defaultProps} messages={messages} />)
+      renderWithI18n(<ChatWindow {...defaultProps} messages={messages} />)
 
       expect(screen.getByText('Hello')).toBeInTheDocument()
     })
 
     it('should pass welcome message to MessageList', () => {
-      const { container } = render(
+      const { container } = renderWithI18n(
         <ChatWindow {...defaultProps} welcomeMessage="Custom welcome message" />
       )
 
@@ -136,21 +137,21 @@ describe('ChatWindow', () => {
 
   describe('Input Area', () => {
     it('should render InputArea component', () => {
-      render(<ChatWindow {...defaultProps} />)
+      renderWithI18n(<ChatWindow {...defaultProps} />)
 
       const input = screen.getByPlaceholderText(/escribe un mensaje/i)
       expect(input).toBeInTheDocument()
     })
 
     it('should use custom input placeholder', () => {
-      render(<ChatWindow {...defaultProps} inputPlaceholder="Type your message here..." />)
+      renderWithI18n(<ChatWindow {...defaultProps} inputPlaceholder="Type your message here..." />)
 
       expect(screen.getByPlaceholderText('Type your message here...')).toBeInTheDocument()
     })
 
     it('should call onSendMessage when message is sent', async () => {
       const user = userEvent.setup()
-      const { container } = render(<ChatWindow {...defaultProps} />)
+      const { container } = renderWithI18n(<ChatWindow {...defaultProps} />)
 
       const input = screen.getByPlaceholderText(/escribe un mensaje/i)
       await user.click(input)
@@ -167,14 +168,14 @@ describe('ChatWindow', () => {
 
   describe('Typing Indicator', () => {
     it('should show typing indicator when isTyping is true', () => {
-      const { container } = render(<ChatWindow {...defaultProps} isTyping={true} />)
+      const { container } = renderWithI18n(<ChatWindow {...defaultProps} isTyping={true} />)
 
       const typingDots = container.querySelectorAll('.animate-bounce')
       expect(typingDots.length).toBeGreaterThan(0)
     })
 
     it('should not show typing indicator when isTyping is false', () => {
-      const { container } = render(<ChatWindow {...defaultProps} isTyping={false} />)
+      const { container } = renderWithI18n(<ChatWindow {...defaultProps} isTyping={false} />)
 
       const typingDots = container.querySelectorAll('.animate-bounce')
       expect(typingDots.length).toBeLessThan(3)
@@ -183,27 +184,27 @@ describe('ChatWindow', () => {
 
   describe('Accessibility', () => {
     it('should have dialog role', () => {
-      render(<ChatWindow {...defaultProps} />)
+      renderWithI18n(<ChatWindow {...defaultProps} />)
 
       expect(screen.getByRole('dialog')).toBeInTheDocument()
     })
 
     it('should have aria-modal attribute', () => {
-      render(<ChatWindow {...defaultProps} />)
+      renderWithI18n(<ChatWindow {...defaultProps} />)
 
       const dialog = screen.getByRole('dialog')
       expect(dialog).toHaveAttribute('aria-modal', 'true')
     })
 
     it('should have aria-labelledby attribute', () => {
-      render(<ChatWindow {...defaultProps} />)
+      renderWithI18n(<ChatWindow {...defaultProps} />)
 
       const dialog = screen.getByRole('dialog')
       expect(dialog).toHaveAttribute('aria-labelledby', 'chat-window-title')
     })
 
     it('should be keyboard accessible', () => {
-      render(<ChatWindow {...defaultProps} />)
+      renderWithI18n(<ChatWindow {...defaultProps} />)
 
       const dialog = screen.getByRole('dialog')
       expect(dialog).toHaveAttribute('tabIndex', '-1')
@@ -212,13 +213,13 @@ describe('ChatWindow', () => {
 
   describe('Theming', () => {
     it('should apply custom primary color', () => {
-      render(<ChatWindow {...defaultProps} primaryColor="hsl(200, 100%, 50%)" />)
+      renderWithI18n(<ChatWindow {...defaultProps} primaryColor="hsl(200, 100%, 50%)" />)
 
       expect(screen.getByRole('dialog')).toBeInTheDocument()
     })
 
     it('should apply custom border radius', () => {
-      render(<ChatWindow {...defaultProps} borderRadius="16px" />)
+      renderWithI18n(<ChatWindow {...defaultProps} borderRadius="16px" />)
 
       expect(screen.getByRole('dialog')).toBeInTheDocument()
     })
@@ -228,7 +229,7 @@ describe('ChatWindow', () => {
     it('should render with attachment handler', () => {
       const mockOnSendAttachment = vi.fn()
 
-      render(<ChatWindow {...defaultProps} onSendAttachment={mockOnSendAttachment} />)
+      renderWithI18n(<ChatWindow {...defaultProps} onSendAttachment={mockOnSendAttachment} />)
 
       expect(screen.getByRole('dialog')).toBeInTheDocument()
     })
@@ -236,7 +237,7 @@ describe('ChatWindow', () => {
     it('should render with location handler', () => {
       const mockOnSendLocation = vi.fn()
 
-      render(<ChatWindow {...defaultProps} onSendLocation={mockOnSendLocation} />)
+      renderWithI18n(<ChatWindow {...defaultProps} onSendLocation={mockOnSendLocation} />)
 
       expect(screen.getByRole('dialog')).toBeInTheDocument()
     })
