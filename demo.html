@@ -4,6 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Botuyo Chat Widget - Demo E2E</title>
+  
+  <!-- Resource Hints para mejorar performance -->
+  <!-- DNS Prefetch: Resolver DNS temprano -->
+  <link rel="dns-prefetch" href="https://api.botuyo.com">
+  
+  <!-- Preconnect: Establecer conexión temprana -->
+  <link rel="preconnect" href="https://api.botuyo.com" crossorigin>
+  <link rel="preconnect" href="wss://api.botuyo.com" crossorigin>
+  
+  <!-- Preload: Cargar recursos críticos -->
+  <link rel="preload" href="/dist/botuyo-chat.css" as="style">
+  <link rel="preload" href="/dist/botuyo-chat.js" as="script">
+  
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
