@@ -14,8 +14,8 @@ import AxeBuilder from '@axe-core/playwright'
 
 test.describe('Accessibility (A11y)', () => {
   test.beforeEach(async ({ page }) => {
-    // Usar index.html que tiene el widget auto-inicializado
-    await page.goto('http://localhost:5173/')
+    // Usar demo.html que tiene el widget auto-inicializado
+    await page.goto('http://localhost:5173/demo.html')
 
     // Esperar a que el widget esté listo
     await page.waitForSelector('[data-testid="chat-launcher"]', { timeout: 10000 })
