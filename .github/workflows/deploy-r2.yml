@@ -159,12 +159,12 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo '```html' >> $GITHUB_STEP_SUMMARY
           echo "<!-- Version specific (recommended) -->" >> $GITHUB_STEP_SUMMARY
-          echo "<script type=\"module\" src=\"https://botuyo.com/${VERSION}/botuyo-chat.js\"></script>" >> $GITHUB_STEP_SUMMARY
-          echo "<link rel=\"stylesheet\" href=\"https://botuyo.com/${VERSION}/botuyo-chat.css\">" >> $GITHUB_STEP_SUMMARY
+          echo "<script type=\"module\" src=\"https://cdn-chatbot.botuyo.com/${VERSION}/botuyo-chat.js\"></script>" >> $GITHUB_STEP_SUMMARY
+          echo "<link rel=\"stylesheet\" href=\"https://cdn-chatbot.botuyo.com/${VERSION}/botuyo-chat.css\">" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "<!-- Latest version (auto-updates) -->" >> $GITHUB_STEP_SUMMARY
-          echo "<script type=\"module\" src=\"https://botuyo.com/latest/botuyo-chat.js\"></script>" >> $GITHUB_STEP_SUMMARY
-          echo "<link rel=\"stylesheet\" href=\"https://botuyo.com/latest/botuyo-chat.css\">" >> $GITHUB_STEP_SUMMARY
+          echo "<script type=\"module\" src=\"https://cdn-chatbot.botuyo.com/latest/botuyo-chat.js\"></script>" >> $GITHUB_STEP_SUMMARY
+          echo "<link rel=\"stylesheet\" href=\"https://cdn-chatbot.botuyo.com/latest/botuyo-chat.css\">" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 💡 Usage" >> $GITHUB_STEP_SUMMARY

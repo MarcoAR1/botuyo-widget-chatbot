@@ -34,11 +34,16 @@ En el bucket → Settings → CORS Policy:
 
 ### 3️⃣ Hacer el Bucket Público
 
-**Opción A - Con dominio propio** (Recomendado):
+**Opción A - Con subdominio personalizado** (Recomendado):
 ```
 Settings → Public access → Connect domain
-Dominio: botuyo.com
-Resultado: https://botuyo.com
+Dominio personalizado: cdn-chatbot.botuyo.com
+Resultado: https://cdn-chatbot.botuyo.com
+
+Nota: Necesitas agregar un registro CNAME en Cloudflare DNS:
+- Tipo: CNAME
+- Nombre: cdn-chatbot
+- Destino: (lo proporciona R2 al conectar el dominio)
 ```
 
 **Opción B - Sin dominio** (Desarrollo):
@@ -97,7 +102,7 @@ git push origin v1.0.0
 <link rel="stylesheet" href="https://cdn.botuyo.com/v1.0.0/chatbot.css">
 
 <!-- JavaScript -->
-<script type="module" src="https://botuyo.com/v1.0.0/botuyo-chat.js"></script>
+<script type="module" src="https://cdn-chatbot.botuyo.com/v1.0.0/botuyo-chat.js"></script>
 <script>
   BotUyoChat.init({
     serverUrl: 'https://api.botuyo.com',
@@ -111,20 +116,20 @@ git push origin v1.0.0
 ```html
 <head>
   <!-- Preload para carga rápida -->
-  <link rel="dns-prefetch" href="https://botuyo.com">
-  <link rel="preconnect" href="https://botuyo.com" crossorigin>
-  <link rel="preload" href="https://botuyo.com/v1.0.0/botuyo-chat.css" as="style">
-  <link rel="preload" href="https://botuyo.com/v1.0.0/botuyo-chat.js" as="script">
+  <link rel="dns-prefetch" href="https://cdn-chatbot.botuyo.com">
+  <link rel="preconnect" href="https://cdn-chatbot.botuyo.com" crossorigin>
+  <link rel="preload" href="https://cdn-chatbot.botuyo.com/v1.0.0/botuyo-chat.css" as="style">
+  <link rel="preload" href="https://cdn-chatbot.botuyo.com/v1.0.0/botuyo-chat.js" as="script">
   
   <!-- Stylesheet -->
-  <link rel="stylesheet" href="https://botuyo.com/v1.0.0/botuyo-chat.css">
+  <link rel="stylesheet" href="https://cdn-chatbot.botuyo.com/v1.0.0/botuyo-chat.css">
 </head>
 ```
 
 ## 📦 Estructura de URLs
 
 ```
-https://botuyo.com/
+https://cdn-chatbot.botuyo.com/
 ├── v1.0.0/              # Versión específica (cache 1 año)
 │   ├── botuyo-chat.js   # Entry point (ES module)
 │   ├── botuyo-chat.css
@@ -173,7 +178,7 @@ https://botuyo.com/
 
 ```bash
 # Verifica que los archivos existan
-curl -I https://botuyo.com/v1.0.0/botuyo-chat.js
+curl -I https://cdn-chatbot.botuyo.com/v1.0.0/botuyo-chat.js
 
 # Respuesta esperada:
 # HTTP/2 200

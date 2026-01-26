@@ -2,7 +2,7 @@
 
 **Fecha**: 26 de enero de 2026  
 **Bucket**: chatbot-cdn  
-**Dominio**: botuyo.com  
+**Dominio**: cdn-chatbot.botuyo.com  
 **Región**: Eastern North America (ENAM)
 
 ---
@@ -24,8 +24,39 @@
 ### 3. Bucket R2 Configurado
 - ✅ Nombre: `chatbot-cdn`
 - ✅ Región: Eastern North America (ENAM)
-- ✅ Dominio público: `botuyo.com`
+- ⚠️ **Dominio público: `cdn-chatbot.botuyo.com` (PENDIENTE CONFIGURACIÓN)**
 - ✅ S3 API: `https://765b558f9a5eb2fa76724b7c436f7665.r2.cloudflarestorage.com/chatbot-cdn`
+
+---
+
+## 🌐 Configuración del Subdominio (IMPORTANTE)
+
+Para que funcione `cdn-chatbot.botuyo.com`, necesitas configurar el dominio personalizado en R2:
+
+### Opción 1: Desde Cloudflare R2 Dashboard (Recomendado)
+
+1. Ve a **R2** → **chatbot-cdn** → **Settings** → **Public access**
+2. Click en **Connect domain**
+3. Ingresa el dominio personalizado: `cdn-chatbot.botuyo.com`
+4. Click **Continue**
+5. Cloudflare automáticamente creará el registro DNS necesario
+
+### Opción 2: Configuración Manual de DNS
+
+Si prefieres configurar el DNS manualmente:
+
+1. Ve a **Cloudflare Dashboard** → **DNS** → **Records**
+2. Agrega un registro CNAME:
+   - **Tipo**: CNAME
+   - **Nombre**: `cdn-chatbot`
+   - **Destino**: `chatbot-cdn.ACCOUNT_ID.r2.cloudflarestorage.com`
+   - **Proxy status**: Proxied (naranja) ✅
+   - **TTL**: Auto
+
+3. Luego en R2 → Settings → Public access → Connect domain
+   - Ingresa: `cdn-chatbot.botuyo.com`
+
+**Nota**: La propagación DNS puede tardar 1-5 minutos.
 
 ---
 
@@ -92,17 +123,17 @@ Una vez configurados los secrets:
 - ✅ Build exitoso
 - ✅ Archivos subidos a R2
 - ✅ URLs disponibles:
-  - https://botuyo.com/v1.0.0-test/botuyo-chat.js
-  - https://botuyo.com/v1.0.0-test/botuyo-chat.css
-  - https://botuyo.com/v1.0.0-test/vendor-react.js
-  - https://botuyo.com/v1.0.0-test/ChatWidget.js
+  - https://cdn-chatbot.botuyo.com/v1.0.0-test/botuyo-chat.js
+  - https://cdn-chatbot.botuyo.com/v1.0.0-test/botuyo-chat.css
+  - https://cdn-chatbot.botuyo.com/v1.0.0-test/vendor-react.js
+  - https://cdn-chatbot.botuyo.com/v1.0.0-test/ChatWidget.js
   - (y todos los demás chunks)
 
 ### Paso 4: Verificar el Deploy
 
 ```bash
 # Verificar archivo principal
-curl -I https://botuyo.com/v1.0.0-test/botuyo-chat.js
+curl -I https://cdn-chatbot.botuyo.com/v1.0.0-test/botuyo-chat.js
 
 # Respuesta esperada:
 # HTTP/2 200
@@ -110,10 +141,10 @@ curl -I https://botuyo.com/v1.0.0-test/botuyo-chat.js
 # cache-control: public, max-age=31536000, immutable
 
 # Verificar chunk de React
-curl -I https://botuyo.com/v1.0.0-test/vendor-react.js
+curl -I https://cdn-chatbot.botuyo.com/v1.0.0-test/vendor-react.js
 
 # Verificar CSS
-curl -I https://botuyo.com/v1.0.0-test/botuyo-chat.css
+curl -I https://cdn-chatbot.botuyo.com/v1.0.0-test/botuyo-chat.css
 ```
 
 ### Paso 5: Deploy de Producción con Tag
@@ -128,8 +159,8 @@ git push origin v1.0.0
 
 Esto automáticamente:
 - ✅ Ejecuta el workflow
-- ✅ Despliega a `https://botuyo.com/v1.0.0/` (cache 1 año)
-- ✅ Despliega a `https://botuyo.com/latest/` (cache 1 hora)
+- ✅ Despliega a `https://cdn-chatbot.botuyo.com/v1.0.0/` (cache 1 año)
+- ✅ Despliega a `https://cdn-chatbot.botuyo.com/latest/` (cache 1 hora)
 
 ---
 
@@ -170,19 +201,19 @@ chatbot-cdn/
 <html lang="es">
 <head>
   <!-- Performance optimization -->
-  <link rel="dns-prefetch" href="https://botuyo.com">
-  <link rel="preconnect" href="https://botuyo.com" crossorigin>
-  <link rel="preload" href="https://botuyo.com/v1.0.0/botuyo-chat.css" as="style">
-  <link rel="preload" href="https://botuyo.com/v1.0.0/botuyo-chat.js" as="script">
+  <link rel="dns-prefetch" href="https://cdn-chatbot.botuyo.com">
+  <link rel="preconnect" href="https://cdn-chatbot.botuyo.com" crossorigin>
+  <link rel="preload" href="https://cdn-chatbot.botuyo.com/v1.0.0/botuyo-chat.css" as="style">
+  <link rel="preload" href="https://cdn-chatbot.botuyo.com/v1.0.0/botuyo-chat.js" as="script">
   
   <!-- Stylesheet -->
-  <link rel="stylesheet" href="https://botuyo.com/v1.0.0/botuyo-chat.css">
+  <link rel="stylesheet" href="https://cdn-chatbot.botuyo.com/v1.0.0/botuyo-chat.css">
 </head>
 <body>
   <!-- Tu contenido -->
   
   <!-- Chat Widget -->
-  <script type="module" src="https://botuyo.com/v1.0.0/botuyo-chat.js"></script>
+  <script type="module" src="https://cdn-chatbot.botuyo.com/v1.0.0/botuyo-chat.js"></script>
   <script>
     const widget = BotUyoChat.init({
       serverUrl: 'https://api.botuyo.com',
@@ -197,7 +228,7 @@ chatbot-cdn/
 
 ```typescript
 // Cargar tipos desde el CDN (opcional)
-/// <reference types="https://botuyo.com/v1.0.0/index.d.ts" />
+/// <reference types="https://cdn-chatbot.botuyo.com/v1.0.0/index.d.ts" />
 
 declare global {
   interface Window {
@@ -238,7 +269,7 @@ Antes de considerar la configuración completa:
 - [ ] **R2 Bucket configurado**
   - [x] Bucket "chatbot-cdn" creado
   - [ ] CORS policy configurado
-  - [x] Dominio público "botuyo.com" conectado
+  - [ ] **Dominio personalizado `cdn-chatbot.botuyo.com` conectado** ⚠️ IMPORTANTE
   - [x] Public access habilitado
 
 - [ ] **Deploy de prueba exitoso**
