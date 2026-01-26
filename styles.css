@@ -7,6 +7,19 @@
 @import "tailwindcss";
 
 /* ===================================
+   LOADING ANIMATION (Code Splitting)
+   =================================== */
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===================================
    CSS VARIABLES (Design System)
    =================================== */
 

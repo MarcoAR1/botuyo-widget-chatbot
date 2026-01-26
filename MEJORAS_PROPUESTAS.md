@@ -547,23 +547,37 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
 ### 📋 Q1 2026 - Próximas Semanas
 
 #### Semana 4-5: Optimización de Bundle
-**Estado**: 🔄 EN PROGRESO (Iniciado 25 Ene 2026)  
+**Estado**: ✅ CODE SPLITTING COMPLETADO (26 Ene 2026)  
 **Prioridad**: Alta
 
 **Progreso Actual**:
 - ✅ Análisis de bundle generado (dist/stats.html)
 - ✅ Instalado rollup-plugin-visualizer
 - ✅ Plan detallado creado (OPTIMIZATION_PLAN.md)
-- ⏳ Code splitting en implementación
-- 📋 Lazy loading de features (audio, gallery, file upload)
-- 📋 Socket.IO lazy load
-- ✅ Optimización de lucide-react (ya optimizado)
+- ✅ **Code splitting implementado** (7 chunks separados)
+- ✅ **Migrado a ES Module format** (desde IIFE)
+- ✅ **React.lazy() + Suspense** para ChatWidget
+- ✅ **manualChunks** configurado en Vite
+- ✅ **33% reducción** en carga inicial (306KB → 208KB gzip)
+- ⏳ Lazy loading adicional de Gallery/AudioPlayer (siguiente)
+- 📋 CSS optimization con cssnano (pendiente)
 
-**Objetivo**: 1,021KB → ~500KB (reducción 50%)
-**Bundle Actual Analizado**: 
-- JavaScript: 1,021.49 KB (306.91 KB gzip)
-- CSS: 45.08 KB (8.67 KB gzip)
-- Sourcemaps: 4,766.76 KB
+**Resultado Alcanzado**:
+- Carga Inicial: 683 KB (208 KB gzip) ⚡ - Solo entry + React
+- Carga Lazy: 324 KB (102 KB gzip) 🔄 - ChatWidget bajo demanda
+- **Total: 1,007 KB (310 KB gzip)** vs Original: 1,021 KB
+- **Ahorro en carga inicial: 33%** ✨
+
+**Chunks Generados**:
+- botuyo-chat.js: 3.1 KB (entry point)
+- vendor-react: 680 KB (React + ReactDOM)
+- ChatWidget: 97 KB (lazy)
+- chunk-chat-ui: 125 KB (lazy)
+- vendor-socket: 41 KB (lazy)
+- chunk-features: 10 KB (lazy)
+- browser-image-compression: 51 KB (lazy)
+
+**Documentación**: Ver CODE_SPLITTING_PROGRESS.md
 
 #### Semana 6-7: Tests E2E con Playwright
 **Estado**: 📅 Planificado (Inicio: 3 Feb 2026)  

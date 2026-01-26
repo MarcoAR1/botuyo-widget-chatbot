@@ -61,8 +61,8 @@ describe('Socket Theme Configuration', () => {
       }
 
       // Inicializar widget
-      // @ts-expect-error - targetElement es para mocking en tests
       widget.init({
+        // @ts-expect-error - targetElement es para mocking en tests
         targetElement: container,
         apiKey: 'test-key',
         apiBaseUrl: 'ws://localhost:3000',
@@ -120,8 +120,8 @@ describe('Socket Theme Configuration', () => {
         position: 'bottom-right',
       }
 
-      // @ts-expect-error - targetElement es para mocking en tests
       widget.init({
+        // @ts-expect-error - targetElement es para mocking en tests
         targetElement: container,
         apiKey: 'test-key',
         apiBaseUrl: 'ws://localhost:3000',
@@ -222,8 +222,8 @@ describe('Socket Theme Configuration', () => {
     })
 
     it('debe aplicar CSS variables desde auth_success', async () => {
-      // @ts-expect-error - targetElement es para mocking en tests
       widget.init({
+        // @ts-expect-error - targetElement es para mocking en tests
         targetElement: container,
         apiKey: 'test-key',
         apiBaseUrl: 'ws://localhost:3000',
@@ -273,8 +273,8 @@ describe('Socket Theme Configuration', () => {
     })
 
     it('debe manejar tema parcial desde el servidor', async () => {
-      // @ts-expect-error - targetElement es para mocking en tests
       widget.init({
+        // @ts-expect-error - targetElement es para mocking en tests
         targetElement: container,
         apiKey: 'test-key',
         apiBaseUrl: 'ws://localhost:3000',
@@ -328,8 +328,8 @@ describe('Socket Theme Configuration', () => {
         botName: 'Local Bot',
       }
 
-      // @ts-expect-error - targetElement es para mocking en tests
       widget.init({
+        // @ts-expect-error - targetElement es para mocking en tests
         targetElement: container,
         apiKey: 'test-key',
         apiBaseUrl: 'ws://localhost:3000',
@@ -383,8 +383,8 @@ describe('Socket Theme Configuration', () => {
 
   describe('MediaConfig desde Socket', () => {
     it('debe poder recibir configuración de media desde el backend', async () => {
-      // @ts-expect-error - targetElement es para mocking en tests
       widget.init({
+        // @ts-expect-error - targetElement es para mocking en tests
         targetElement: container,
         apiKey: 'test-key',
         apiBaseUrl: 'ws://localhost:3000',
@@ -416,8 +416,8 @@ describe('Socket Theme Configuration', () => {
   describe('Configuración Completa desde Socket', () => {
     it('debe instanciar bot completamente configurado solo con apiKey', async () => {
       // Simular que el backend tiene TODO configurado
-      // @ts-expect-error - targetElement es para mocking en tests
       widget.init({
+        // @ts-expect-error - targetElement es para mocking en tests
         targetElement: container,
         apiKey: 'production-api-key',
         apiBaseUrl: 'wss://api.botuyo.com',
@@ -517,8 +517,8 @@ describe('Socket Theme Configuration', () => {
 
   describe('Error Handling', () => {
     it('debe manejar tema inválido desde el servidor', async () => {
-      // @ts-expect-error - targetElement es para mocking en tests
       widget.init({
+        // @ts-expect-error - targetElement es para mocking en tests
         targetElement: container,
         apiKey: 'test-key',
         apiBaseUrl: 'ws://localhost:3000',
