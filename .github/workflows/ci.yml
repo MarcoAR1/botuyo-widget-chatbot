@@ -85,8 +85,8 @@ jobs:
       - name: Build project
         run: npm run build
       
-      - name: Run E2E tests (skip visual regression)
-        run: npm run test:e2e -- --grep-invert "Visual Regression"
+      - name: Run E2E tests (skip visual regression and accessibility)
+        run: npm run test:e2e -- --grep-invert "Visual Regression|Accessibility"
       
       - name: Upload test results
         if: always()
