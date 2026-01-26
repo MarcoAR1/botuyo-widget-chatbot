@@ -8,8 +8,10 @@ import { useState, useEffect } from 'react'
 export function useHighContrast() {
   const [isHighContrast, setIsHighContrast] = useState(() => {
     if (typeof window === 'undefined') return false
-    return window.matchMedia('(prefers-contrast: high)').matches || 
-           window.matchMedia('(prefers-contrast: more)').matches
+    return (
+      window.matchMedia('(prefers-contrast: high)').matches ||
+      window.matchMedia('(prefers-contrast: more)').matches
+    )
   })
 
   useEffect(() => {

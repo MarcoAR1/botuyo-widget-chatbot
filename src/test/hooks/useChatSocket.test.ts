@@ -27,7 +27,7 @@ vi.mock('@/chat-widget/utils/logger', () => ({
 }))
 
 vi.mock('@/chat-widget/utils/performance', () => ({
-  throttle: vi.fn((fn) => fn),
+  throttle: vi.fn(fn => fn),
 }))
 
 describe('useChatSocket', () => {
@@ -50,7 +50,6 @@ describe('useChatSocket', () => {
       emit: vi.fn(),
       disconnect: vi.fn(),
     }
-
     ;(io as any).mockReturnValue(mockSocket)
 
     mockHandlers = {
@@ -153,9 +152,9 @@ describe('useChatSocket', () => {
       const connectHandler = mockSocket.on.mock.calls.find(
         (call: any[]) => call[0] === 'connect'
       )?.[1]
-      
+
       expect(connectHandler).toBeDefined()
-      
+
       // Verify the handler would set state correctly
       act(() => {
         connectHandler?.()
@@ -178,9 +177,9 @@ describe('useChatSocket', () => {
       const disconnectHandler = mockSocket.on.mock.calls.find(
         (call: any[]) => call[0] === 'disconnect'
       )?.[1]
-      
+
       expect(disconnectHandler).toBeDefined()
-      
+
       act(() => {
         disconnectHandler?.()
       })
@@ -347,7 +346,7 @@ describe('useChatSocket', () => {
           id: 'msg-4',
           type: 'location',
           latitude: 40.7128,
-          longitude: -74.0060,
+          longitude: -74.006,
           content: 'New York',
           sender: 'bot',
           timestamp: new Date().toISOString(),
@@ -359,7 +358,7 @@ describe('useChatSocket', () => {
           id: 'msg-4',
           type: 'location',
           latitude: 40.7128,
-          longitude: -74.0060,
+          longitude: -74.006,
           name: 'New York',
           sender: 'bot',
         })
@@ -707,7 +706,7 @@ describe('useChatSocket', () => {
       })
 
       expect(mockSocket.disconnect).toHaveBeenCalled()
-      
+
       await waitFor(() => {
         expect(result.current.isConnected).toBe(false)
       })

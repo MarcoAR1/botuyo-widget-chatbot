@@ -26,7 +26,10 @@ Object.defineProperty(window, 'matchMedia', {
 global.Notification = class MockNotification {
   static requestPermission = vi.fn().mockResolvedValue('granted')
   static permission = 'default'
-  constructor(public title: string, public options?: any) {}
+  constructor(
+    public title: string,
+    public options?: any
+  ) {}
 } as any
 
 // Mock Audio as a class

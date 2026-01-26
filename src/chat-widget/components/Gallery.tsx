@@ -23,11 +23,11 @@ export const Gallery = memo(function Gallery({ images, radius = 'rounded-lg' }: 
   const [isLightboxOpen, setIsLightboxOpen] = useState(false)
 
   const nextImage = () => {
-    setCurrentIndex((prev) => (prev + 1) % images.length)
+    setCurrentIndex(prev => (prev + 1) % images.length)
   }
 
   const prevImage = () => {
-    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)
+    setCurrentIndex(prev => (prev - 1 + images.length) % images.length)
   }
 
   const openLightbox = (index: number) => {
@@ -46,14 +46,26 @@ export const Gallery = memo(function Gallery({ images, radius = 'rounded-lg' }: 
     return (
       <div className="my-3 relative group">
         {imageError.has(0) ? (
-          <div className={cn(
-            'w-full h-48 flex flex-col items-center justify-center',
-            'border bg-muted text-muted-foreground',
-            radius
-          )}
-          style={{ borderColor: 'hsl(var(--border))' }}>
-            <svg className="w-12 h-12 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          <div
+            className={cn(
+              'w-full h-48 flex flex-col items-center justify-center',
+              'border bg-muted text-muted-foreground',
+              radius
+            )}
+            style={{ borderColor: 'hsl(var(--border))' }}
+          >
+            <svg
+              className="w-12 h-12 mb-2 opacity-50"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
             </svg>
             <span className="text-sm">Imagen no disponible</span>
           </div>
@@ -88,13 +100,25 @@ export const Gallery = memo(function Gallery({ images, radius = 'rounded-lg' }: 
         {images.map((img, idx) => (
           <div key={idx} className="relative group overflow-hidden">
             {imageError.has(idx) ? (
-              <div className={cn(
-                'w-full h-32 flex flex-col items-center justify-center',
-                'border bg-muted text-muted-foreground',
-                radius
-              )}>
-                <svg className="w-8 h-8 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <div
+                className={cn(
+                  'w-full h-32 flex flex-col items-center justify-center',
+                  'border bg-muted text-muted-foreground',
+                  radius
+                )}
+              >
+                <svg
+                  className="w-8 h-8 opacity-50"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
                 </svg>
               </div>
             ) : (
@@ -122,25 +146,45 @@ export const Gallery = memo(function Gallery({ images, radius = 'rounded-lg' }: 
         ))}
 
         {/* Lightbox */}
-        {isLightboxOpen && <Lightbox images={images} currentIndex={currentIndex} onClose={() => setIsLightboxOpen(false)} onNext={nextImage} onPrev={prevImage} />}
+        {isLightboxOpen && (
+          <Lightbox
+            images={images}
+            currentIndex={currentIndex}
+            onClose={() => setIsLightboxOpen(false)}
+            onNext={nextImage}
+            onPrev={prevImage}
+          />
+        )}
       </div>
     )
   }
 
   // Si hay 4+ imágenes, mostrar carrusel con thumbnails
   return (
-    <div className="my-3 space-y-2" >
+    <div className="my-3 space-y-2">
       {/* Imagen Principal */}
       <div className="relative group">
         {imageError.has(currentIndex) ? (
-          <div className={cn(
-            'w-full h-56 flex flex-col items-center justify-center',
-            'border bg-muted text-muted-foreground',
-            radius
-          )}
-          style={{ borderColor: 'hsl(var(--border))' }}>
-            <svg className="w-12 h-12 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          <div
+            className={cn(
+              'w-full h-56 flex flex-col items-center justify-center',
+              'border bg-muted text-muted-foreground',
+              radius
+            )}
+            style={{ borderColor: 'hsl(var(--border))' }}
+          >
+            <svg
+              className="w-12 h-12 mb-2 opacity-50"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
             </svg>
             <span className="text-sm">Imagen no disponible</span>
           </div>
@@ -218,8 +262,18 @@ export const Gallery = memo(function Gallery({ images, radius = 'rounded-lg' }: 
           >
             {imageError.has(idx) ? (
               <div className="w-full h-full flex items-center justify-center bg-muted">
-                <svg className="w-6 h-6 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <svg
+                  className="w-6 h-6 opacity-50"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
                 </svg>
               </div>
             ) : (
@@ -236,7 +290,15 @@ export const Gallery = memo(function Gallery({ images, radius = 'rounded-lg' }: 
       </div>
 
       {/* Lightbox */}
-      {isLightboxOpen && <Lightbox images={images} currentIndex={currentIndex} onClose={() => setIsLightboxOpen(false)} onNext={nextImage} onPrev={prevImage} />}
+      {isLightboxOpen && (
+        <Lightbox
+          images={images}
+          currentIndex={currentIndex}
+          onClose={() => setIsLightboxOpen(false)}
+          onNext={nextImage}
+          onPrev={prevImage}
+        />
+      )}
     </div>
   )
 })
@@ -280,7 +342,7 @@ function Lightbox({ images, currentIndex, onClose, onNext, onPrev }: LightboxPro
       {images.length > 1 && (
         <>
           <button
-            onClick={(e) => {
+            onClick={e => {
               e.stopPropagation()
               onPrev()
             }}
@@ -290,7 +352,7 @@ function Lightbox({ images, currentIndex, onClose, onNext, onPrev }: LightboxPro
             <ChevronLeft size={32} className="text-white" />
           </button>
           <button
-            onClick={(e) => {
+            onClick={e => {
               e.stopPropagation()
               onNext()
             }}
@@ -307,7 +369,7 @@ function Lightbox({ images, currentIndex, onClose, onNext, onPrev }: LightboxPro
         src={images[currentIndex].src}
         alt={images[currentIndex].alt || `Imagen ${currentIndex + 1}`}
         className="max-w-[90%] max-h-[90vh] object-contain"
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
       />
     </div>
   )

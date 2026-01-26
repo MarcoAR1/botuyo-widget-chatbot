@@ -195,10 +195,9 @@ describe('useIsMobile', () => {
         value: 700,
       })
 
-      const { result, rerender } = renderHook(
-        ({ bp }) => useIsMobile(bp),
-        { initialProps: { bp: 640 } }
-      )
+      const { result, rerender } = renderHook(({ bp }) => useIsMobile(bp), {
+        initialProps: { bp: 640 },
+      })
 
       // Con breakpoint 640, width 700 = desktop
       expect(result.current).toBe(false)
@@ -240,7 +239,7 @@ describe('useIsMobile', () => {
 
       // Intentar disparar resize después de unmount
       Object.defineProperty(window, 'innerWidth', { value: 500 })
-      
+
       // No debe lanzar error al disparar el evento
       expect(() => {
         window.dispatchEvent(new Event('resize'))

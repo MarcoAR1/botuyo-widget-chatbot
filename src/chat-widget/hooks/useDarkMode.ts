@@ -9,26 +9,34 @@ export function useDarkMode(containerRef: React.RefObject<HTMLDivElement>) {
 
   useEffect(() => {
     let lastParent: Element | null = null
-    
+
     const detectDarkMode = () => {
       if (!containerRef.current) return
-      
+
       // Buscar dark en los PADRES, NO en el widget mismo
       const hasClosestDark = !!containerRef.current.parentElement?.closest('.dark')
-      const hasRootDark = !!document.getElementById('botuyo-chat-widget-root')?.classList.contains('dark')
-      
+      const hasRootDark = !!document
+        .getElementById('botuyo-chat-widget-root')
+        ?.classList.contains('dark')
+
       // También buscar dark en CUALQUIER ANCESTOR del widget-root (para casos donde se mueve el widget)
       const widgetRoot = document.getElementById('botuyo-chat-widget-root')
       const hasRootParentDark = !!widgetRoot?.parentElement?.closest('.dark')
-      
+
       const hasDocElementDark = document.documentElement.classList.contains('dark')
       const hasBodyDark = document.body.classList.contains('dark')
-      
+
       // Detectar prefers-color-scheme: dark
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      
-      const isDark = hasClosestDark || hasRootDark || hasRootParentDark || hasDocElementDark || hasBodyDark || prefersDark
-      
+
+      const isDark =
+        hasClosestDark ||
+        hasRootDark ||
+        hasRootParentDark ||
+        hasDocElementDark ||
+        hasBodyDark ||
+        prefersDark
+
       // Aplicar directamente al DOM (más confiable que React state)
       if (containerRef.current) {
         if (isDark) {
@@ -37,14 +45,14 @@ export function useDarkMode(containerRef: React.RefObject<HTMLDivElement>) {
           containerRef.current.classList.remove('dark')
         }
       }
-      
+
       // También actualizar state para otros componentes
       setIsDarkMode(isDark)
     }
 
     // Ejecutar detectDarkMode cada vez que algo cambie
     detectDarkMode()
-    
+
     // Listener para cambios en prefers-color-scheme
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
     const handleMediaChange = () => detectDarkMode()
@@ -54,46 +62,46 @@ export function useDarkMode(containerRef: React.RefObject<HTMLDivElement>) {
     const observer = new MutationObserver(() => {
       detectDarkMode()
     })
-    
+
     // Observar el root standalone container si existe
     const rootContainer = document.getElementById('botuyo-chat-widget-root')
     if (rootContainer) {
       observer.observe(rootContainer, {
         attributes: true,
-        attributeFilter: ['class']
+        attributeFilter: ['class'],
       })
-      
+
       // Observar el parent del root container también
       if (rootContainer.parentElement) {
         observer.observe(rootContainer.parentElement, {
           attributes: true,
           attributeFilter: ['class'],
-          childList: true // Para detectar cuando el widget se mueve
+          childList: true, // Para detectar cuando el widget se mueve
         })
         lastParent = rootContainer.parentElement
       }
     }
-    
+
     // Observar document.documentElement y body
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['class']
+      attributeFilter: ['class'],
     })
     observer.observe(document.body, {
       attributes: true,
-      attributeFilter: ['class']
+      attributeFilter: ['class'],
     })
-    
+
     // Observar todos los contenedores padre actuales
     let parent = containerRef.current?.parentElement
     while (parent) {
       observer.observe(parent, {
         attributes: true,
-        attributeFilter: ['class']
+        attributeFilter: ['class'],
       })
       parent = parent.parentElement
     }
-    
+
     // Polling ligero para detectar cuando el widget-root cambia de parent
     // Esto es necesario porque MutationObserver no puede seguir un elemento cuando se mueve
     const pollInterval = setInterval(() => {
@@ -105,7 +113,7 @@ export function useDarkMode(containerRef: React.RefObject<HTMLDivElement>) {
           observer.observe(widgetRoot.parentElement, {
             attributes: true,
             attributeFilter: ['class'],
-            childList: true
+            childList: true,
           })
           lastParent = widgetRoot.parentElement
         }

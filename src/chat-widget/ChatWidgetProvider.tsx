@@ -1,7 +1,7 @@
 /**
  * @package @botuyo/chat-widget
  * ChatWidgetProvider - React Context Provider para el widget
- * 
+ *
  * Este provider permite usar el widget de chat como un componente React estándar
  * con acceso a su estado y métodos a través de hooks.
  */
@@ -63,11 +63,11 @@ export interface ChatWidgetProviderProps extends ChatWidgetProps {
 
 /**
  * Provider que envuelve tu aplicación para dar acceso al Chat Widget
- * 
+ *
  * @example
  * ```tsx
  * import { ChatWidgetProvider } from '@botuyo/chat-widget'
- * 
+ *
  * function App() {
  *   return (
  *     <ChatWidgetProvider
@@ -141,19 +141,22 @@ export function ChatWidgetProvider({
   }
 
   // Handler para actualizar el unread count
-  const handleEvent = useCallback((eventName: string, data: any) => {
-    if (eventName === 'message:received' && !isOpen) {
-      setUnreadCount(prev => prev + 1)
-    }
-    widgetProps.onEvent?.(eventName, data)
-  }, [isOpen, widgetProps])
+  const handleEvent = useCallback(
+    (eventName: string, data: any) => {
+      if (eventName === 'message:received' && !isOpen) {
+        setUnreadCount(prev => prev + 1)
+      }
+      widgetProps.onEvent?.(eventName, data)
+    },
+    [isOpen, widgetProps]
+  )
 
   return (
     <ChatWidgetContext.Provider value={contextValue}>
       {children}
       <ChatWidget
         {...widgetProps}
-        onStateChange={(newIsOpen) => {
+        onStateChange={newIsOpen => {
           setIsOpen(newIsOpen)
           if (newIsOpen) {
             setUnreadCount(0)
@@ -170,14 +173,14 @@ export function ChatWidgetProvider({
 
 /**
  * Hook para acceder al contexto del Chat Widget
- * 
+ *
  * @throws Error si se usa fuera del ChatWidgetProvider
- * 
+ *
  * @example
  * ```tsx
  * function MyComponent() {
  *   const chat = useChatWidget()
- *   
+ *
  *   return (
  *     <button onClick={chat.open}>
  *       Abrir Chat {chat.unreadCount > 0 && `(${chat.unreadCount})`}
@@ -188,14 +191,14 @@ export function ChatWidgetProvider({
  */
 export function useChatWidget(): ChatWidgetContextValue {
   const context = useContext(ChatWidgetContext)
-  
+
   if (!context) {
     throw new Error(
       'useChatWidget must be used within a ChatWidgetProvider. ' +
-      'Wrap your app with <ChatWidgetProvider>...</ChatWidgetProvider>'
+        'Wrap your app with <ChatWidgetProvider>...</ChatWidgetProvider>'
     )
   }
-  
+
   return context
 }
 

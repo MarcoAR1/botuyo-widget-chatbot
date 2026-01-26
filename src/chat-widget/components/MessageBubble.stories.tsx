@@ -1,6 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { MessageBubble } from './MessageBubble'
-import type { TextMessage, ImageMessage, LocationMessage, FileMessage, AudioMessage } from '../types'
+import type {
+  TextMessage,
+  ImageMessage,
+  LocationMessage,
+  FileMessage,
+  AudioMessage,
+} from '../types'
 
 /**
  * MessageBubble muestra un mensaje individual en el chat.
@@ -14,7 +20,7 @@ const meta = {
   },
   tags: ['autodocs'],
   decorators: [
-    (Story) => (
+    Story => (
       <div style={{ maxWidth: '600px', padding: '20px', background: '#f5f5f5' }}>
         <Story />
       </div>
@@ -218,7 +224,8 @@ export const LongMessage: Story = {
     message: {
       ...baseMessage,
       id: '11',
-      content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+      content:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
     },
     primaryColor: '#10b981',
     avatars: {},

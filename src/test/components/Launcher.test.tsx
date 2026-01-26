@@ -23,11 +23,7 @@ describe('Launcher', () => {
 
     it('should render with logo URL', () => {
       const { container } = render(
-        <Launcher 
-          isOpen={false}
-          onClick={mockOnClick}
-          logoUrl="https://example.com/avatar.jpg"
-        />
+        <Launcher isOpen={false} onClick={mockOnClick} logoUrl="https://example.com/avatar.jpg" />
       )
 
       const avatar = container.querySelector('img')
@@ -36,36 +32,28 @@ describe('Launcher', () => {
     })
 
     it('should use icon when no logo provided', () => {
-      const { container } = render(
-        <Launcher isOpen={false} onClick={mockOnClick} />
-      )
+      const { container } = render(<Launcher isOpen={false} onClick={mockOnClick} />)
 
       const icon = container.querySelector('svg.lucide-message-circle')
       expect(icon).toBeInTheDocument()
     })
 
     it('should render launcher in closed state', () => {
-      const { container } = render(
-        <Launcher onClick={mockOnClick} isOpen={false} />
-      )
+      const { container } = render(<Launcher onClick={mockOnClick} isOpen={false} />)
 
       const button = container.querySelector('button')
       expect(button).toBeInTheDocument()
     })
 
     it('should render launcher in open state', () => {
-      const { container } = render(
-        <Launcher onClick={mockOnClick} isOpen={true} />
-      )
+      const { container } = render(<Launcher onClick={mockOnClick} isOpen={true} />)
 
       const button = container.querySelector('button')
       expect(button).toBeInTheDocument()
     })
 
     it('should show different icons based on state', () => {
-      const { container, rerender } = render(
-        <Launcher isOpen={false} onClick={mockOnClick} />
-      )
+      const { container, rerender } = render(<Launcher isOpen={false} onClick={mockOnClick} />)
 
       const messageIcon = container.querySelector('svg.lucide-message-circle')
       expect(messageIcon).toBeInTheDocument()
@@ -133,12 +121,7 @@ describe('Launcher', () => {
       }
 
       const { container } = render(
-        <Launcher 
-          isOpen={false}
-          onClick={mockOnClick}
-          emotion="happy"
-          avatars={avatars}
-        />
+        <Launcher isOpen={false} onClick={mockOnClick} emotion="happy" avatars={avatars} />
       )
 
       const avatar = container.querySelector('img')
@@ -153,7 +136,7 @@ describe('Launcher', () => {
       }
 
       const { container } = render(
-        <Launcher 
+        <Launcher
           isOpen={false}
           onClick={mockOnClick}
           emotion="sorry"
@@ -172,12 +155,7 @@ describe('Launcher', () => {
       }
 
       const { container } = render(
-        <Launcher 
-          isOpen={false}
-          onClick={mockOnClick}
-          emotion="thinking"
-          avatars={avatars}
-        />
+        <Launcher isOpen={false} onClick={mockOnClick} emotion="thinking" avatars={avatars} />
       )
 
       const avatar = container.querySelector('img')
@@ -191,12 +169,7 @@ describe('Launcher', () => {
       }
 
       const { container } = render(
-        <Launcher 
-          isOpen={false}
-          onClick={mockOnClick}
-          emotion="confused"
-          avatars={avatars}
-        />
+        <Launcher isOpen={false} onClick={mockOnClick} emotion="confused" avatars={avatars} />
       )
 
       const avatar = container.querySelector('img')
@@ -209,12 +182,7 @@ describe('Launcher', () => {
       }
 
       const { container } = render(
-        <Launcher 
-          isOpen={false}
-          onClick={mockOnClick}
-          emotion="happy"
-          avatars={avatars}
-        />
+        <Launcher isOpen={false} onClick={mockOnClick} emotion="happy" avatars={avatars} />
       )
 
       const avatar = container.querySelector('img')
@@ -223,7 +191,7 @@ describe('Launcher', () => {
 
     it('should use logoUrl when no avatars object provided', () => {
       const { container } = render(
-        <Launcher 
+        <Launcher
           isOpen={false}
           onClick={mockOnClick}
           emotion="happy"
@@ -264,7 +232,7 @@ describe('Launcher', () => {
 
       const button = screen.getByRole('button', { name: /abrir chat/i })
       button.focus()
-      
+
       expect(button).toHaveFocus()
     })
 
@@ -399,18 +367,14 @@ describe('Launcher', () => {
 
   describe('Animation States', () => {
     it('should render in closed state without animations interfering', () => {
-      const { container } = render(
-        <Launcher onClick={mockOnClick} isOpen={false} />
-      )
+      const { container } = render(<Launcher onClick={mockOnClick} isOpen={false} />)
 
       const button = container.querySelector('button')
       expect(button).toBeInTheDocument()
     })
 
     it('should render in open state', () => {
-      const { container } = render(
-        <Launcher onClick={mockOnClick} isOpen={true} />
-      )
+      const { container } = render(<Launcher onClick={mockOnClick} isOpen={true} />)
 
       const button = container.querySelector('button')
       expect(button).toBeInTheDocument()

@@ -84,11 +84,7 @@ describe('ChatWindow', () => {
 
     it('should display bot logo', () => {
       const { container } = render(
-        <ChatWindow
-          {...defaultProps}
-          logoUrl="https://example.com/bot.jpg"
-          botName="Bot"
-        />
+        <ChatWindow {...defaultProps} logoUrl="https://example.com/bot.jpg" botName="Bot" />
       )
 
       const logo = container.querySelector('img[alt="Bot"]')
@@ -97,18 +93,14 @@ describe('ChatWindow', () => {
     })
 
     it('should show connected status indicator', () => {
-      const { container } = render(
-        <ChatWindow {...defaultProps} isConnected={true} />
-      )
+      const { container } = render(<ChatWindow {...defaultProps} isConnected={true} />)
 
       const statusIndicator = container.querySelector('.bg-emerald-500')
       expect(statusIndicator).toBeInTheDocument()
     })
 
     it('should show disconnected status indicator', () => {
-      const { container } = render(
-        <ChatWindow {...defaultProps} isConnected={false} />
-      )
+      const { container } = render(<ChatWindow {...defaultProps} isConnected={false} />)
 
       const statusIndicator = container.querySelector('.bg-amber-500')
       expect(statusIndicator).toBeInTheDocument()
@@ -134,10 +126,7 @@ describe('ChatWindow', () => {
 
     it('should pass welcome message to MessageList', () => {
       const { container } = render(
-        <ChatWindow
-          {...defaultProps}
-          welcomeMessage="Custom welcome message"
-        />
+        <ChatWindow {...defaultProps} welcomeMessage="Custom welcome message" />
       )
 
       // Verificar que el mensaje de bienvenida se pasa al componente
@@ -154,16 +143,9 @@ describe('ChatWindow', () => {
     })
 
     it('should use custom input placeholder', () => {
-      render(
-        <ChatWindow
-          {...defaultProps}
-          inputPlaceholder="Type your message here..."
-        />
-      )
+      render(<ChatWindow {...defaultProps} inputPlaceholder="Type your message here..." />)
 
-      expect(
-        screen.getByPlaceholderText('Type your message here...')
-      ).toBeInTheDocument()
+      expect(screen.getByPlaceholderText('Type your message here...')).toBeInTheDocument()
     })
 
     it('should call onSendMessage when message is sent', async () => {
@@ -185,18 +167,14 @@ describe('ChatWindow', () => {
 
   describe('Typing Indicator', () => {
     it('should show typing indicator when isTyping is true', () => {
-      const { container } = render(
-        <ChatWindow {...defaultProps} isTyping={true} />
-      )
+      const { container } = render(<ChatWindow {...defaultProps} isTyping={true} />)
 
       const typingDots = container.querySelectorAll('.animate-bounce')
       expect(typingDots.length).toBeGreaterThan(0)
     })
 
     it('should not show typing indicator when isTyping is false', () => {
-      const { container } = render(
-        <ChatWindow {...defaultProps} isTyping={false} />
-      )
+      const { container } = render(<ChatWindow {...defaultProps} isTyping={false} />)
 
       const typingDots = container.querySelectorAll('.animate-bounce')
       expect(typingDots.length).toBeLessThan(3)
@@ -250,9 +228,7 @@ describe('ChatWindow', () => {
     it('should render with attachment handler', () => {
       const mockOnSendAttachment = vi.fn()
 
-      render(
-        <ChatWindow {...defaultProps} onSendAttachment={mockOnSendAttachment} />
-      )
+      render(<ChatWindow {...defaultProps} onSendAttachment={mockOnSendAttachment} />)
 
       expect(screen.getByRole('dialog')).toBeInTheDocument()
     })
@@ -260,9 +236,7 @@ describe('ChatWindow', () => {
     it('should render with location handler', () => {
       const mockOnSendLocation = vi.fn()
 
-      render(
-        <ChatWindow {...defaultProps} onSendLocation={mockOnSendLocation} />
-      )
+      render(<ChatWindow {...defaultProps} onSendLocation={mockOnSendLocation} />)
 
       expect(screen.getByRole('dialog')).toBeInTheDocument()
     })

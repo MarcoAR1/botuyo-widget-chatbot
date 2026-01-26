@@ -1,0 +1,34 @@
+# Prettier Configuration
+
+# Print width
+printWidth: 100
+
+# Tab width
+tabWidth: 2
+
+# Use spaces instead of tabs
+useTabs: false
+
+# Semicolons
+semi: false
+
+# Single quotes
+singleQuote: true
+
+# Trailing commas
+trailingComma: es5
+
+# Bracket spacing
+bracketSpacing: true
+
+# Arrow function parentheses
+arrowParens: avoid
+
+# End of line
+endOfLine: lf
+
+# JSX quotes
+jsxSingleQuote: false
+
+# JSX bracket same line
+bracketSameLine: false

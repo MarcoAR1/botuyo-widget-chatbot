@@ -4,7 +4,14 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MessageBubble } from '../../chat-widget/components/MessageBubble'
-import type { TextMessage, ImageMessage, AudioMessage, LocationMessage, SystemMessage, FileMessage } from '../../chat-widget/types'
+import type {
+  TextMessage,
+  ImageMessage,
+  AudioMessage,
+  LocationMessage,
+  SystemMessage,
+  FileMessage,
+} from '../../chat-widget/types'
 
 describe('MessageBubble', () => {
   describe('Text Messages', () => {
@@ -98,7 +105,7 @@ describe('MessageBubble', () => {
 
       const list = container.querySelector('ul')
       expect(list).toBeInTheDocument()
-      
+
       const items = container.querySelectorAll('li')
       expect(items).toHaveLength(3)
     })
@@ -163,10 +170,13 @@ describe('MessageBubble', () => {
       const { container } = render(<MessageBubble message={message} />)
 
       // AudioPlayer is lazy loaded, wait for it
-      await vi.waitFor(() => {
-        const audio = container.querySelector('audio')
-        expect(audio).toBeInTheDocument()
-      }, { timeout: 1000 })
+      await vi.waitFor(
+        () => {
+          const audio = container.querySelector('audio')
+          expect(audio).toBeInTheDocument()
+        },
+        { timeout: 1000 }
+      )
     })
 
     it('should pass correct props to AudioPlayer', async () => {
@@ -178,14 +188,15 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      const { container } = render(
-        <MessageBubble message={message} primaryColor="200 100% 50%" />
-      )
+      const { container } = render(<MessageBubble message={message} primaryColor="200 100% 50%" />)
 
-      await vi.waitFor(() => {
-        const audio = container.querySelector('audio')
-        expect(audio).toHaveAttribute('src', 'https://example.com/audio.mp3')
-      }, { timeout: 1000 })
+      await vi.waitFor(
+        () => {
+          const audio = container.querySelector('audio')
+          expect(audio).toHaveAttribute('src', 'https://example.com/audio.mp3')
+        },
+        { timeout: 1000 }
+      )
     })
   })
 
@@ -203,10 +214,13 @@ describe('MessageBubble', () => {
       render(<MessageBubble message={message} />)
 
       // Gallery is lazy loaded
-      await vi.waitFor(() => {
-        const img = screen.getByAltText('Test image')
-        expect(img).toBeInTheDocument()
-      }, { timeout: 1000 })
+      await vi.waitFor(
+        () => {
+          const img = screen.getByAltText('Test image')
+          expect(img).toBeInTheDocument()
+        },
+        { timeout: 1000 }
+      )
     })
 
     it('should use default alt text when not provided', async () => {
@@ -220,10 +234,13 @@ describe('MessageBubble', () => {
 
       render(<MessageBubble message={message} />)
 
-      await vi.waitFor(() => {
-        const img = screen.getByAltText('Imagen')
-        expect(img).toBeInTheDocument()
-      }, { timeout: 1000 })
+      await vi.waitFor(
+        () => {
+          const img = screen.getByAltText('Imagen')
+          expect(img).toBeInTheDocument()
+        },
+        { timeout: 1000 }
+      )
     })
   })
 
@@ -233,7 +250,7 @@ describe('MessageBubble', () => {
         id: '14',
         type: 'location',
         latitude: 40.7128,
-        longitude: -74.0060,
+        longitude: -74.006,
         name: 'New York',
         sender: 'user',
         timestamp: new Date(),
@@ -305,9 +322,7 @@ describe('MessageBubble', () => {
         timestamp: new Date(),
       }
 
-      const { container } = render(
-        <MessageBubble message={message} primaryColor="200 100% 50%" />
-      )
+      const { container } = render(<MessageBubble message={message} primaryColor="200 100% 50%" />)
 
       expect(container).toBeInTheDocument()
     })
@@ -324,8 +339,8 @@ describe('MessageBubble', () => {
       }
 
       const { container } = render(
-        <MessageBubble 
-          message={message} 
+        <MessageBubble
+          message={message}
           isLast={true}
           botAvatar="https://example.com/avatar.jpg"
           botName="Mar"
@@ -346,8 +361,8 @@ describe('MessageBubble', () => {
       }
 
       const { container } = render(
-        <MessageBubble 
-          message={message} 
+        <MessageBubble
+          message={message}
           isFirst={false}
           isLast={false}
           botAvatar="https://example.com/avatar.jpg"
@@ -376,12 +391,7 @@ describe('MessageBubble', () => {
       }
 
       const { container } = render(
-        <MessageBubble 
-          message={message} 
-          isLast={true}
-          avatars={avatars}
-          botName="Mar"
-        />
+        <MessageBubble message={message} isLast={true} avatars={avatars} botName="Mar" />
       )
 
       const avatar = container.querySelector('img[src="https://example.com/happy.jpg"]')
@@ -400,9 +410,7 @@ describe('MessageBubble', () => {
         timestamp,
       }
 
-      const { container } = render(
-        <MessageBubble message={message} isLast={true} />
-      )
+      const { container } = render(<MessageBubble message={message} isLast={true} />)
 
       // Check for time format HH:MM
       expect(container.textContent).toMatch(/14:30/)
@@ -418,9 +426,7 @@ describe('MessageBubble', () => {
         timestamp,
       }
 
-      const { container } = render(
-        <MessageBubble message={message} isLast={true} />
-      )
+      const { container } = render(<MessageBubble message={message} isLast={true} />)
 
       expect(container.textContent).toMatch(/09:05/)
     })
@@ -453,10 +459,13 @@ describe('MessageBubble', () => {
 
       render(<MessageBubble message={message} />)
 
-      await vi.waitFor(() => {
-        const img = screen.getByAltText('Accessible image')
-        expect(img).toBeInTheDocument()
-      }, { timeout: 1000 })
+      await vi.waitFor(
+        () => {
+          const img = screen.getByAltText('Accessible image')
+          expect(img).toBeInTheDocument()
+        },
+        { timeout: 1000 }
+      )
     })
   })
 
@@ -513,9 +522,7 @@ describe('MessageBubble', () => {
         timestamp: new Date('invalid'),
       }
 
-      const { container } = render(
-        <MessageBubble message={message} isLast={true} />
-      )
+      const { container } = render(<MessageBubble message={message} isLast={true} />)
 
       expect(container).toBeInTheDocument()
     })

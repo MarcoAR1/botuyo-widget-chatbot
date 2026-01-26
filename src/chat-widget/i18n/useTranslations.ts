@@ -13,7 +13,7 @@ function getNestedValue(obj: any, path: string): string {
 
 /**
  * Hook para acceder a las traducciones con soporte multi-idioma
- * 
+ *
  * @example
  * const { t, setLocale, currentLocale } = useTranslations()
  * t('online') // 'En línea' (si locale es 'es')
@@ -25,12 +25,15 @@ export function useTranslations(namespace?: string, initialLocale?: SupportedLoc
     initialLocale || detectLanguage()
   )
 
-  const t = useCallback((key: string): string => {
-    const messages = translations[currentLocale]
-    const fullKey = namespace ? `${namespace}.${key}` : key
-    const translation = getNestedValue(messages, fullKey)
-    return translation || key
-  }, [currentLocale, namespace])
+  const t = useCallback(
+    (key: string): string => {
+      const messages = translations[currentLocale]
+      const fullKey = namespace ? `${namespace}.${key}` : key
+      const translation = getNestedValue(messages, fullKey)
+      return translation || key
+    },
+    [currentLocale, namespace]
+  )
 
   const setLocale = useCallback((locale: SupportedLocale) => {
     if (translations[locale]) {

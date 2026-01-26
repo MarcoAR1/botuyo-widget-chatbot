@@ -1,20 +1,20 @@
 /**
  * Ejemplo de uso del Sistema de Temas
- * 
+ *
  * Este archivo demuestra cómo usar los temas predefinidos,
  * crear temas personalizados y aplicarlos al widget.
  */
 
-import { 
+import {
   // Temas predefinidos
   DEFAULT_THEME,
   // PASEO_LIBRE_DARK_THEME,
   // CORPORATE_BLUE_THEME,
   // MINIMALIST_THEME,
-  
+
   // Constantes de variables CSS
   DEFAULT_CSS_VARIABLES,
-  
+
   // Utilidades
   mergeThemeWithDefaults,
   getSolidStyles,
@@ -61,7 +61,7 @@ const customSimpleTheme = {
   cssVariables: {
     primary: '280 100% 50%', // Morado
     // El resto usa valores por defecto
-  }
+  },
 }
 
 // Tema personalizado completo
@@ -73,18 +73,18 @@ const customFullTheme = {
   welcomeMessage: '¡Bienvenido! ¿Cómo te puedo ayudar?',
   inputPlaceholder: 'Escribe aquí...',
   cssVariables: {
-    background: '330 100% 98%',       // Rosa muy claro
-    foreground: '340 90% 10%',        // Rosa oscuro
+    background: '330 100% 98%', // Rosa muy claro
+    foreground: '340 90% 10%', // Rosa oscuro
     card: '0 0% 100%',
     cardForeground: '340 90% 10%',
-    primary: '340 82% 52%',           // Rosa vibrante
+    primary: '340 82% 52%', // Rosa vibrante
     primaryForeground: '0 0% 100%',
     muted: '330 40% 95%',
     mutedForeground: '340 10% 40%',
     border: '330 30% 90%',
     destructive: '0 84% 60%',
     radius: '1.5rem',
-  }
+  },
 }
 
 // ===================================
@@ -99,7 +99,7 @@ const userTheme = {
   cssVariables: {
     primary: '220 90% 56%', // Solo cambia el color primario
     // El resto se fusiona con DEFAULT_CSS_VARIABLES
-  }
+  },
 }
 
 export const mergedTheme = mergeThemeWithDefaults(userTheme)
@@ -176,7 +176,7 @@ export function MyApp() {
 
   // Selección de tema según modo oscuro
   // const theme = isDark ? PASEO_LIBRE_DARK_THEME : PASEO_LIBRE_THEME
-  
+
   return isDark // Demo: retorna el estado para evitar warning
 
   // Uso:
@@ -278,7 +278,7 @@ export {
   // darkTheme,
   // corporateTheme,
   // minimalistTheme,
-  
+
   // Temas personalizados
   customSimpleTheme,
   customFullTheme,

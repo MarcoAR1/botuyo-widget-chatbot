@@ -9,8 +9,10 @@ const meta = {
     layout: 'centered',
   },
   decorators: [
-    (Story) => (
-      <div style={{ width: '500px', minHeight: '300px', padding: '20px', backgroundColor: '#f5f5f5' }}>
+    Story => (
+      <div
+        style={{ width: '500px', minHeight: '300px', padding: '20px', backgroundColor: '#f5f5f5' }}
+      >
         <Story />
       </div>
     ),
@@ -38,9 +40,7 @@ function ErrorTrigger() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-gray-600">
-        Haz clic en el botón para simular un error:
-      </p>
+      <p className="text-sm text-gray-600">Haz clic en el botón para simular un error:</p>
       <button
         onClick={() => setShouldThrow(true)}
         className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
@@ -60,20 +60,20 @@ export const Default: Story = {
       <div className="p-6 bg-white rounded-lg shadow">
         <h3 className="text-lg font-bold mb-2">Contenido Normal</h3>
         <p className="text-gray-600">
-          Este componente está envuelto en un ErrorBoundary. Si ocurre un error,
-          se mostrará un mensaje de fallback en lugar de romper toda la aplicación.
+          Este componente está envuelto en un ErrorBoundary. Si ocurre un error, se mostrará un
+          mensaje de fallback en lugar de romper toda la aplicación.
         </p>
       </div>
     ),
   },
-  render: (args) => <ErrorBoundary {...args} />,
+  render: args => <ErrorBoundary {...args} />,
 }
 
 export const WithError: Story = {
   args: {
     children: <ThrowError shouldThrow={true} />,
   },
-  render: (args) => <ErrorBoundary {...args} />,
+  render: args => <ErrorBoundary {...args} />,
 }
 
 export const CustomFallback: Story = {
@@ -82,16 +82,12 @@ export const CustomFallback: Story = {
     fallback: (
       <div className="p-8 bg-yellow-50 border-2 border-yellow-300 rounded-lg text-center">
         <div className="text-4xl mb-3">🚨</div>
-        <h3 className="text-lg font-bold text-yellow-900 mb-2">
-          Error Personalizado
-        </h3>
-        <p className="text-sm text-yellow-700">
-          Este es un mensaje de error personalizado
-        </p>
+        <h3 className="text-lg font-bold text-yellow-900 mb-2">Error Personalizado</h3>
+        <p className="text-sm text-yellow-700">Este es un mensaje de error personalizado</p>
       </div>
     ),
   },
-  render: (args) => <ErrorBoundary {...args} />,
+  render: args => <ErrorBoundary {...args} />,
 }
 
 export const Interactive: Story = {
@@ -141,5 +137,5 @@ export const WithErrorCallback: Story = {
       console.log('Información del error:', errorInfo)
     },
   },
-  render: (args) => <ErrorBoundary {...args} />,
+  render: args => <ErrorBoundary {...args} />,
 }

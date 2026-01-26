@@ -112,11 +112,11 @@ class ChatAnalytics {
         // Usar keepalive para garantizar envío al cerrar pestaña
         keepalive: true,
       })
-      
+
       logger.debug(`Analytics: Flushed ${batch.length} events`)
     } catch (error) {
       logger.error('Analytics flush failed:', error)
-      
+
       // Re-encolar solo si no excedemos el límite
       if (this.queue.length + batch.length <= this.MAX_QUEUE_SIZE) {
         this.queue.unshift(...batch)

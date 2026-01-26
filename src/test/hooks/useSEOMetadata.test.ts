@@ -163,7 +163,7 @@ describe('useSEOMetadata', () => {
       script.textContent = JSON.stringify({
         '@context': 'https://schema.org',
         '@type': 'WebPage',
-        'name': 'Test Page'
+        name: 'Test Page',
       })
       document.head.appendChild(script)
 
@@ -212,7 +212,7 @@ describe('useSEOMetadata', () => {
   describe('Complete Metadata', () => {
     it('should extract all metadata types together', async () => {
       document.title = 'Complete Test Page'
-      
+
       const metaDesc = document.createElement('meta')
       metaDesc.setAttribute('name', 'description')
       metaDesc.setAttribute('content', 'Test description')
@@ -244,10 +244,9 @@ describe('useSEOMetadata', () => {
     it('should clear metadata when disabled', async () => {
       document.title = 'Test Page'
 
-      const { result, rerender } = renderHook(
-        ({ enabled }) => useSEOMetadata(enabled),
-        { initialProps: { enabled: true } }
-      )
+      const { result, rerender } = renderHook(({ enabled }) => useSEOMetadata(enabled), {
+        initialProps: { enabled: true },
+      })
 
       await new Promise(resolve => setTimeout(resolve, 150))
       expect(result.current).toBeDefined()
@@ -273,7 +272,7 @@ describe('useSEOMetadata', () => {
       // Forzar re-render cambiando el pathname
       Object.defineProperty(window.location, 'pathname', {
         writable: true,
-        value: '/new-page'
+        value: '/new-page',
       })
 
       // Como el pathname es useMemo, necesitamos un nuevo renderHook

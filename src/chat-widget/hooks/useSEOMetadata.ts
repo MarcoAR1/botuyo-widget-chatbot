@@ -19,8 +19,8 @@ function extractSEOMetadata() {
 
   // Meta tags importantes
   const metaTags = document.querySelectorAll('meta')
-  
-  metaTags.forEach((tag) => {
+
+  metaTags.forEach(tag => {
     const name = tag.getAttribute('name')
     const property = tag.getAttribute('property')
     const content = tag.getAttribute('content')
@@ -47,7 +47,7 @@ function extractSEOMetadata() {
           const key = property.replace('og:', 'og_')
           metadata[key] = content
         }
-        
+
         // Twitter Card
         if (property.startsWith('twitter:')) {
           const key = property.replace('twitter:', 'twitter_')
@@ -62,7 +62,7 @@ function extractSEOMetadata() {
     const jsonLdScripts = document.querySelectorAll('script[type="application/ld+json"]')
     if (jsonLdScripts.length > 0) {
       const structuredData: any[] = []
-      jsonLdScripts.forEach((script) => {
+      jsonLdScripts.forEach(script => {
         try {
           const data = JSON.parse(script.textContent || '')
           structuredData.push(data)
@@ -105,7 +105,6 @@ export function useSEOMetadata(enabled: boolean = false) {
 
     return () => clearTimeout(timeoutId)
   }, [pathname, enabled])
-
 
   return enabled && Object.keys(seoMetadata).length > 0 ? seoMetadata : undefined
 }

@@ -9,7 +9,7 @@ export {
   X,
   ShieldCheck,
   Heart,
-  
+
   // InputArea icons
   Paperclip,
   Send,
@@ -22,19 +22,19 @@ export {
   MapPin,
   Mic,
   Trash2,
-  
+
   // AudioPlayer icons
   Play,
   Pause,
-  
+
   // Launcher icons
   MessageCircle,
-  
+
   // Gallery icons
   ChevronLeft,
   ChevronRight,
   ZoomIn,
-  
+
   // MessageBubble icons
   CheckCheck,
   MapPin as MapPinBubble,

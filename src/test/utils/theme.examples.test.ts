@@ -140,7 +140,7 @@ describe('theme.examples', () => {
   // describe('Monochrome Theme', () => {
   //   it('should use variations of the same base color', () => {
   //     const vars = monochromeTheme.cssVariables
-      
+
   //     expect(monochromeTheme.primaryColor).toMatch(/hsl\(221/)
   //     expect(vars.primary).toBe('221 83% 53%')
   //     expect(vars.foreground).toMatch(/^221/)

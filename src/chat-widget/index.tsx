@@ -12,10 +12,10 @@ export { ChatWidgetProvider, useChatWidget } from './ChatWidgetProvider'
 export type { ChatWidgetContextValue } from './ChatWidgetProvider'
 
 // ========== Tipos ==========
-export type { 
+export type {
   ChatWidgetProps,
-  ChatTheme, 
-  UserContext, 
+  ChatTheme,
+  UserContext,
   ChatMessage,
   TextMessage,
   ImageMessage,

@@ -1,0 +1,30 @@
+# Ignore build outputs
+dist/
+build/
+storybook-static/
+
+# Ignore dependencies
+node_modules/
+
+# Ignore coverage
+coverage/
+
+# Ignore generated files
+*.d.ts
+*.js
+!vite.config.mjs
+!eslint.config.js
+!postcss.config.cjs
+!playwright.config.ts
+
+# Ignore test reports
+playwright-report/
+test-results/
+
+# Ignore lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Ignore markdown (optional - comment if you want to format MD)
+# *.md

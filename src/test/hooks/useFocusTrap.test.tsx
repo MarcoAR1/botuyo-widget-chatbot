@@ -7,11 +7,11 @@ import userEvent from '@testing-library/user-event'
 import { useFocusTrap } from '../../chat-widget/hooks/useFocusTrap'
 
 // Componente wrapper para testear el hook
-function TestComponent({ 
-  enabled, 
+function TestComponent({
+  enabled,
   onEscape,
-  returnFocusRef 
-}: { 
+  returnFocusRef,
+}: {
   enabled: boolean
   onEscape?: () => void
   returnFocusRef?: React.RefObject<HTMLElement>
@@ -82,7 +82,7 @@ describe('useFocusTrap', () => {
       await new Promise(resolve => setTimeout(resolve, 150))
 
       const button1 = screen.getByText('Button 1')
-      
+
       button1.focus()
       expect(document.activeElement).toBe(button1)
 
@@ -99,7 +99,7 @@ describe('useFocusTrap', () => {
     it('should call onEscape when Escape is pressed', async () => {
       const user = userEvent.setup()
       const onEscape = vi.fn()
-      
+
       render(<TestComponent enabled={true} onEscape={onEscape} />)
 
       await new Promise(resolve => setTimeout(resolve, 150))
@@ -112,7 +112,7 @@ describe('useFocusTrap', () => {
     it('should not call onEscape when disabled', async () => {
       const user = userEvent.setup()
       const onEscape = vi.fn()
-      
+
       render(<TestComponent enabled={false} onEscape={onEscape} />)
 
       await user.keyboard('{Escape}')
@@ -168,4 +168,3 @@ describe('useFocusTrap', () => {
     })
   })
 })
-

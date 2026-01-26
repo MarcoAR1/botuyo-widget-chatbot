@@ -1,7 +1,7 @@
 /**
  * @package @botuyo/chat-widget
  * Test: Configuración de tema desde Socket
- * 
+ *
  * Verifica que el widget puede recibir y aplicar configuración completa
  * desde el backend a través de los eventos:
  * - connection_ack (config básico)
@@ -92,7 +92,7 @@ describe('Socket Theme Configuration', () => {
       const connectionAckHandler = mockSocket.on.mock.calls.find(
         (call: any) => call[0] === 'connection_ack'
       )?.[1]
-      
+
       await connectionAckHandler?.(connectionAckPayload)
 
       // Esperar a que se apliquen los cambios y el widget se renderice

@@ -3,11 +3,7 @@
  * Tipos principales del Chat Widget
  */
 
-import {
-  BotEmotion,
-  EmotionAvatarMap,
-  PromptStrategy,
-} from '../components/Launcher'
+import { BotEmotion, EmotionAvatarMap, PromptStrategy } from '../components/Launcher'
 
 /**
  * Configuración de funcionalidades multimedia
@@ -179,7 +175,7 @@ export interface ChatTheme {
     destructive?: string
     /** Border radius base (ej: "0.5rem") */
     radius?: string
-    
+
     // Design System - Spacing
     /** Spacing 1 - Extra small (ej: "0.25rem") */
     spacing1?: string
@@ -218,14 +214,7 @@ export interface AuthenticatedUser {
 }
 
 // ========== Tipos de Mensajes ==========
-export type MessageType =
-  | 'text'
-  | 'image'
-  | 'location'
-  | 'system'
-  | 'audio'
-  | 'location'
-  | 'file'
+export type MessageType = 'text' | 'image' | 'location' | 'system' | 'audio' | 'location' | 'file'
 
 // 🔥 CORRECCIÓN 1: Agregamos 'system' a los senders permitidos
 export type MessageSender = 'user' | 'bot' | 'system'

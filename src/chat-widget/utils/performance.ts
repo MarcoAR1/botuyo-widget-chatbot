@@ -1,14 +1,14 @@
 /**
  * @package @botuyo/chat-widget
  * Performance utilities - throttle, debounce, lazy loading
- * 
+ *
  * Principio: Single Responsibility - solo optimizaciones de rendimiento
  */
 
 /**
  * Throttle: limita la ejecución a una vez por intervalo
  * Útil para eventos frecuentes como scroll, resize, typing
- * 
+ *
  * @example
  * const handleScroll = throttle(() => console.log('scroll'), 250)
  * window.addEventListener('scroll', handleScroll)
@@ -47,7 +47,7 @@ export function throttle<T extends (...args: any[]) => any>(
 /**
  * Debounce: retrasa la ejecución hasta que pasen N ms sin nuevas llamadas
  * Útil para input search, auto-save, validación
- * 
+ *
  * @example
  * const handleSearch = debounce((query) => fetchResults(query), 300)
  * input.addEventListener('input', (e) => handleSearch(e.target.value))
@@ -72,18 +72,16 @@ export function debounce<T extends (...args: any[]) => any>(
 
 /**
  * Memoización simple para cálculos costosos
- * 
+ *
  * @example
  * const expensiveCalc = memoize((n: number) => fibonacci(n))
  */
-export function memoize<T extends (...args: any[]) => any>(
-  func: T
-): T {
+export function memoize<T extends (...args: any[]) => any>(func: T): T {
   const cache = new Map<string, ReturnType<T>>()
 
   return ((...args: Parameters<T>) => {
     const key = JSON.stringify(args)
-    
+
     if (cache.has(key)) {
       return cache.get(key)!
     }
@@ -115,7 +113,7 @@ export function rafThrottle<T extends (...args: any[]) => any>(
 /**
  * Batch de operaciones para reducir re-renders
  * Acumula llamadas y ejecuta todas juntas
- * 
+ *
  * @example
  * const batchedUpdate = createBatcher((items) => {
  *   setState(prev => [...prev, ...items])
@@ -148,8 +146,8 @@ export function createLazyLoader(
   callback: (entry: IntersectionObserverEntry) => void,
   options?: IntersectionObserverInit
 ): IntersectionObserver {
-  return new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
+  return new IntersectionObserver(entries => {
+    entries.forEach(entry => {
       if (entry.isIntersecting) {
         callback(entry)
       }

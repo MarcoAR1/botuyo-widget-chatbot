@@ -13,13 +13,17 @@ interface AudioPlayerProps {
 
 export type { AudioPlayerProps }
 
-export const AudioPlayer = memo(function AudioPlayer({ url, isBot, primaryColor }: AudioPlayerProps) {
+export const AudioPlayer = memo(function AudioPlayer({
+  url,
+  isBot,
+  primaryColor,
+}: AudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [duration, setDuration] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const audioRef = useRef<HTMLAudioElement>(null)
-  
+
   const brandColor = useMemo(() => getPrimaryColor({ primaryColor }), [primaryColor])
 
   const togglePlay = () => {

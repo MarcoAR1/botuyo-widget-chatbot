@@ -197,7 +197,7 @@ describe('ErrorBoundary', () => {
 
     it('should reset error state when reset button clicked', async () => {
       const user = userEvent.setup()
-      
+
       // Componente que puede cambiar su comportamiento
       let shouldThrow = true
       const DynamicComponent = () => {

@@ -100,7 +100,7 @@ describe('Gallery', () => {
       render(<Gallery images={twoImages} />)
 
       const images = screen.getAllByRole('img')
-      images.forEach((img) => {
+      images.forEach(img => {
         expect(img).toHaveClass('cursor-pointer')
       })
     })
@@ -181,7 +181,7 @@ describe('Gallery', () => {
       render(<Gallery images={threeImages} />)
 
       const images = screen.getAllByRole('img')
-      images.forEach((img) => {
+      images.forEach(img => {
         expect(img).toHaveAttribute('alt')
       })
     })
@@ -190,7 +190,7 @@ describe('Gallery', () => {
       render(<Gallery images={manyImages} />)
 
       const images = screen.getAllByRole('img')
-      images.forEach((img) => {
+      images.forEach(img => {
         expect(img).toHaveAttribute('loading', 'lazy')
       })
     })
@@ -199,7 +199,7 @@ describe('Gallery', () => {
       render(<Gallery images={manyImages} />)
 
       const buttons = screen.getAllByRole('button')
-      buttons.forEach((button) => {
+      buttons.forEach(button => {
         expect(button).toBeInTheDocument()
       })
     })

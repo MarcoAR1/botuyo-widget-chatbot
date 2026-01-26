@@ -1,6 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { ChatWindow } from './ChatWindow'
-import type { ChatMessage, TextMessage, ImageMessage, LocationMessage, FileMessage, AudioMessage } from '../types'
+import type {
+  ChatMessage,
+  TextMessage,
+  ImageMessage,
+  LocationMessage,
+  FileMessage,
+  AudioMessage,
+} from '../types'
 
 const meta = {
   title: 'Components/ChatWindow',
@@ -71,7 +78,8 @@ const sampleMessages: ChatMessage[] = [
   {
     id: '3',
     type: 'text',
-    content: 'Con gusto te ayudo. Ofrecemos varios servicios:\n\n1. **Consultoría**\n2. **Desarrollo**\n3. **Soporte técnico**\n\n¿Cuál te interesa más?',
+    content:
+      'Con gusto te ayudo. Ofrecemos varios servicios:\n\n1. **Consultoría**\n2. **Desarrollo**\n3. **Soporte técnico**\n\n¿Cuál te interesa más?',
     sender: 'bot',
     timestamp: new Date(Date.now() - 3 * 60 * 1000),
   } as TextMessage,
@@ -140,7 +148,7 @@ export const WithLocation: Story = {
         id: '4',
         type: 'location',
         latitude: 40.7128,
-        longitude: -74.0060,
+        longitude: -74.006,
         name: 'Nueva York, NY',
         sender: 'bot',
         timestamp: new Date(Date.now() - 2 * 60 * 1000),
@@ -197,7 +205,8 @@ export const LongConversation: Story = {
       {
         id: '5',
         type: 'text',
-        content: '¡Excelente! Nuestro equipo de desarrollo puede ayudarte con:\n\n- Aplicaciones web\n- Aplicaciones móviles\n- APIs y backends\n- Integraciones',
+        content:
+          '¡Excelente! Nuestro equipo de desarrollo puede ayudarte con:\n\n- Aplicaciones web\n- Aplicaciones móviles\n- APIs y backends\n- Integraciones',
         sender: 'bot',
         timestamp: new Date(Date.now() - 1 * 60 * 1000),
       } as TextMessage,
@@ -211,7 +220,8 @@ export const LongConversation: Story = {
       {
         id: '7',
         type: 'text',
-        content: 'Sí, somos expertos en React y todo el ecosistema moderno de JavaScript. También trabajamos con TypeScript, Next.js, y otras tecnologías.',
+        content:
+          'Sí, somos expertos en React y todo el ecosistema moderno de JavaScript. También trabajamos con TypeScript, Next.js, y otras tecnologías.',
         sender: 'bot',
         timestamp: new Date(),
       } as TextMessage,

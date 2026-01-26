@@ -8,7 +8,7 @@ const meta = {
     layout: 'centered',
   },
   decorators: [
-    (Story) => (
+    Story => (
       <div style={{ width: '300px', padding: '20px', backgroundColor: '#f5f5f5' }}>
         <Story />
       </div>

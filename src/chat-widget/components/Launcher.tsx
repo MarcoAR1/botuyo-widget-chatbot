@@ -77,7 +77,7 @@ export function Launcher({
   useEffect(() => {
     const images = Object.values(avatars).filter((url): url is string => !!url)
     if (logoUrl) images.push(logoUrl)
-    images.forEach((src) => {
+    images.forEach(src => {
       const img = new Image()
       img.src = src
     })
@@ -86,8 +86,7 @@ export function Launcher({
   // 2. PERSISTENCIA
   useEffect(() => {
     if (promptPersistence === 'forever') {
-      if (localStorage.getItem(STORAGE_KEY) === 'dismissed')
-        setHasDismissed(true)
+      if (localStorage.getItem(STORAGE_KEY) === 'dismissed') setHasDismissed(true)
     }
   }, [promptPersistence])
 
@@ -97,15 +96,13 @@ export function Launcher({
     setTimeout(() => setIsPromptVisible(false), 500)
     if (promptPersistence !== 'always') {
       setHasDismissed(true)
-      if (promptPersistence === 'forever')
-        localStorage.setItem(STORAGE_KEY, 'dismissed')
+      if (promptPersistence === 'forever') localStorage.setItem(STORAGE_KEY, 'dismissed')
     }
   }, [promptPersistence])
 
   // 3. CICLO VISUAL
   useEffect(() => {
-    const effectiveDismissed =
-      promptPersistence === 'always' ? false : hasDismissed
+    const effectiveDismissed = promptPersistence === 'always' ? false : hasDismissed
     if (effectiveDismissed || !starterPrompt || isOpen) {
       setIsPromptVisible(false)
       return
@@ -126,8 +123,7 @@ export function Launcher({
   const handleMainAction = () => {
     logger.debug('Launcher handleMainAction called, isOpen:', isOpen)
     setHasDismissed(true)
-    if (promptPersistence === 'forever')
-      localStorage.setItem(STORAGE_KEY, 'dismissed')
+    if (promptPersistence === 'forever') localStorage.setItem(STORAGE_KEY, 'dismissed')
     onClick()
   }
 
@@ -143,10 +139,7 @@ export function Launcher({
         className={cn(
           'transition-all duration-700 ease-in-out flex items-center',
           isPromptVisible
-            ? cn(
-                'opacity-100 translate-x-0 w-auto max-w-[350px]',
-                isRight ? 'mr-4' : 'ml-4'
-              )
+            ? cn('opacity-100 translate-x-0 w-auto max-w-[350px]', isRight ? 'mr-4' : 'ml-4')
             : 'opacity-0 translate-x-8 w-0 max-w-0 overflow-hidden'
         )}
       >
@@ -157,8 +150,8 @@ export function Launcher({
             isFadingOut && 'opacity-0 scale-95 transition-all duration-300',
             !isPromptVisible && 'hidden'
           )}
-          style={{ 
-            width: 'max-content', 
+          style={{
+            width: 'max-content',
             maxWidth: '280px',
             backgroundColor: 'hsl(var(--background))',
             color: 'hsl(var(--foreground))',
@@ -169,7 +162,7 @@ export function Launcher({
             {starterPrompt}
           </span>
           <button
-            onClick={(e) => {
+            onClick={e => {
               e.stopPropagation()
               handleClosePrompt()
             }}
@@ -183,18 +176,14 @@ export function Launcher({
             className={cn(
               'absolute top-1/2 -translate-y-1/2 w-0 h-0 border-[7px] border-transparent',
               // El borde debe coincidir con el color de fondo del globo (bg-background)
-              isRight
-                ? 'right-[-14px] border-l-background'
-                : 'left-[-14px] border-r-background'
+              isRight ? 'right-[-14px] border-l-background' : 'left-[-14px] border-r-background'
             )}
           />
           {/* Mini borde para el triángulo en dark mode */}
           <div
             className={cn(
               'absolute top-1/2 -translate-y-1/2 w-0 h-0 border-[7px] border-transparent -z-10',
-              isRight
-                ? 'right-[-15px] border-l-border'
-                : 'left-[-15px] border-r-border'
+              isRight ? 'right-[-15px] border-l-border' : 'left-[-15px] border-r-border'
             )}
           />
         </div>
@@ -231,9 +220,7 @@ export function Launcher({
             <div
               className={cn(
                 'absolute inset-0 transition-all duration-500 flex items-center justify-center',
-                isOpen
-                  ? 'opacity-0 scale-50 rotate-90'
-                  : 'opacity-100 scale-100 rotate-0'
+                isOpen ? 'opacity-0 scale-50 rotate-90' : 'opacity-100 scale-100 rotate-0'
               )}
             >
               {currentImageSrc && !imageError ? (
@@ -253,9 +240,7 @@ export function Launcher({
             <div
               className={cn(
                 'absolute inset-0 transition-all duration-500 flex items-center justify-center bg-black/5 dark:bg-white/10',
-                isOpen
-                  ? 'opacity-100 scale-100 rotate-0'
-                  : 'opacity-0 scale-50 -rotate-90'
+                isOpen ? 'opacity-100 scale-100 rotate-0' : 'opacity-0 scale-50 -rotate-90'
               )}
             >
               <X className="h-7 w-7 sm:h-8 sm:w-8 stroke-[2.5]" />

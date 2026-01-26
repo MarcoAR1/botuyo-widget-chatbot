@@ -1,7 +1,7 @@
 /**
  * @package @botuyo/chat-widget
  * Focus management hook for accessible dialogs
- * 
+ *
  * Principio: Single Responsibility - solo gestionar el foco del teclado
  */
 
@@ -18,26 +18,22 @@ interface UseFocusTrapOptions {
 
 /**
  * Hook para atrapar el foco dentro de un contenedor (dialog, modal)
- * 
+ *
  * Características:
  * - Previene que Tab salga del contenedor
  * - Retorna el foco al elemento anterior al cerrar
  * - Cierra con tecla Escape
  * - Compatible con lectores de pantalla
- * 
+ *
  * @example
- * const containerRef = useFocusTrap({ 
- *   enabled: isOpen, 
- *   onEscape: handleClose 
+ * const containerRef = useFocusTrap({
+ *   enabled: isOpen,
+ *   onEscape: handleClose
  * })
- * 
+ *
  * return <div ref={containerRef}>...</div>
  */
-export function useFocusTrap({
-  enabled,
-  returnFocusRef,
-  onEscape,
-}: UseFocusTrapOptions) {
+export function useFocusTrap({ enabled, returnFocusRef, onEscape }: UseFocusTrapOptions) {
   const containerRef = useRef<HTMLDivElement>(null)
   const previousActiveElementRef = useRef<HTMLElement | null>(null)
 
@@ -46,7 +42,7 @@ export function useFocusTrap({
 
     // Guardar elemento activo antes de abrir
     previousActiveElementRef.current = document.activeElement as HTMLElement
-    
+
     // Capturar returnFocusRef.current al inicio para evitar stale closure
     const returnTarget = returnFocusRef?.current
 
@@ -82,7 +78,7 @@ export function useFocusTrap({
         const focusableElements = container.querySelectorAll<HTMLElement>(
           'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
         )
-        
+
         if (focusableElements.length === 0) return
 
         const firstElement = focusableElements[0]
@@ -106,7 +102,7 @@ export function useFocusTrap({
     return () => {
       clearTimeout(focusTimeout)
       document.removeEventListener('keydown', handleKeyDown)
-      
+
       // Retornar foco al elemento capturado al inicio
       const targetToFocus = returnTarget || previousActiveElementRef.current
       if (targetToFocus && typeof targetToFocus.focus === 'function') {

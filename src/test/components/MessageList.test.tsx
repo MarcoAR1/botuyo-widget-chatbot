@@ -67,9 +67,7 @@ describe('MessageList', () => {
     })
 
     it('should show emoji when no logo provided', () => {
-      const { container } = render(
-        <MessageList messages={[]} isTyping={false} botName="Bot" />
-      )
+      const { container } = render(<MessageList messages={[]} isTyping={false} botName="Bot" />)
 
       expect(container.textContent).toContain('👋')
     })
@@ -84,20 +82,13 @@ describe('MessageList', () => {
     })
 
     it('should render single message', () => {
-      render(
-        <MessageList
-          messages={[mockMessages[0]]}
-          isTyping={false}
-        />
-      )
+      render(<MessageList messages={[mockMessages[0]]} isTyping={false} />)
 
       expect(screen.getByText('Hello')).toBeInTheDocument()
     })
 
     it('should render multiple messages in order', () => {
-      render(
-        <MessageList messages={mockMessages} isTyping={false} />
-      )
+      render(<MessageList messages={mockMessages} isTyping={false} />)
 
       // Verify both messages are rendered
       expect(screen.getByText('Hello')).toBeInTheDocument()
@@ -113,9 +104,7 @@ describe('MessageList', () => {
         timestamp: new Date(),
       }
 
-      render(
-        <MessageList messages={[messageWithEmptyContent]} isTyping={false} />
-      )
+      render(<MessageList messages={[messageWithEmptyContent]} isTyping={false} />)
 
       // Should render without crashing
       expect(screen.queryByText('Hello')).not.toBeInTheDocument()
@@ -124,9 +113,7 @@ describe('MessageList', () => {
 
   describe('Typing Indicator', () => {
     it('should show typing indicator when isTyping is true', () => {
-      const { container } = render(
-        <MessageList messages={mockMessages} isTyping={true} />
-      )
+      const { container } = render(<MessageList messages={mockMessages} isTyping={true} />)
 
       // Check for typing animation dots
       const typingDots = container.querySelectorAll('.animate-bounce')
@@ -134,9 +121,7 @@ describe('MessageList', () => {
     })
 
     it('should not show typing indicator when isTyping is false', () => {
-      const { container } = render(
-        <MessageList messages={mockMessages} isTyping={false} />
-      )
+      const { container } = render(<MessageList messages={mockMessages} isTyping={false} />)
 
       const typingDots = container.querySelectorAll('.animate-bounce')
       // Should only have 0 or very minimal animation elements (not the typing ones)
@@ -144,9 +129,7 @@ describe('MessageList', () => {
     })
 
     it('should show typing indicator with empty messages', () => {
-      const { container } = render(
-        <MessageList messages={[]} isTyping={true} />
-      )
+      const { container } = render(<MessageList messages={[]} isTyping={true} />)
 
       const typingDots = container.querySelectorAll('.animate-bounce')
       expect(typingDots.length).toBeGreaterThan(0)
@@ -155,26 +138,14 @@ describe('MessageList', () => {
 
   describe('Customization', () => {
     it('should apply custom primary color', () => {
-      render(
-        <MessageList
-          messages={[]}
-          isTyping={false}
-          primaryColor="hsl(200, 100%, 50%)"
-        />
-      )
+      render(<MessageList messages={[]} isTyping={false} primaryColor="hsl(200, 100%, 50%)" />)
 
       // Component should render without errors
       expect(screen.getByText('"¡Hola! ¿En qué puedo ayudarte?"')).toBeInTheDocument()
     })
 
     it('should use custom bot name', () => {
-      render(
-        <MessageList
-          messages={[]}
-          isTyping={false}
-          botName="CustomBot"
-        />
-      )
+      render(<MessageList messages={[]} isTyping={false} botName="CustomBot" />)
 
       expect(screen.getByText('CustomBot')).toBeInTheDocument()
     })
@@ -188,18 +159,14 @@ describe('MessageList', () => {
 
   describe('Scroll Behavior', () => {
     it('should render container with overflow-y-auto', () => {
-      const { container } = render(
-        <MessageList messages={mockMessages} isTyping={false} />
-      )
+      const { container } = render(<MessageList messages={mockMessages} isTyping={false} />)
 
       const scrollContainer = container.querySelector('.overflow-y-auto')
       expect(scrollContainer).toBeInTheDocument()
     })
 
     it('should have scroll-smooth class', () => {
-      const { container } = render(
-        <MessageList messages={mockMessages} isTyping={false} />
-      )
+      const { container } = render(<MessageList messages={mockMessages} isTyping={false} />)
 
       const scrollContainer = container.querySelector('.scroll-smooth')
       expect(scrollContainer).toBeInTheDocument()
@@ -250,7 +217,7 @@ describe('MessageList', () => {
         id: 'msg-location',
         type: 'location',
         latitude: 40.7128,
-        longitude: -74.0060,
+        longitude: -74.006,
         name: 'New York',
         sender: 'user',
         timestamp: new Date(),
@@ -280,18 +247,14 @@ describe('MessageList', () => {
 
   describe('Accessibility', () => {
     it('should be scrollable', () => {
-      const { container } = render(
-        <MessageList messages={mockMessages} isTyping={false} />
-      )
+      const { container } = render(<MessageList messages={mockMessages} isTyping={false} />)
 
       const scrollableElement = container.querySelector('.overflow-y-auto')
       expect(scrollableElement).toBeInTheDocument()
     })
 
     it('should have proper structure', () => {
-      const { container } = render(
-        <MessageList messages={mockMessages} isTyping={false} />
-      )
+      const { container } = render(<MessageList messages={mockMessages} isTyping={false} />)
 
       expect(container.firstChild).toBeInTheDocument()
     })
@@ -331,9 +294,7 @@ describe('MessageList', () => {
     })
 
     it('should handle rapid message updates', () => {
-      const { rerender } = render(
-        <MessageList messages={[mockMessages[0]]} isTyping={false} />
-      )
+      const { rerender } = render(<MessageList messages={[mockMessages[0]]} isTyping={false} />)
 
       rerender(<MessageList messages={mockMessages} isTyping={false} />)
 
@@ -344,9 +305,7 @@ describe('MessageList', () => {
 
   describe('Performance', () => {
     it('should memoize component', () => {
-      const { rerender } = render(
-        <MessageList messages={mockMessages} isTyping={false} />
-      )
+      const { rerender } = render(<MessageList messages={mockMessages} isTyping={false} />)
 
       // Rerender with same props shouldn't trigger updates
       rerender(<MessageList messages={mockMessages} isTyping={false} />)
@@ -358,9 +317,7 @@ describe('MessageList', () => {
       const messages1 = [...mockMessages]
       const messages2 = [...mockMessages]
 
-      const { rerender } = render(
-        <MessageList messages={messages1} isTyping={false} />
-      )
+      const { rerender } = render(<MessageList messages={messages1} isTyping={false} />)
 
       rerender(<MessageList messages={messages2} isTyping={false} />)
 

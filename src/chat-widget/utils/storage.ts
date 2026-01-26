@@ -33,7 +33,7 @@ class ChatStorage {
             const messageStore = db.createObjectStore('messages', { keyPath: 'id' })
             messageStore.createIndex('by-timestamp', 'timestamp')
           }
-          
+
           // Store de metadata (sessionId, configuración, etc.)
           if (!db.objectStoreNames.contains('metadata')) {
             db.createObjectStore('metadata')
@@ -60,10 +60,7 @@ class ChatStorage {
     if (!this.db) await this.init()
     try {
       const tx = this.db!.transaction('messages', 'readwrite')
-      await Promise.all([
-        ...messages.map(msg => tx.store.put(msg)),
-        tx.done,
-      ])
+      await Promise.all([...messages.map(msg => tx.store.put(msg)), tx.done])
     } catch (error) {
       logger.error('Failed to save messages:', error)
     }
@@ -72,10 +69,7 @@ class ChatStorage {
   async getMessages(limit = 100): Promise<ChatMessage[]> {
     if (!this.db) await this.init()
     try {
-      const messages = await this.db!.getAllFromIndex(
-        'messages',
-        'by-timestamp'
-      )
+      const messages = await this.db!.getAllFromIndex('messages', 'by-timestamp')
       return messages.slice(-limit) // Últimos N mensajes
     } catch (error) {
       logger.error('Failed to get messages:', error)
@@ -134,10 +128,7 @@ class ChatStorage {
   async clearAll() {
     if (!this.db) await this.init()
     try {
-      await Promise.all([
-        this.db!.clear('messages'),
-        this.db!.clear('metadata'),
-      ])
+      await Promise.all([this.db!.clear('messages'), this.db!.clear('metadata')])
       logger.info('All data cleared from IndexedDB')
     } catch (error) {
       logger.error('Failed to clear all data:', error)
@@ -149,11 +140,11 @@ class ChatStorage {
     try {
       const STORAGE_KEY = 'botuyo_chat_v1'
       const saved = localStorage.getItem(STORAGE_KEY)
-      
+
       if (!saved) return
-      
+
       const parsed = JSON.parse(saved)
-      
+
       // Migrar mensajes
       if (parsed.messages && Array.isArray(parsed.messages)) {
         const messages = parsed.messages.map((m: any) => ({
@@ -163,12 +154,12 @@ class ChatStorage {
         await this.saveMessages(messages)
         logger.info(`Migrated ${messages.length} messages from localStorage`)
       }
-      
+
       // Migrar sessionId
       if (parsed.sessionId) {
         await this.setMetadata({ sessionId: parsed.sessionId })
       }
-      
+
       // Limpiar localStorage después de migración exitosa
       localStorage.removeItem(STORAGE_KEY)
       logger.info('Migration from localStorage completed')

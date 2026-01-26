@@ -7,8 +7,8 @@ interface DynamicHeightOptions {
   isOpen: boolean
   headerHeight?: number
   marginTop?: number
-  height?: string  // Altura personalizada (ej: '600px', '80vh')
-  bottom?: string  // Distancia desde bottom (ej: '24px', '1.5rem')
+  height?: string // Altura personalizada (ej: '600px', '80vh')
+  bottom?: string // Distancia desde bottom (ej: '24px', '1.5rem')
 }
 
 const DESKTOP_MAX_HEIGHT = 700
@@ -44,7 +44,7 @@ export function useDynamicHeight({ isOpen, height, bottom }: DynamicHeightOption
           })
         }
       }
-      
+
       updateMobileHeight()
       window.visualViewport?.addEventListener('resize', updateMobileHeight)
       window.visualViewport?.addEventListener('scroll', updateMobileHeight)
@@ -64,8 +64,11 @@ export function useDynamicHeight({ isOpen, height, bottom }: DynamicHeightOption
       } else {
         // Calcular altura disponible dinámicamente
         const availableHeight = window.innerHeight - DESKTOP_MARGIN_TOP
-        const calculatedHeight = Math.min(DESKTOP_MAX_HEIGHT, Math.max(DESKTOP_MIN_HEIGHT, availableHeight))
-        
+        const calculatedHeight = Math.min(
+          DESKTOP_MAX_HEIGHT,
+          Math.max(DESKTOP_MIN_HEIGHT, availableHeight)
+        )
+
         setDynamicHeight({
           height: `${calculatedHeight}px`,
           maxHeight: `${availableHeight}px`,
@@ -81,7 +84,7 @@ export function useDynamicHeight({ isOpen, height, bottom }: DynamicHeightOption
     const cleanup = calculateHeight()
 
     window.addEventListener('resize', calculateHeight)
-    
+
     return () => {
       window.removeEventListener('resize', calculateHeight)
       if (cleanup) cleanup()

@@ -3,17 +3,7 @@
 import { useState, useRef, useMemo } from 'react'
 import { useTranslations } from '@/chat-widget/i18n'
 import type { MediaConfig } from '../types'
-import {
-  Send,
-  ImageIcon,
-  Loader2,
-  Plus,
-  MapPin,
-  Mic,
-  X,
-  Trash2,
-  FileIcon,
-} from './Icons'
+import { Send, ImageIcon, Loader2, Plus, MapPin, Mic, X, Trash2, FileIcon } from './Icons'
 import { cn } from '@/lib/utils'
 import { getPrimaryColor } from '../utils/theme'
 import { logger } from '../utils/logger'
@@ -73,13 +63,10 @@ export function InputArea({
   const timerRef = useRef<NodeJS.Timeout | null>(null)
 
   const brandColor = getPrimaryColor({ primaryColor })
-  
+
   // Fusionar configuración de medios con valores por defecto
-  const config = useMemo(
-    () => ({ ...DEFAULT_MEDIA_CONFIG, ...mediaConfig }),
-    [mediaConfig]
-  )
-  
+  const config = useMemo(() => ({ ...DEFAULT_MEDIA_CONFIG, ...mediaConfig }), [mediaConfig])
+
   // Verificar si hay alguna funcionalidad multimedia habilitada
   const hasMediaFeatures = useMemo(
     () => config.enableImages || config.enableAudio || config.enableFiles || config.enableLocation,
@@ -120,10 +107,7 @@ export function InputArea({
     // Auto-resize
     if (textareaRef.current) {
       textareaRef.current.style.height = '40px'
-      textareaRef.current.style.height = `${Math.min(
-        textareaRef.current.scrollHeight,
-        120,
-      )}px`
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`
     }
   }
 
@@ -135,7 +119,18 @@ export function InputArea({
     // Validar archivo con magic bytes
     const validationResult = await validateFile(file, {
       maxSizeMB: config.maxFileSizeMB || 10,
-      allowedExtensions: config.allowedFileTypes || ['jpg', 'jpeg', 'png', 'webp', 'gif', 'pdf', 'doc', 'docx', 'txt', 'zip'],
+      allowedExtensions: config.allowedFileTypes || [
+        'jpg',
+        'jpeg',
+        'png',
+        'webp',
+        'gif',
+        'pdf',
+        'doc',
+        'docx',
+        'txt',
+        'zip',
+      ],
       checkMagicBytes: true,
     })
 
@@ -150,7 +145,7 @@ export function InputArea({
       try {
         // Lazy load browser-image-compression
         const { default: imageCompression } = await import('browser-image-compression')
-        
+
         const options = {
           maxSizeMB: 0.8,
           maxWidthOrHeight: 1200,
@@ -175,10 +170,10 @@ export function InputArea({
       }
     } else {
       // Archivo general (PDF, DOC, etc.)
-      setAttachment({ 
-        type: 'file', 
-        file, 
-        previewUrl: '' 
+      setAttachment({
+        type: 'file',
+        file,
+        previewUrl: '',
       })
     }
   }
@@ -190,18 +185,16 @@ export function InputArea({
       const mediaRecorder = new MediaRecorder(stream)
       mediaRecorderRef.current = mediaRecorder
       audioChunksRef.current = []
-      mediaRecorder.ondataavailable = (e) => audioChunksRef.current.push(e.data)
+      mediaRecorder.ondataavailable = e => audioChunksRef.current.push(e.data)
       mediaRecorder.onstop = () => {
-        const audioFile = new File(
-          [new Blob(audioChunksRef.current)],
-          'voice.webm',
-          { type: 'audio/webm' },
-        )
+        const audioFile = new File([new Blob(audioChunksRef.current)], 'voice.webm', {
+          type: 'audio/webm',
+        })
         onSendAttachment?.(audioFile, 'audio')
       }
       mediaRecorder.start()
       setIsRecording(true)
-      timerRef.current = setInterval(() => setRecordingTime((v) => v + 1), 1000)
+      timerRef.current = setInterval(() => setRecordingTime(v => v + 1), 1000)
     } catch {
       alert('Micrófono denegado o no disponible')
     }
@@ -211,19 +204,19 @@ export function InputArea({
     if (mediaRecorderRef.current) {
       if (!send) mediaRecorderRef.current.onstop = null
       mediaRecorderRef.current.stop()
-      mediaRecorderRef.current.stream.getTracks().forEach((t) => t.stop())
+      mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop())
     }
     if (timerRef.current) clearInterval(timerRef.current)
     setIsRecording(false)
     setRecordingTime(0)
-    
+
     // Validar archivo de audio antes de enviar
     if (send && audioChunksRef.current.length > 0) {
       const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
       const audioFile = new File([audioBlob], `audio-${Date.now()}.webm`, {
         type: 'audio/webm',
       })
-      
+
       // Validar archivo de audio (ahora async)
       const validation = await validateFile(audioFile, { maxSizeMB: 10 })
       if (!validation.valid) {
@@ -232,7 +225,7 @@ export function InputArea({
         audioChunksRef.current = []
         return
       }
-      
+
       // Si es válido, enviar
       onSendAttachment?.(audioFile, 'audio')
       audioChunksRef.current = []
@@ -243,7 +236,7 @@ export function InputArea({
     <div className="relative">
       {/* PREVIEW DE ADJUNTO */}
       {(attachment || isCompressing) && (
-        <div 
+        <div
           className="absolute bottom-full left-0 mb-2 p-2 rounded-2xl border shadow-soft-2xl animate-in slide-in-from-bottom-2 z-50"
           style={{
             backgroundColor: 'hsl(var(--card))',
@@ -297,7 +290,7 @@ export function InputArea({
         ref={imageInputRef}
         onChange={handleFileSelect}
       />
-      
+
       {/* Input de archivos generales */}
       <input
         type="file"
@@ -312,7 +305,10 @@ export function InputArea({
         {hasMediaFeatures && onSendAttachment && (
           <div className="relative shrink-0">
             {isMenuOpen && (
-              <div className="absolute bottom-full left-0 flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-300 z-[60]" style={{ marginBottom: 'var(--spacing-2)', gap: 'var(--spacing-2)' }}>
+              <div
+                className="absolute bottom-full left-0 flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-300 z-[60]"
+                style={{ marginBottom: 'var(--spacing-2)', gap: 'var(--spacing-2)' }}
+              >
                 {/* Opción: Imágenes */}
                 {config.enableImages && (
                   <button
@@ -329,7 +325,7 @@ export function InputArea({
                     <ImageIcon size={18} className="text-blue-500" /> {t('fotos')}
                   </button>
                 )}
-                
+
                 {/* Opción: Archivos */}
                 {config.enableFiles && (
                   <button
@@ -346,14 +342,14 @@ export function InputArea({
                     <FileIcon size={18} className="text-purple-500" /> Archivos
                   </button>
                 )}
-                
+
                 {/* Opción: Ubicación */}
                 {config.enableLocation && onSendLocation && (
                   <button
                     onClick={() => {
                       setIsLoadingLocation(true)
                       navigator.geolocation.getCurrentPosition(
-                        (pos) => {
+                        pos => {
                           onSendLocation?.({
                             latitude: pos.coords.latitude,
                             longitude: pos.coords.longitude,
@@ -361,7 +357,7 @@ export function InputArea({
                           setIsLoadingLocation(false)
                           setIsMenuOpen(false)
                         },
-                        () => setIsLoadingLocation(false),
+                        () => setIsLoadingLocation(false)
                       )
                     }}
                     className="flex items-center border shadow-soft-2xl rounded-2xl transition-colors text-[10px] font-black uppercase tracking-widest"
@@ -389,7 +385,7 @@ export function InputArea({
                 'h-10 w-10 rounded-full flex items-center justify-center transition-all shadow-sm z-10',
                 isMenuOpen
                   ? 'bg-muted text-foreground rotate-45'
-                  : 'bg-muted/50 text-muted-foreground hover:bg-muted',
+                  : 'bg-muted/50 text-muted-foreground hover:bg-muted'
               )}
             >
               <Plus size={22} strokeWidth={2.5} />
@@ -401,9 +397,7 @@ export function InputArea({
         <div
           className={cn(
             'flex-1 relative flex items-center min-w-0 rounded-[24px] border px-4 transition-all shadow-inner',
-            isRecording
-              ? 'h-[44px]'
-              : 'min-h-[40px] max-h-[120px]',
+            isRecording ? 'h-[44px]' : 'min-h-[40px] max-h-[120px]'
           )}
           style={{
             backgroundColor: isRecording ? 'hsl(var(--destructive) / 0.05)' : 'hsl(var(--muted))',
@@ -411,7 +405,10 @@ export function InputArea({
           }}
         >
           {isRecording ? (
-            <div className="flex items-center w-full animate-in zoom-in-95" style={{ gap: 'var(--spacing-4)' }}>
+            <div
+              className="flex items-center w-full animate-in zoom-in-95"
+              style={{ gap: 'var(--spacing-4)' }}
+            >
               <button
                 onClick={() => stopRecording(false)}
                 className="text-destructive/50 hover:text-destructive"
@@ -420,7 +417,7 @@ export function InputArea({
               </button>
               <div className="flex-1 flex items-center" style={{ gap: 'var(--spacing-2)' }}>
                 <div className="flex gap-[3px]">
-                  {[1, 2, 3, 4].map((i) => (
+                  {[1, 2, 3, 4].map(i => (
                     <span
                       key={i}
                       className="w-[3px] h-3 bg-destructive/60 rounded-full animate-pulse"
@@ -451,8 +448,8 @@ export function InputArea({
                 onFocus={() => setIsMenuOpen(false)}
                 placeholder={placeholder}
                 className="w-full bg-transparent text-sm py-2.5 outline-none resize-none overflow-hidden leading-tight pr-8 scrollbar-none"
-                style={{ 
-                  scrollbarWidth: 'none', 
+                style={{
+                  scrollbarWidth: 'none',
                   msOverflowStyle: 'none',
                   color: 'hsl(var(--foreground))',
                 }}
@@ -461,9 +458,7 @@ export function InputArea({
                 <span
                   className={cn(
                     'absolute right-0 text-[9px] font-bold tabular-nums',
-                    inputValue.length >= MAX_CHARS
-                      ? 'text-destructive'
-                      : 'text-muted-foreground/40',
+                    inputValue.length >= MAX_CHARS ? 'text-destructive' : 'text-muted-foreground/40'
                   )}
                 >
                   {MAX_CHARS - inputValue.length}

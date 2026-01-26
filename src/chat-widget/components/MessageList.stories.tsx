@@ -1,6 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { MessageList } from './MessageList'
-import type { ChatMessage, TextMessage, ImageMessage, LocationMessage, AudioMessage } from '../types'
+import type {
+  ChatMessage,
+  TextMessage,
+  ImageMessage,
+  LocationMessage,
+  AudioMessage,
+} from '../types'
 
 const meta = {
   title: 'Components/MessageList',
@@ -9,8 +15,16 @@ const meta = {
     layout: 'centered',
   },
   decorators: [
-    (Story) => (
-      <div style={{ width: '400px', height: '500px', backgroundColor: '#ffffff', borderRadius: '8px', overflow: 'hidden' }}>
+    Story => (
+      <div
+        style={{
+          width: '400px',
+          height: '500px',
+          backgroundColor: '#ffffff',
+          borderRadius: '8px',
+          overflow: 'hidden',
+        }}
+      >
         <Story />
       </div>
     ),
@@ -96,7 +110,8 @@ export const WithMarkdown: Story = {
       {
         id: '1',
         type: 'text',
-        content: 'Aquí tienes información sobre nuestros **servicios**:\n\n1. Consultoría\n2. Desarrollo\n3. Soporte\n\nVisita [nuestro sitio](https://example.com)',
+        content:
+          'Aquí tienes información sobre nuestros **servicios**:\n\n1. Consultoría\n2. Desarrollo\n3. Soporte\n\nVisita [nuestro sitio](https://example.com)',
         sender: 'bot',
         timestamp: new Date(Date.now() - 5 * 60 * 1000),
       } as TextMessage,
@@ -130,7 +145,7 @@ export const WithLocation: Story = {
         id: '1',
         type: 'location',
         latitude: 40.7128,
-        longitude: -74.0060,
+        longitude: -74.006,
         name: 'Nueva York, NY',
         sender: 'bot',
         timestamp: new Date(Date.now() - 5 * 60 * 1000),
@@ -159,13 +174,18 @@ export const WithAudio: Story = {
 
 export const LongConversation: Story = {
   args: {
-    messages: Array.from({ length: 20 }, (_, i) => ({
-      id: `${i + 1}`,
-      type: 'text',
-      content: i % 2 === 0 ? `Mensaje del bot #${i / 2 + 1}` : `Mensaje del usuario #${(i + 1) / 2}`,
-      sender: (i % 2 === 0 ? 'bot' : 'user') as 'bot' | 'user',
-      timestamp: new Date(Date.now() - (20 - i) * 60 * 1000),
-    } as TextMessage)),
+    messages: Array.from(
+      { length: 20 },
+      (_, i) =>
+        ({
+          id: `${i + 1}`,
+          type: 'text',
+          content:
+            i % 2 === 0 ? `Mensaje del bot #${i / 2 + 1}` : `Mensaje del usuario #${(i + 1) / 2}`,
+          sender: (i % 2 === 0 ? 'bot' : 'user') as 'bot' | 'user',
+          timestamp: new Date(Date.now() - (20 - i) * 60 * 1000),
+        }) as TextMessage
+    ),
     isTyping: false,
     primaryColor: '#10b981',
   },
@@ -173,13 +193,17 @@ export const LongConversation: Story = {
 
 export const VirtualizedList: Story = {
   args: {
-    messages: Array.from({ length: 150 }, (_, i) => ({
-      id: `${i + 1}`,
-      type: 'text',
-      content: `Mensaje #${i + 1} - Esta es una conversación muy larga para demostrar la virtualización`,
-      sender: (i % 3 === 0 ? 'bot' : 'user') as 'bot' | 'user',
-      timestamp: new Date(Date.now() - (150 - i) * 60 * 1000),
-    } as TextMessage)),
+    messages: Array.from(
+      { length: 150 },
+      (_, i) =>
+        ({
+          id: `${i + 1}`,
+          type: 'text',
+          content: `Mensaje #${i + 1} - Esta es una conversación muy larga para demostrar la virtualización`,
+          sender: (i % 3 === 0 ? 'bot' : 'user') as 'bot' | 'user',
+          timestamp: new Date(Date.now() - (150 - i) * 60 * 1000),
+        }) as TextMessage
+    ),
     isTyping: false,
     primaryColor: '#10b981',
   },

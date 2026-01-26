@@ -1,7 +1,7 @@
 /**
  * @package @botuyo/chat-widget
  * Sistema de Temas y CSS Variables
- * 
+ *
  * Este módulo centraliza toda la gestión de temas del widget.
  * Exporta temas predefinidos, utilidades y constantes.
  */
@@ -15,70 +15,70 @@ import { ChatTheme } from '../types'
  */
 
 export interface CSSVariables {
-  background: string           // Fondo principal
-  foreground: string          // Texto principal
-  card: string                // Fondo de tarjetas
-  cardForeground: string      // Texto en tarjetas
-  primary: string             // Color primario
-  primaryForeground: string   // Texto sobre primario
-  muted: string               // Fondos atenuados
-  mutedForeground: string     // Texto atenuado
-  border: string              // Bordes
-  destructive: string         // Color de error
-  radius: string              // Radio de bordes
-  
+  background: string // Fondo principal
+  foreground: string // Texto principal
+  card: string // Fondo de tarjetas
+  cardForeground: string // Texto en tarjetas
+  primary: string // Color primario
+  primaryForeground: string // Texto sobre primario
+  muted: string // Fondos atenuados
+  mutedForeground: string // Texto atenuado
+  border: string // Bordes
+  destructive: string // Color de error
+  radius: string // Radio de bordes
+
   // Design System - Spacing
-  spacing1?: string           // 0.25rem (4px) - Extra small
-  spacing2?: string           // 0.5rem (8px) - Small
-  spacing3?: string           // 0.75rem (12px) - Medium small
-  spacing4?: string           // 1rem (16px) - Medium (default)
-  spacing5?: string           // 1.25rem (20px) - Medium large
-  spacing6?: string           // 1.5rem (24px) - Large
-  spacing8?: string           // 2rem (32px) - Extra large
+  spacing1?: string // 0.25rem (4px) - Extra small
+  spacing2?: string // 0.5rem (8px) - Small
+  spacing3?: string // 0.75rem (12px) - Medium small
+  spacing4?: string // 1rem (16px) - Medium (default)
+  spacing5?: string // 1.25rem (20px) - Medium large
+  spacing6?: string // 1.5rem (24px) - Large
+  spacing8?: string // 2rem (32px) - Extra large
 }
 
 /**
  * Valores CSS por defecto (Light Mode - BotUyo)
  */
 export const DEFAULT_CSS_VARIABLES: CSSVariables = {
-  background: '0 0% 100%',           // Blanco
-  foreground: '240 10% 3.9%',        // Negro azulado
-  card: '0 0% 100%',                 // Blanco
-  cardForeground: '240 10% 3.9%',    // Negro azulado
-  primary: '160 84% 39%',            // Verde BotUyo
-  primaryForeground: '0 0% 100%',    // Blanco
-  muted: '240 4.8% 95.9%',           // Gris claro
+  background: '0 0% 100%', // Blanco
+  foreground: '240 10% 3.9%', // Negro azulado
+  card: '0 0% 100%', // Blanco
+  cardForeground: '240 10% 3.9%', // Negro azulado
+  primary: '160 84% 39%', // Verde BotUyo
+  primaryForeground: '0 0% 100%', // Blanco
+  muted: '240 4.8% 95.9%', // Gris claro
   mutedForeground: '240 3.8% 46.1%', // Gris oscuro
-  border: '240 5.9% 90%',            // Gris borde
-  destructive: '0 84.2% 60.2%',      // Rojo
-  radius: '0.5rem',                  // 8px
-  
+  border: '240 5.9% 90%', // Gris borde
+  destructive: '0 84.2% 60.2%', // Rojo
+  radius: '0.5rem', // 8px
+
   // Design System - Spacing
-  spacing1: '0.25rem',               // 4px
-  spacing2: '0.5rem',                // 8px
-  spacing3: '0.75rem',               // 12px
-  spacing4: '1rem',                  // 16px (default)
-  spacing5: '0.75rem',               // 12px (padding default)
-  spacing6: '1.5rem',                // 24px
-  spacing8: '2rem',                  // 32px
+  spacing1: '0.25rem', // 4px
+  spacing2: '0.5rem', // 8px
+  spacing3: '0.75rem', // 12px
+  spacing4: '1rem', // 16px (default)
+  spacing5: '0.75rem', // 12px (padding default)
+  spacing6: '1.5rem', // 24px
+  spacing8: '2rem', // 32px
 }
 
 /**
  * Valores CSS para Dark Mode
  */
 export const DARK_CSS_VARIABLES: CSSVariables = {
-  background: '240 10% 3.9%',        // Fondo oscuro
-  foreground: '0 0% 98%',            // Texto claro
-  card: '240 10% 10%',               // Tarjetas oscuras
-  cardForeground: '0 0% 98%',        // Texto claro
-  primary: '160 84% 39%',            // Verde BotUyo
-  primaryForeground: '0 0% 100%',    // Blanco
-  muted: '240 3.7% 15.9%',           // Gris oscuro
-  mutedForeground: '240 5% 64.9%',   // Gris claro
-  border: '240 3.7% 15.9%',          // Bordes oscuros
-  destructive: '0 63% 31%',          // Rojo oscuro
-  radius: '0.5rem',                  // 8px
-  
+  background: '240 10% 3.9%', // Fondo oscuro
+  foreground: '0 0% 98%', // Texto claro
+  card: '240 10% 10%', // Tarjetas oscuras
+  cardForeground: '0 0% 98%', // Texto claro
+  primary: '160 84% 39%', // Verde BotUyo
+  primaryForeground: '0 0% 100%', // Blanco
+  muted: '240 3.7% 15.9%', // Gris oscuro
+  mutedForeground: '240 5% 64.9%', // Gris claro
+  border: '240 3.7% 15.9%', // Bordes oscuros
+  destructive: '0 63% 31%', // Rojo oscuro
+  radius: '0.5rem', // 8px
+
   // Design System - Spacing (mismo que light)
   spacing1: '0.25rem',
   spacing2: '0.5rem',
@@ -93,7 +93,7 @@ export const DARK_CSS_VARIABLES: CSSVariables = {
  * ===================================
  * TEMAS PREDEFINIDOS
  * ===================================
- * 
+ *
  * Cada tema está diseñado para ser visualmente único y distintivo.
  * Los usuarios pueden personalizar cualquier valor, y el sistema de merge
  * garantiza que los valores faltantes se completen con defaults.
@@ -103,7 +103,21 @@ export const DARK_CSS_VARIABLES: CSSVariables = {
  * TEMA DEFAULT - BotUyo (Verde Fresco)
  * Tema por defecto cuando no se envía configuración
  */
-export const DEFAULT_THEME: Required<Omit<ChatTheme, 'avatars' | 'emotion' | 'starterPrompt' | 'launcherBorderRadius' | 'borderRadius' | 'bubbleStyles' | 'promptPersistence' | 'avatarScale' | 'height' | 'bottom'>> = {
+export const DEFAULT_THEME: Required<
+  Omit<
+    ChatTheme,
+    | 'avatars'
+    | 'emotion'
+    | 'starterPrompt'
+    | 'launcherBorderRadius'
+    | 'borderRadius'
+    | 'bubbleStyles'
+    | 'promptPersistence'
+    | 'avatarScale'
+    | 'height'
+    | 'bottom'
+  >
+> = {
   primaryColor: 'hsl(160, 84%, 39%)',
   botName: 'Asistente',
   logoUrl: '',
@@ -158,7 +172,7 @@ export const SUNSET_THEME: ChatTheme = {
     border: '30 20% 85%',
     destructive: '0 84% 60%',
     radius: '1.25rem', // Bordes muy redondeados
-    spacing3: '1rem',  // 16px - gaps más amplios
+    spacing3: '1rem', // 16px - gaps más amplios
     spacing5: '1.25rem', // 20px - padding generoso
   },
 }
@@ -185,8 +199,8 @@ export const MIDNIGHT_THEME: ChatTheme = {
     destructive: '0 84% 60%',
     radius: '0.25rem', // Bordes cuadrados
     spacing1: '0.125rem', // 2px - muy compacto
-    spacing2: '0.25rem',  // 4px
-    spacing3: '0.5rem',   // 8px
+    spacing2: '0.25rem', // 4px
+    spacing3: '0.5rem', // 8px
     spacing5: '0.625rem', // 10px - muy compacto
   },
 }
@@ -222,19 +236,33 @@ export const NATURE_THEME: ChatTheme = {
 
 /**
  * Sistema de Merge de Temas con Prioridades
- * 
+ *
  * PRIORIDAD (de mayor a menor):
  * 1. Tema del proyecto (userTheme) - Lo que el usuario define en su código
  * 2. Tema del socket (socketTheme) - Lo que viene de la API/configuración remota
  * 3. Tema por defecto (DEFAULT_THEME) - Valores fallback
- * 
+ *
  * El merge es PROFUNDO para cssVariables, garantizando que cada propiedad
  * individual se complete con su fallback correspondiente.
  */
 export function mergeThemeWithDefaults(
   userTheme?: Partial<ChatTheme>,
   socketTheme?: Partial<ChatTheme>
-): Required<Omit<ChatTheme, 'avatars' | 'emotion' | 'starterPrompt' | 'launcherBorderRadius' | 'borderRadius' | 'bubbleStyles' | 'promptPersistence' | 'avatarScale' | 'height' | 'bottom'>> {
+): Required<
+  Omit<
+    ChatTheme,
+    | 'avatars'
+    | 'emotion'
+    | 'starterPrompt'
+    | 'launcherBorderRadius'
+    | 'borderRadius'
+    | 'bubbleStyles'
+    | 'promptPersistence'
+    | 'avatarScale'
+    | 'height'
+    | 'bottom'
+  >
+> {
   // Merge de cssVariables con prioridad: user > socket > default
   const mergedCssVariables: CSSVariables = {
     ...DEFAULT_CSS_VARIABLES,
@@ -243,12 +271,17 @@ export function mergeThemeWithDefaults(
   }
 
   return {
-    primaryColor: userTheme?.primaryColor || socketTheme?.primaryColor || DEFAULT_THEME.primaryColor,
+    primaryColor:
+      userTheme?.primaryColor || socketTheme?.primaryColor || DEFAULT_THEME.primaryColor,
     botName: userTheme?.botName || socketTheme?.botName || DEFAULT_THEME.botName,
     logoUrl: userTheme?.logoUrl || socketTheme?.logoUrl || DEFAULT_THEME.logoUrl,
     position: userTheme?.position || socketTheme?.position || DEFAULT_THEME.position,
-    welcomeMessage: userTheme?.welcomeMessage || socketTheme?.welcomeMessage || DEFAULT_THEME.welcomeMessage,
-    inputPlaceholder: userTheme?.inputPlaceholder || socketTheme?.inputPlaceholder || DEFAULT_THEME.inputPlaceholder,
+    welcomeMessage:
+      userTheme?.welcomeMessage || socketTheme?.welcomeMessage || DEFAULT_THEME.welcomeMessage,
+    inputPlaceholder:
+      userTheme?.inputPlaceholder ||
+      socketTheme?.inputPlaceholder ||
+      DEFAULT_THEME.inputPlaceholder,
     cssVariables: mergedCssVariables,
   }
 }
@@ -263,7 +296,9 @@ export function getPrimaryColor(options: { primaryColor?: string }): string {
 /**
  * Convierte variables CSS a un objeto de estilos inline
  */
-export function cssVariablesToInlineStyles(variables: Partial<CSSVariables>): Record<string, string> {
+export function cssVariablesToInlineStyles(
+  variables: Partial<CSSVariables>
+): Record<string, string> {
   const merged = { ...DEFAULT_CSS_VARIABLES, ...variables }
   return {
     '--background': merged.background,

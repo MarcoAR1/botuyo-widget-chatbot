@@ -46,7 +46,7 @@ function chatReducer(
       if (messageExists) {
         return state
       }
-      
+
       const newMessages = [...state.messages, action.payload]
       const isBot = action.payload.sender === 'bot'
 
@@ -96,11 +96,11 @@ export function useChatState() {
       try {
         // Migrar desde localStorage si existe
         await chatStorage.migrateFromLocalStorage()
-        
+
         // Cargar mensajes desde IndexedDB
         const messages = await chatStorage.getMessages(100)
         const metadata = await chatStorage.getMetadata()
-        
+
         if (messages.length > 0 || metadata) {
           const parsed = {
             messages: messages.map((m: any) => ({
@@ -146,7 +146,7 @@ export function useChatState() {
       try {
         // Guardar mensajes en IndexedDB
         await chatStorage.saveMessages(state.messages)
-        
+
         // Guardar metadata
         await chatStorage.setMetadata({
           isOpen: state.isOpen,
@@ -177,10 +177,7 @@ export function useChatState() {
   }, [])
 
   // Resto de acciones...
-  const toggleWindow = useCallback(
-    () => dispatch({ type: 'TOGGLE_WINDOW' }),
-    []
-  )
+  const toggleWindow = useCallback(() => dispatch({ type: 'TOGGLE_WINDOW' }), [])
   const openWindow = useCallback(() => dispatch({ type: 'OPEN_WINDOW' }), [])
   const closeWindow = useCallback(() => dispatch({ type: 'CLOSE_WINDOW' }), [])
   const setConnected = useCallback(
@@ -207,7 +204,7 @@ export function useChatState() {
     localStorage.removeItem(STORAGE_KEY)
     dispatch({ type: 'CLEAR_CHAT' })
   }, [])
-  
+
   const clearMessages = useCallback(() => {
     dispatch({ type: 'SET_MESSAGES', payload: [] })
   }, [])

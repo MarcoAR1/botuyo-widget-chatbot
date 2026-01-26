@@ -1,7 +1,7 @@
 /**
  * @package @botuyo/chat-widget
  * Test específico para Dark Mode Toggle/Switch
- * 
+ *
  * NOTA: Tests temporalmente deshabilitados por timing issues con MutationObserver en jsdom
  * TODO: Migrar a Playwright para E2E testing o mejorar mocks de MutationObserver
  * Ver MEJORAS_PROPUESTAS.md sección 3 para detalles
@@ -75,10 +75,13 @@ describe.skip('Dark Mode Switch - Functional Test', () => {
 
       // Esperar que el MutationObserver detecte el cambio
       await waitForDarkModeSync()
-      
-      await waitFor(() => {
-        expect(widget?.classList.contains('dark')).toBe(true)
-      }, { timeout: 1000 })
+
+      await waitFor(
+        () => {
+          expect(widget?.classList.contains('dark')).toBe(true)
+        },
+        { timeout: 1000 }
+      )
     })
 
     it('debe desactivar dark mode cuando se remueve clase dark', async () => {
@@ -91,9 +94,12 @@ describe.skip('Dark Mode Switch - Functional Test', () => {
 
       // Debe detectar dark mode inicial
       await waitForDarkModeSync()
-      await waitFor(() => {
-        expect(widget?.classList.contains('dark')).toBe(true)
-      }, { timeout: 1000 })
+      await waitFor(
+        () => {
+          expect(widget?.classList.contains('dark')).toBe(true)
+        },
+        { timeout: 1000 }
+      )
 
       // SIMULAR TOGGLE OFF: Remover clase dark
       standaloneContainer.classList.remove('dark')
@@ -101,9 +107,12 @@ describe.skip('Dark Mode Switch - Functional Test', () => {
       // Esperar que el MutationObserver procese
       await waitForDarkModeSync()
 
-      await waitFor(() => {
-        expect(widget?.classList.contains('dark')).toBe(false)
-      }, { timeout: 1000 })
+      await waitFor(
+        () => {
+          expect(widget?.classList.contains('dark')).toBe(false)
+        },
+        { timeout: 1000 }
+      )
     })
 
     it('debe responder a toggles rápidos del switch', async () => {
@@ -114,23 +123,32 @@ describe.skip('Dark Mode Switch - Functional Test', () => {
       // Toggle ON
       standaloneContainer.classList.add('dark')
       await waitForDarkModeSync()
-      await waitFor(() => {
-        expect(widget?.classList.contains('dark')).toBe(true)
-      }, { timeout: 1000 })
+      await waitFor(
+        () => {
+          expect(widget?.classList.contains('dark')).toBe(true)
+        },
+        { timeout: 1000 }
+      )
 
       // Toggle OFF
       standaloneContainer.classList.remove('dark')
       await waitForDarkModeSync()
-      await waitFor(() => {
-        expect(widget?.classList.contains('dark')).toBe(false)
-      }, { timeout: 1000 })
+      await waitFor(
+        () => {
+          expect(widget?.classList.contains('dark')).toBe(false)
+        },
+        { timeout: 1000 }
+      )
 
       // Toggle ON again
       standaloneContainer.classList.add('dark')
       await waitForDarkModeSync()
-      await waitFor(() => {
-        expect(widget?.classList.contains('dark')).toBe(true)
-      }, { timeout: 1000 })
+      await waitFor(
+        () => {
+          expect(widget?.classList.contains('dark')).toBe(true)
+        },
+        { timeout: 1000 }
+      )
     })
 
     it('debe detectar dark mode desde document.body', async () => {
@@ -142,9 +160,12 @@ describe.skip('Dark Mode Switch - Functional Test', () => {
       document.body.classList.add('dark')
 
       await waitForDarkModeSync()
-      await waitFor(() => {
-        expect(widget?.classList.contains('dark')).toBe(true)
-      }, { timeout: 1000 })
+      await waitFor(
+        () => {
+          expect(widget?.classList.contains('dark')).toBe(true)
+        },
+        { timeout: 1000 }
+      )
 
       // Cleanup
       document.body.classList.remove('dark')
@@ -159,9 +180,12 @@ describe.skip('Dark Mode Switch - Functional Test', () => {
       const widget = document.getElementById('botuyo-chat-widget')
 
       await waitForDarkModeSync()
-      await waitFor(() => {
-        expect(widget?.classList.contains('dark')).toBe(true)
-      }, { timeout: 1000 })
+      await waitFor(
+        () => {
+          expect(widget?.classList.contains('dark')).toBe(true)
+        },
+        { timeout: 1000 }
+      )
 
       // Verificar que la clase dark está presente para que Tailwind aplique dark:
       expect(widget?.className).toContain('dark')
@@ -180,9 +204,12 @@ describe.skip('Dark Mode Switch - Functional Test', () => {
       standaloneContainer.classList.add('dark')
 
       await waitForDarkModeSync()
-      await waitFor(() => {
-        expect(widget?.classList.contains('dark')).toBe(true)
-      }, { timeout: 1000 })
+      await waitFor(
+        () => {
+          expect(widget?.classList.contains('dark')).toBe(true)
+        },
+        { timeout: 1000 }
+      )
 
       // Variables deben persistir en dark mode
       const computedStyleDark = window.getComputedStyle(widget!)
@@ -201,17 +228,23 @@ describe.skip('Dark Mode Switch - Functional Test', () => {
       standaloneContainer.classList.toggle('dark', isDark)
 
       await waitForDarkModeSync()
-      await waitFor(() => {
-        expect(widget?.classList.contains('dark')).toBe(true)
-      }, { timeout: 1000 })
+      await waitFor(
+        () => {
+          expect(widget?.classList.contains('dark')).toBe(true)
+        },
+        { timeout: 1000 }
+      )
 
       // Toggle off
       standaloneContainer.classList.toggle('dark', false)
 
       await waitForDarkModeSync()
-      await waitFor(() => {
-        expect(widget?.classList.contains('dark')).toBe(false)
-      }, { timeout: 1000 })
+      await waitFor(
+        () => {
+          expect(widget?.classList.contains('dark')).toBe(false)
+        },
+        { timeout: 1000 }
+      )
     })
 
     it('debe detectar cambios en cualquier ancestro con clase dark', async () => {
@@ -230,9 +263,12 @@ describe.skip('Dark Mode Switch - Functional Test', () => {
       grandparent.classList.add('dark')
 
       await waitForDarkModeSync()
-      await waitFor(() => {
-        expect(widget?.classList.contains('dark')).toBe(true)
-      }, { timeout: 1000 })
+      await waitFor(
+        () => {
+          expect(widget?.classList.contains('dark')).toBe(true)
+        },
+        { timeout: 1000 }
+      )
     })
   })
 
@@ -250,9 +286,12 @@ describe.skip('Dark Mode Switch - Functional Test', () => {
       standaloneContainer.classList.add('dark')
 
       await waitForDarkModeSync()
-      await waitFor(() => {
-        expect(widget?.classList.contains('dark')).toBe(true)
-      }, { timeout: 1000 })
+      await waitFor(
+        () => {
+          expect(widget?.classList.contains('dark')).toBe(true)
+        },
+        { timeout: 1000 }
+      )
     })
 
     it('debe verificar que MutationObserver está observando los elementos correctos', async () => {
@@ -271,16 +310,19 @@ describe.skip('Dark Mode Switch - Functional Test', () => {
 
       observer.observe(widget!, {
         attributes: true,
-        attributeFilter: ['class']
+        attributeFilter: ['class'],
       })
 
       // Trigger cambio
       standaloneContainer.classList.add('dark')
 
       await waitForDarkModeSync()
-      await waitFor(() => {
-        expect(changeDetected || widget?.classList.contains('dark')).toBe(true)
-      }, { timeout: 1000 })
+      await waitFor(
+        () => {
+          expect(changeDetected || widget?.classList.contains('dark')).toBe(true)
+        },
+        { timeout: 1000 }
+      )
 
       observer.disconnect()
       unmount()

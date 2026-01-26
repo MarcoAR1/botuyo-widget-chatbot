@@ -66,7 +66,7 @@ export function useNotifications({
 
       try {
         const title = `Nuevo mensaje de ${botName}`
-        
+
         // Extraer contenido según tipo de mensaje
         let body = 'Mensaje recibido'
         if (message.type === 'text' && 'content' in message) {
@@ -78,7 +78,7 @@ export function useNotifications({
         } else if (message.type === 'location') {
           body = '📍 Ubicación'
         }
-        
+
         const notification = new Notification(title, {
           body,
           icon: logoUrl,
@@ -107,7 +107,7 @@ export function useNotifications({
     if (typeof document !== 'undefined' && document.hasFocus()) return
 
     try {
-      audioRef.current?.play().catch((error) => {
+      audioRef.current?.play().catch(error => {
         // Ignorar errores de autoplay (navegador puede bloquear)
         logger.debug('Audio playback blocked:', error)
       })

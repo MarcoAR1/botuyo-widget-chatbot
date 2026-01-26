@@ -31,7 +31,7 @@ export function useWidgetTheme(projectTheme?: ChatTheme, socketTheme?: ChatTheme
   // Fusionar temas con prioridades: proyecto > socket > default
   const mergedTheme = useMemo(() => {
     const baseTheme = mergeThemeWithDefaults(projectTheme, socketTheme)
-    
+
     // Alto contraste: sobreescribir colores para WCAG AAA (7:1)
     if (isHighContrast) {
       return {
@@ -48,10 +48,10 @@ export function useWidgetTheme(projectTheme?: ChatTheme, socketTheme?: ChatTheme
           muted: '#F5F5F5',
           mutedForeground: '#000000',
           border: '#000000',
-        }
+        },
       }
     }
-    
+
     return baseTheme
   }, [projectTheme, socketTheme, isHighContrast])
 
@@ -71,7 +71,11 @@ export function useWidgetTheme(projectTheme?: ChatTheme, socketTheme?: ChatTheme
   )
 
   // Estilos para el container del widget
-  const getContainerStyle = (isOpen: boolean, isMobile: boolean, position?: 'bottom-left' | 'bottom-right'): React.CSSProperties => {
+  const getContainerStyle = (
+    isOpen: boolean,
+    isMobile: boolean,
+    position?: 'bottom-left' | 'bottom-right'
+  ): React.CSSProperties => {
     return {
       // Las CSS variables ya se aplican en el root container desde standalone.tsx
       // Solo necesitamos la variable de primaryColor para compatibilidad

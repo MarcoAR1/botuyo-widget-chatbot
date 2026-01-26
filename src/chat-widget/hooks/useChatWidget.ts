@@ -25,7 +25,7 @@ const toBase64 = (file: File) =>
     const reader = new FileReader()
     reader.readAsDataURL(file)
     reader.onload = () => resolve(reader.result as string)
-    reader.onerror = (error) => reject(error)
+    reader.onerror = error => reject(error)
   })
 
 interface UseChatWidgetOptions {
@@ -40,7 +40,7 @@ interface UseChatWidgetOptions {
   onNavigate?: ChatWidgetProps['onNavigate']
   onEvent?: ChatWidgetProps['onEvent']
   onStateChange?: ChatWidgetProps['onStateChange']
-  onThemeUpdate?: (theme: any) => void  // Callback para tema del socket
+  onThemeUpdate?: (theme: any) => void // Callback para tema del socket
 }
 
 /**
@@ -98,17 +98,18 @@ export function useChatWidget(options: UseChatWidgetOptions) {
     onMessage: useCallback(
       (message: ChatMessage) => {
         const now = Date.now()
-        const latency = lastMessageTimeRef.current > 0 ? now - lastMessageTimeRef.current : undefined
+        const latency =
+          lastMessageTimeRef.current > 0 ? now - lastMessageTimeRef.current : undefined
         lastMessageTimeRef.current = now
-        
+
         actions.addMessage(message)
-        
+
         // Analytics: mensaje recibido
         analytics.trackMessageReceived(message.type, latency)
-        
+
         if (!state.isOpen && message.sender === 'bot') {
-          setUnreadCount((prev) => prev + 1)
-          
+          setUnreadCount(prev => prev + 1)
+
           // Notificaciones: solo si el chat está cerrado
           notifications.notifyWithSound(message)
         }
@@ -128,18 +129,18 @@ export function useChatWidget(options: UseChatWidgetOptions) {
       actions.setConnected(false)
       analytics.trackConnectionStatus(false)
     }, [actions, analytics]),
-    onTyping: useCallback(
-      (isTyping: boolean) => actions.setTyping(isTyping),
-      [actions]
+    onTyping: useCallback((isTyping: boolean) => actions.setTyping(isTyping), [actions]),
+    onError: useCallback(
+      (error: string) => {
+        actions.setError(error)
+        analytics.trackError(error)
+      },
+      [actions, analytics]
     ),
-    onError: useCallback((error: string) => {
-      actions.setError(error)
-      analytics.trackError(error)
-    }, [actions, analytics]),
     onLogin,
     onNavigate,
     onEvent,
-    onThemeUpdate,  // Pasar callback de tema al socket
+    onThemeUpdate, // Pasar callback de tema al socket
   })
 
   const handleToggle = useCallback(() => {
@@ -158,87 +159,96 @@ export function useChatWidget(options: UseChatWidgetOptions) {
     }
   }, [state.isOpen, actions, onStateChange, analytics])
 
-  const handleSendText = useCallback((text: string) => {
-    // Rate limiting: verificar si podemos enviar
-    if (!rateLimit.isAllowed()) {
-      const remaining = rateLimit.getTimeUntilReset()
-      const seconds = Math.ceil(remaining / 1000)
-      actions.setError(t('rate_limit_exceeded') + ` Espera ${seconds}s.`)
-      return
-    }
-    
-    // Optimistic update: agregar mensaje del usuario inmediatamente
-    const userMessage: ChatMessage = {
-      id: `temp-${Date.now()}-${Math.random()}`,
-      type: 'text',
-      sender: 'user',
-      timestamp: new Date(),
-      content: text,
-    }
-    actions.addMessage(userMessage)
-    
-    // Analytics: mensaje enviado
-    analytics.trackMessageSent('text')
-    
-    // Enviar al servidor
-    socket.sendMessage(text, 'text')
-  }, [actions, socket, rateLimit, analytics, t])
+  const handleSendText = useCallback(
+    (text: string) => {
+      // Rate limiting: verificar si podemos enviar
+      if (!rateLimit.isAllowed()) {
+        const remaining = rateLimit.getTimeUntilReset()
+        const seconds = Math.ceil(remaining / 1000)
+        actions.setError(t('rate_limit_exceeded') + ` Espera ${seconds}s.`)
+        return
+      }
 
-  const handleSendAttachment = useCallback(async (file: File, type: 'image' | 'audio' | 'file') => {
-    // Optimistic update: agregar mensaje del usuario inmediatamente
-    let userMessage: ChatMessage
-    
-    if (type === 'audio') {
-      userMessage = {
-        id: `temp-${Date.now()}-${Math.random()}`,
-        type: 'audio',
-        sender: 'user',
-        timestamp: new Date(),
-        content: URL.createObjectURL(file), // Preview local del audio
-      } satisfies AudioMessage
-    } else if (type === 'image') {
-      userMessage = {
-        id: `temp-${Date.now()}-${Math.random()}`,
-        type: 'image',
-        sender: 'user',
-        timestamp: new Date(),
-        imageUrl: URL.createObjectURL(file), // Preview local de la imagen
-      } satisfies ImageMessage
-    } else {
-      // 'file' → convertir a mensaje de texto con el nombre del archivo
-      userMessage = {
+      // Optimistic update: agregar mensaje del usuario inmediatamente
+      const userMessage: ChatMessage = {
         id: `temp-${Date.now()}-${Math.random()}`,
         type: 'text',
         sender: 'user',
         timestamp: new Date(),
-        content: `📎 ${file.name}`, // Mostrar nombre del archivo
-      } satisfies TextMessage
-    }
-    
-    actions.addMessage(userMessage)
-    
-    // Enviar al servidor
-    const b64 = await toBase64(file)
-    socket.sendMessage(b64, type)
-  }, [actions, socket])
+        content: text,
+      }
+      actions.addMessage(userMessage)
 
-  const handleSendLocation = useCallback((location: { latitude: number; longitude: number }) => {
-    // Optimistic update: agregar mensaje de ubicación inmediatamente
-    const userMessage: ChatMessage = {
-      id: `temp-${Date.now()}-${Math.random()}`,
-      type: 'location',
-      sender: 'user',
-      timestamp: new Date(),
-      latitude: location.latitude,
-      longitude: location.longitude,
-      name: 'Mi ubicación',
-    } satisfies LocationMessage
-    
-    actions.addMessage(userMessage)
-    
-    // Enviar al servidor
-    socket.sendMessage(JSON.stringify(location), 'location')
-  }, [actions, socket])
+      // Analytics: mensaje enviado
+      analytics.trackMessageSent('text')
+
+      // Enviar al servidor
+      socket.sendMessage(text, 'text')
+    },
+    [actions, socket, rateLimit, analytics, t]
+  )
+
+  const handleSendAttachment = useCallback(
+    async (file: File, type: 'image' | 'audio' | 'file') => {
+      // Optimistic update: agregar mensaje del usuario inmediatamente
+      let userMessage: ChatMessage
+
+      if (type === 'audio') {
+        userMessage = {
+          id: `temp-${Date.now()}-${Math.random()}`,
+          type: 'audio',
+          sender: 'user',
+          timestamp: new Date(),
+          content: URL.createObjectURL(file), // Preview local del audio
+        } satisfies AudioMessage
+      } else if (type === 'image') {
+        userMessage = {
+          id: `temp-${Date.now()}-${Math.random()}`,
+          type: 'image',
+          sender: 'user',
+          timestamp: new Date(),
+          imageUrl: URL.createObjectURL(file), // Preview local de la imagen
+        } satisfies ImageMessage
+      } else {
+        // 'file' → convertir a mensaje de texto con el nombre del archivo
+        userMessage = {
+          id: `temp-${Date.now()}-${Math.random()}`,
+          type: 'text',
+          sender: 'user',
+          timestamp: new Date(),
+          content: `📎 ${file.name}`, // Mostrar nombre del archivo
+        } satisfies TextMessage
+      }
+
+      actions.addMessage(userMessage)
+
+      // Enviar al servidor
+      const b64 = await toBase64(file)
+      socket.sendMessage(b64, type)
+    },
+    [actions, socket]
+  )
+
+  const handleSendLocation = useCallback(
+    (location: { latitude: number; longitude: number }) => {
+      // Optimistic update: agregar mensaje de ubicación inmediatamente
+      const userMessage: ChatMessage = {
+        id: `temp-${Date.now()}-${Math.random()}`,
+        type: 'location',
+        sender: 'user',
+        timestamp: new Date(),
+        latitude: location.latitude,
+        longitude: location.longitude,
+        name: 'Mi ubicación',
+      } satisfies LocationMessage
+
+      actions.addMessage(userMessage)
+
+      // Enviar al servidor
+      socket.sendMessage(JSON.stringify(location), 'location')
+    },
+    [actions, socket]
+  )
 
   // Register sendMessage handler for ChatWidgetProvider
   useEffect(() => {
@@ -262,7 +272,7 @@ export function useChatWidget(options: UseChatWidgetOptions) {
     if (state.isTyping) return 'thinking'
     const lastBotMessage = [...state.messages]
       .reverse()
-      .find((m) => m.sender === 'bot' && m.type === 'text')
+      .find(m => m.sender === 'bot' && m.type === 'text')
     return lastBotMessage?.type === 'text' && lastBotMessage.emotion
       ? (lastBotMessage.emotion as BotEmotion)
       : 'default'
@@ -275,7 +285,7 @@ export function useChatWidget(options: UseChatWidgetOptions) {
     unreadCount,
     currentBotEmotion,
     isConnected: socket.isConnected,
-    
+
     // Handlers
     handleToggle,
     handleSendText,

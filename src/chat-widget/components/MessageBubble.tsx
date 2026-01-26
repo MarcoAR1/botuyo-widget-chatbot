@@ -34,385 +34,391 @@ export interface MessageBubbleProps {
   isLast?: boolean
 }
 
-export const MessageBubble = memo(function MessageBubble({
-  message,
-  primaryColor,
-  botAvatar,
-  botName = 'Mar',
-  avatars,
-  isFirst = true,
-  isLast = true,
-}: MessageBubbleProps) {
-  const { t } = useTranslations('extracted')
-  const isUser = message.sender === 'user'
-  const isSystem = message.type === 'system' || message.sender === 'system'
-  const isBot = !isUser && !isSystem
+export const MessageBubble = memo(
+  function MessageBubble({
+    message,
+    primaryColor,
+    botAvatar,
+    botName = 'Mar',
+    avatars,
+    isFirst = true,
+    isLast = true,
+  }: MessageBubbleProps) {
+    const { t } = useTranslations('extracted')
+    const isUser = message.sender === 'user'
+    const isSystem = message.type === 'system' || message.sender === 'system'
+    const isBot = !isUser && !isSystem
 
-  const brandColor = getPrimaryColor({ primaryColor })
+    const brandColor = getPrimaryColor({ primaryColor })
 
-  // --- AVATAR LOGIC ---
-  const currentAvatar = useMemo(() => {
-    if (isUser) return null
-    if (message.type === 'text') {
-      const textMsg = message as TextMessage
-      if (
-        textMsg.emotion &&
-        avatars?.[textMsg.emotion as keyof EmotionAvatarMap]
-      ) {
-        return avatars[textMsg.emotion as keyof EmotionAvatarMap]
+    // --- AVATAR LOGIC ---
+    const currentAvatar = useMemo(() => {
+      if (isUser) return null
+      if (message.type === 'text') {
+        const textMsg = message as TextMessage
+        if (textMsg.emotion && avatars?.[textMsg.emotion as keyof EmotionAvatarMap]) {
+          return avatars[textMsg.emotion as keyof EmotionAvatarMap]
+        }
       }
-    }
-    return botAvatar
-  }, [message, avatars, botAvatar, isUser])
+      return botAvatar
+    }, [message, avatars, botAvatar, isUser])
 
-  const formatTime = (date: Date | string) => {
-    const dateObj = new Date(date)
-    return isNaN(dateObj.getTime())
-      ? ''
-      : dateObj.toLocaleTimeString([], {
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false,
-        })
-  }
-
-  // --- RENDERERS FOR MARKDOWN ---
-  const RenderLink = ({ href, children }: any) => {
-    if (!href) return null
-    const textContent = String(children).toLowerCase()
-    const isCTA =
-      textContent.includes('reservar') ||
-      textContent.includes('ver') ||
-      textContent.includes('pagar')
-    const isGoogleMaps = href.includes('maps.google') || href.includes('goo.gl')
-
-    if (isGoogleMaps) {
-      return (
-        <a
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block my-2 no-underline group"
-        >
-          <span className="flex items-center gap-3 p-3 border rounded-xl shadow-sm group-hover:border-primary/30 transition-all" style={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}>
-            <span
-              className="flex-shrink-0 p-2 rounded-full"
-              style={{ backgroundColor: `${brandColor}1a`, color: brandColor }}
-            >
-              <MapPin size={16} strokeWidth={2.5} />
-            </span>
-            <span className="flex flex-col min-w-0 flex-1 text-[11px] font-bold text-foreground leading-tight uppercase tracking-tight">
-              {t('ver_ubicacion')}</span>
-            <ExternalLink
-              size={12}
-              className="text-muted-foreground/40 group-hover:text-primary"
-            />
-          </span>
-        </a>
-      )
+    const formatTime = (date: Date | string) => {
+      const dateObj = new Date(date)
+      return isNaN(dateObj.getTime())
+        ? ''
+        : dateObj.toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+          })
     }
 
-    if (isCTA) {
-      return (
-        <a
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 mt-2 text-[11px] font-black w-full sm:w-auto rounded-xl shadow-md uppercase tracking-widest transition-transform active:scale-95 text-white"
-          style={{ backgroundColor: brandColor }}
-        >
-          {children} <ArrowRight size={14} />
-        </a>
-      )
-    }
+    // --- RENDERERS FOR MARKDOWN ---
+    const RenderLink = ({ href, children }: any) => {
+      if (!href) return null
+      const textContent = String(children).toLowerCase()
+      const isCTA =
+        textContent.includes('reservar') ||
+        textContent.includes('ver') ||
+        textContent.includes('pagar')
+      const isGoogleMaps = href.includes('maps.google') || href.includes('goo.gl')
 
-    return (
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="font-bold underline decoration-primary/30 hover:decoration-primary transition-all"
-        style={{ color: isUser ? 'inherit' : brandColor }}
-      >
-        {children}
-      </a>
-    )
-  }
-
-  const RenderImage = ({ src, alt }: any) => {
-    if (!src) return null
-    return (
-      <Suspense fallback={
-        <div className="my-3 animate-pulse">
-          <div className="w-full h-48 bg-muted rounded-xl" />
-        </div>
-      }>
-        <Gallery images={[{ src, alt }]} radius="rounded-xl" />
-      </Suspense>
-    )
-  }
-
-  // --- CONTENT SWITCHER ---
-  const renderContent = () => {
-    switch (message.type) {
-      case 'audio':
-        return (
-          <Suspense fallback={
-            <div className="flex items-center gap-3 py-1 min-w-[200px] animate-pulse">
-              <div className="w-8 h-8 rounded-full bg-muted" />
-              <div className="flex-1 space-y-1">
-                <div className="h-1 w-full bg-muted rounded-full" />
-              </div>
-            </div>
-          }>
-            <AudioPlayer
-              url={(message as AudioMessage).content}
-              isBot={isBot}
-              primaryColor={primaryColor}
-            />
-          </Suspense>
-        )
-
-      case 'image': {
-        const imgMsg = message as ImageMessage
-        return (
-          <Suspense fallback={
-            <div className="my-3 animate-pulse">
-              <div className="w-full h-48 bg-muted rounded-xl" />
-            </div>
-          }>
-            <Gallery
-              images={[
-                {
-                  src: imgMsg.imageUrl || (imgMsg as any).content,
-                  alt: imgMsg.altText || 'Imagen',
-                },
-              ]}
-              radius="rounded-xl"
-            />
-          </Suspense>
-        )
-      }
-
-      case 'location': {
-        const locMsg = message as LocationMessage
-        return (
-          <RenderLink
-            href={`https://www.google.com/maps/search/?api=1&query=${locMsg.latitude},${locMsg.longitude}`}
-          >
-            Ver ubicación
-          </RenderLink>
-        )
-      }
-
-      case 'file': {
-        const fileMsg = message as FileMessage
-        const fileExtension = fileMsg.fileName?.split('.').pop()?.toLowerCase() || ''
-        const fileSize = fileMsg.fileSize 
-          ? `${(fileMsg.fileSize / 1024 / 1024).toFixed(2)} MB`
-          : ''
-        
+      if (isGoogleMaps) {
         return (
           <a
-            href={fileMsg.fileUrl}
-            download={fileMsg.fileName}
+            href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 p-3 border rounded-xl transition-all hover:scale-[1.02] group"
-            style={{
-              backgroundColor: isUser ? 'rgba(255,255,255,0.1)' : 'hsl(var(--muted))',
-              borderColor: isUser ? 'rgba(255,255,255,0.2)' : 'hsl(var(--border))',
-            }}
+            className="block my-2 no-underline group"
           >
-            <div 
-              className="flex items-center justify-center w-10 h-10 rounded-lg shrink-0"
-              style={{ 
-                backgroundColor: isUser ? 'rgba(255,255,255,0.2)' : `${brandColor}1a`,
-                color: isUser ? 'white' : brandColor 
-              }}
+            <span
+              className="flex items-center gap-3 p-3 border rounded-xl shadow-sm group-hover:border-primary/30 transition-all"
+              style={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}
             >
-              <FileIcon size={20} strokeWidth={2.5} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold truncate">{fileMsg.fileName}</p>
-              {fileSize && (
-                <p className="text-xs opacity-60 mt-0.5">
-                  {fileExtension?.toUpperCase()} • {fileSize}
-                </p>
-              )}
-            </div>
-            <Download 
-              size={18} 
-              className="shrink-0 opacity-60 group-hover:opacity-100 transition-opacity" 
-            />
+              <span
+                className="flex-shrink-0 p-2 rounded-full"
+                style={{ backgroundColor: `${brandColor}1a`, color: brandColor }}
+              >
+                <MapPin size={16} strokeWidth={2.5} />
+              </span>
+              <span className="flex flex-col min-w-0 flex-1 text-[11px] font-bold text-foreground leading-tight uppercase tracking-tight">
+                {t('ver_ubicacion')}
+              </span>
+              <ExternalLink
+                size={12}
+                className="text-muted-foreground/40 group-hover:text-primary"
+              />
+            </span>
           </a>
         )
       }
 
-      default:
+      if (isCTA) {
         return (
-          <div
-            className={cn(
-              'prose prose-sm max-w-none break-words leading-relaxed dark:prose-invert',
-              isUser
-                ? 'text-primary-foreground prose-p:text-white'
-                : 'text-foreground'
-            )}
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 mt-2 text-[11px] font-black w-full sm:w-auto rounded-xl shadow-md uppercase tracking-widest transition-transform active:scale-95 text-white"
+            style={{ backgroundColor: brandColor }}
           >
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              rehypePlugins={[
-                [rehypeSanitize, {
-                  tagNames: ['p','a','img','strong','em','ul','ol','li','br','span'],
-                  attributes: {
-                    a: ['href', 'target', 'rel'],
-                    img: ['src', 'alt'],
-                    span: ['className'],
-                  },
-                  protocols: { a: { href: ['http','https','mailto','tel'] }, img: { src: ['http','https','data'] } }
-                }]
-              ]}
-              components={{
-                a: RenderLink,
-                img: RenderImage,
-                p: ({ children }) => (
-                  <p className="mb-0 last:mb-0">{children}</p>
-                ),
-              }}
-            >
-              {(message as TextMessage).content || ''}
-            </ReactMarkdown>
-          </div>
+            {children} <ArrowRight size={14} />
+          </a>
         )
-    }
-  }
+      }
 
-  if (isSystem) {
-    return (
-      <div className="flex justify-center my-4 animate-in fade-in zoom-in-95 w-full">
-        <span 
-          className="px-3 py-1 border rounded-full text-[9px] font-black uppercase tracking-widest"
-          style={{
-            backgroundColor: 'hsl(var(--muted))',
-            borderColor: 'hsl(var(--border))',
-            color: 'hsl(var(--muted-foreground))',
-          }}
+      return (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-bold underline decoration-primary/30 hover:decoration-primary transition-all"
+          style={{ color: isUser ? 'inherit' : brandColor }}
         >
-          {(message as TextMessage).content}
-        </span>
-      </div>
-    )
-  }
+          {children}
+        </a>
+      )
+    }
 
-  return (
-    <div
-      className={cn(
-        'flex w-full mb-0.5 group animate-in fade-in slide-in-from-bottom-2 duration-200',
-        isUser ? 'justify-end' : 'justify-start gap-3',
-        isFirst && 'mt-3',
-        isLast && 'mb-3'
-      )}
-    >
-      {/* AVATAR BOT */}
-      {!isUser && (
-        <div className="w-9 shrink-0 flex flex-col justify-end pb-1">
-          {isLast ? (
-            <div 
-              className="h-9 w-9 rounded-full overflow-hidden border shadow-sm"
+    const RenderImage = ({ src, alt }: any) => {
+      if (!src) return null
+      return (
+        <Suspense
+          fallback={
+            <div className="my-3 animate-pulse">
+              <div className="w-full h-48 bg-muted rounded-xl" />
+            </div>
+          }
+        >
+          <Gallery images={[{ src, alt }]} radius="rounded-xl" />
+        </Suspense>
+      )
+    }
+
+    // --- CONTENT SWITCHER ---
+    const renderContent = () => {
+      switch (message.type) {
+        case 'audio':
+          return (
+            <Suspense
+              fallback={
+                <div className="flex items-center gap-3 py-1 min-w-[200px] animate-pulse">
+                  <div className="w-8 h-8 rounded-full bg-muted" />
+                  <div className="flex-1 space-y-1">
+                    <div className="h-1 w-full bg-muted rounded-full" />
+                  </div>
+                </div>
+              }
+            >
+              <AudioPlayer
+                url={(message as AudioMessage).content}
+                isBot={isBot}
+                primaryColor={primaryColor}
+              />
+            </Suspense>
+          )
+
+        case 'image': {
+          const imgMsg = message as ImageMessage
+          return (
+            <Suspense
+              fallback={
+                <div className="my-3 animate-pulse">
+                  <div className="w-full h-48 bg-muted rounded-xl" />
+                </div>
+              }
+            >
+              <Gallery
+                images={[
+                  {
+                    src: imgMsg.imageUrl || (imgMsg as any).content,
+                    alt: imgMsg.altText || 'Imagen',
+                  },
+                ]}
+                radius="rounded-xl"
+              />
+            </Suspense>
+          )
+        }
+
+        case 'location': {
+          const locMsg = message as LocationMessage
+          return (
+            <RenderLink
+              href={`https://www.google.com/maps/search/?api=1&query=${locMsg.latitude},${locMsg.longitude}`}
+            >
+              Ver ubicación
+            </RenderLink>
+          )
+        }
+
+        case 'file': {
+          const fileMsg = message as FileMessage
+          const fileExtension = fileMsg.fileName?.split('.').pop()?.toLowerCase() || ''
+          const fileSize = fileMsg.fileSize
+            ? `${(fileMsg.fileSize / 1024 / 1024).toFixed(2)} MB`
+            : ''
+
+          return (
+            <a
+              href={fileMsg.fileUrl}
+              download={fileMsg.fileName}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 p-3 border rounded-xl transition-all hover:scale-[1.02] group"
               style={{
-                borderColor: 'hsl(var(--border))',
-                backgroundColor: 'hsl(var(--background))',
+                backgroundColor: isUser ? 'rgba(255,255,255,0.1)' : 'hsl(var(--muted))',
+                borderColor: isUser ? 'rgba(255,255,255,0.2)' : 'hsl(var(--border))',
               }}
             >
-              {currentAvatar ? (
-                <img
-                  src={currentAvatar}
-                  alt={botName}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div
-                  className="h-full w-full flex items-center justify-center text-white text-[10px] font-black uppercase"
-                  style={{ backgroundColor: brandColor }}
-                >
-                  {botName.charAt(0)}
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="w-9" />
-          )}
-        </div>
-      )}
+              <div
+                className="flex items-center justify-center w-10 h-10 rounded-lg shrink-0"
+                style={{
+                  backgroundColor: isUser ? 'rgba(255,255,255,0.2)' : `${brandColor}1a`,
+                  color: isUser ? 'white' : brandColor,
+                }}
+              >
+                <FileIcon size={20} strokeWidth={2.5} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold truncate">{fileMsg.fileName}</p>
+                {fileSize && (
+                  <p className="text-xs opacity-60 mt-0.5">
+                    {fileExtension?.toUpperCase()} • {fileSize}
+                  </p>
+                )}
+              </div>
+              <Download
+                size={18}
+                className="shrink-0 opacity-60 group-hover:opacity-100 transition-opacity"
+              />
+            </a>
+          )
+        }
 
-      {/* BURBUJA */}
+        default:
+          return (
+            <div
+              className={cn(
+                'prose prose-sm max-w-none break-words leading-relaxed dark:prose-invert',
+                isUser ? 'text-primary-foreground prose-p:text-white' : 'text-foreground'
+              )}
+            >
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[
+                  [
+                    rehypeSanitize,
+                    {
+                      tagNames: ['p', 'a', 'img', 'strong', 'em', 'ul', 'ol', 'li', 'br', 'span'],
+                      attributes: {
+                        a: ['href', 'target', 'rel'],
+                        img: ['src', 'alt'],
+                        span: ['className'],
+                      },
+                      protocols: {
+                        a: { href: ['http', 'https', 'mailto', 'tel'] },
+                        img: { src: ['http', 'https', 'data'] },
+                      },
+                    },
+                  ],
+                ]}
+                components={{
+                  a: RenderLink,
+                  img: RenderImage,
+                  p: ({ children }) => <p className="mb-0 last:mb-0">{children}</p>,
+                }}
+              >
+                {(message as TextMessage).content || ''}
+              </ReactMarkdown>
+            </div>
+          )
+      }
+    }
+
+    if (isSystem) {
+      return (
+        <div className="flex justify-center my-4 animate-in fade-in zoom-in-95 w-full">
+          <span
+            className="px-3 py-1 border rounded-full text-[9px] font-black uppercase tracking-widest"
+            style={{
+              backgroundColor: 'hsl(var(--muted))',
+              borderColor: 'hsl(var(--border))',
+              color: 'hsl(var(--muted-foreground))',
+            }}
+          >
+            {(message as TextMessage).content}
+          </span>
+        </div>
+      )
+    }
+
+    return (
       <div
         className={cn(
-          'max-w-[85%] shadow-sm transition-all duration-300 relative',
-          isUser
-            ? 'text-primary-foreground'
-            : 'border',
-          // Bordes inteligentes
-          isUser
-            ? cn(
-                'rounded-[18px]',
-                isFirst && 'rounded-tr-[4px]',
-                !isLast && 'rounded-br-[4px]',
-                !isFirst && !isLast && 'rounded-r-[4px]'
-              )
-            : cn(
-                'rounded-[18px]',
-                isFirst && 'rounded-tl-[4px]',
-                !isLast && 'rounded-bl-[4px]',
-                !isFirst && !isLast && 'rounded-l-[4px]'
-              )
+          'flex w-full mb-0.5 group animate-in fade-in slide-in-from-bottom-2 duration-200',
+          isUser ? 'justify-end' : 'justify-start gap-3',
+          isFirst && 'mt-3',
+          isLast && 'mb-3'
         )}
-        style={
-          isUser
-            ? {
-                padding: 'var(--spacing-4) var(--spacing-5)',
-                backgroundColor: brandColor,
-                boxShadow: isLast ? `0 8px 20px -6px ${brandColor}33` : 'none',
-              }
-            : {
-                padding: 'var(--spacing-4) var(--spacing-5)',
-                backgroundColor: 'hsl(var(--card))',
-                borderColor: 'hsl(var(--border) / 0.6)',
-                color: 'hsl(var(--foreground))',
-              }
-        }
       >
-        {renderContent()}
-
-        {/* FOOTER */}
-        {isLast && (
-          <div
-            className={cn(
-              'flex items-center gap-1 mt-1.5 opacity-50 select-none text-[9px]',
-              isUser ? 'justify-end' : 'justify-start'
+        {/* AVATAR BOT */}
+        {!isUser && (
+          <div className="w-9 shrink-0 flex flex-col justify-end pb-1">
+            {isLast ? (
+              <div
+                className="h-9 w-9 rounded-full overflow-hidden border shadow-sm"
+                style={{
+                  borderColor: 'hsl(var(--border))',
+                  backgroundColor: 'hsl(var(--background))',
+                }}
+              >
+                {currentAvatar ? (
+                  <img src={currentAvatar} alt={botName} className="h-full w-full object-cover" />
+                ) : (
+                  <div
+                    className="h-full w-full flex items-center justify-center text-white text-[10px] font-black uppercase"
+                    style={{ backgroundColor: brandColor }}
+                  >
+                    {botName.charAt(0)}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="w-9" />
             )}
-          >
-            <span className="font-bold tabular-nums uppercase tracking-tighter">
-              {formatTime(message.timestamp)}
-            </span>
-            {isUser && <CheckCheck className="h-2.5 w-2.5" />}
           </div>
         )}
+
+        {/* BURBUJA */}
+        <div
+          className={cn(
+            'max-w-[85%] shadow-sm transition-all duration-300 relative',
+            isUser ? 'text-primary-foreground' : 'border',
+            // Bordes inteligentes
+            isUser
+              ? cn(
+                  'rounded-[18px]',
+                  isFirst && 'rounded-tr-[4px]',
+                  !isLast && 'rounded-br-[4px]',
+                  !isFirst && !isLast && 'rounded-r-[4px]'
+                )
+              : cn(
+                  'rounded-[18px]',
+                  isFirst && 'rounded-tl-[4px]',
+                  !isLast && 'rounded-bl-[4px]',
+                  !isFirst && !isLast && 'rounded-l-[4px]'
+                )
+          )}
+          style={
+            isUser
+              ? {
+                  padding: 'var(--spacing-4) var(--spacing-5)',
+                  backgroundColor: brandColor,
+                  boxShadow: isLast ? `0 8px 20px -6px ${brandColor}33` : 'none',
+                }
+              : {
+                  padding: 'var(--spacing-4) var(--spacing-5)',
+                  backgroundColor: 'hsl(var(--card))',
+                  borderColor: 'hsl(var(--border) / 0.6)',
+                  color: 'hsl(var(--foreground))',
+                }
+          }
+        >
+          {renderContent()}
+
+          {/* FOOTER */}
+          {isLast && (
+            <div
+              className={cn(
+                'flex items-center gap-1 mt-1.5 opacity-50 select-none text-[9px]',
+                isUser ? 'justify-end' : 'justify-start'
+              )}
+            >
+              <span className="font-bold tabular-nums uppercase tracking-tighter">
+                {formatTime(message.timestamp)}
+              </span>
+              {isUser && <CheckCheck className="h-2.5 w-2.5" />}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
-  )
-}, (prevProps, nextProps) => {
-  // Custom comparator: solo re-render si cambió algo relevante
-  if (prevProps.message.id !== nextProps.message.id) return false
-  if (prevProps.message.timestamp !== nextProps.message.timestamp) return false
-  if (prevProps.primaryColor !== nextProps.primaryColor) return false
-  if (prevProps.botAvatar !== nextProps.botAvatar) return false
-  if (prevProps.botName !== nextProps.botName) return false
-  if (prevProps.isFirst !== nextProps.isFirst) return false
-  if (prevProps.isLast !== nextProps.isLast) return false
-  
-  // Comparar styles profundamente si existe
-  if (JSON.stringify(prevProps.styles) !== JSON.stringify(nextProps.styles)) return false
-  
-  return true // No re-renderizar
-})
+    )
+  },
+  (prevProps, nextProps) => {
+    // Custom comparator: solo re-render si cambió algo relevante
+    if (prevProps.message.id !== nextProps.message.id) return false
+    if (prevProps.message.timestamp !== nextProps.message.timestamp) return false
+    if (prevProps.primaryColor !== nextProps.primaryColor) return false
+    if (prevProps.botAvatar !== nextProps.botAvatar) return false
+    if (prevProps.botName !== nextProps.botName) return false
+    if (prevProps.isFirst !== nextProps.isFirst) return false
+    if (prevProps.isLast !== nextProps.isLast) return false
+
+    // Comparar styles profundamente si existe
+    if (JSON.stringify(prevProps.styles) !== JSON.stringify(nextProps.styles)) return false
+
+    return true // No re-renderizar
+  }
+)

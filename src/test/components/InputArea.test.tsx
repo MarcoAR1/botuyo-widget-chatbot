@@ -122,7 +122,7 @@ describe('InputArea', () => {
       render(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
 
       const input = screen.getByPlaceholderText(/escribe un mensaje/i) as HTMLTextAreaElement
-      
+
       expect(input.tagName).toBe('TEXTAREA')
     })
 
@@ -131,7 +131,7 @@ describe('InputArea', () => {
       render(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
 
       const input = screen.getByPlaceholderText(/escribe un mensaje/i) as HTMLTextAreaElement
-      
+
       await user.click(input)
       await user.paste('Short message')
 
@@ -143,7 +143,7 @@ describe('InputArea', () => {
       render(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
 
       const input = screen.getByPlaceholderText(/escribe un mensaje/i) as HTMLTextAreaElement
-      
+
       await user.click(input)
       await user.paste('Pasted text')
 
@@ -216,7 +216,9 @@ describe('InputArea', () => {
         />
       )
 
-      const { container } = render(<InputArea isConnected={true} onSendMessage={mockOnSendMessage} />)
+      const { container } = render(
+        <InputArea isConnected={true} onSendMessage={mockOnSendMessage} />
+      )
       expect(container).toBeInTheDocument()
     })
 
@@ -379,8 +381,8 @@ describe('InputArea', () => {
       )
 
       const buttons = container.querySelectorAll('button')
-      const hasMediaButton = Array.from(buttons).some(btn => 
-        btn.textContent?.includes('+') || btn.className.includes('shrink-0')
+      const hasMediaButton = Array.from(buttons).some(
+        btn => btn.textContent?.includes('+') || btn.className.includes('shrink-0')
       )
       expect(hasMediaButton).toBe(true)
     })
@@ -405,19 +407,26 @@ describe('InputArea', () => {
       const buttons = container.querySelectorAll('button')
       const plusButton = Array.from(buttons).find(btn => {
         const svg = btn.querySelector('svg')
-        return svg && (svg.classList.contains('lucide-plus') || svg.getAttribute('class')?.includes('lucide'))
+        return (
+          svg &&
+          (svg.classList.contains('lucide-plus') || svg.getAttribute('class')?.includes('lucide'))
+        )
       })
       if (plusButton) await user.click(plusButton)
 
       // Esperar a que el menú se abra
       await waitFor(() => {
         const menuButtons = container.querySelectorAll('button')
-        const menuText = Array.from(menuButtons).map(btn => btn.textContent?.toUpperCase()).join(' ')
+        const menuText = Array.from(menuButtons)
+          .map(btn => btn.textContent?.toUpperCase())
+          .join(' ')
         expect(menuText).toContain('PHOTOS')
       })
 
       const menuButtons = container.querySelectorAll('button')
-      const menuText = Array.from(menuButtons).map(btn => btn.textContent?.toUpperCase()).join(' ')
+      const menuText = Array.from(menuButtons)
+        .map(btn => btn.textContent?.toUpperCase())
+        .join(' ')
       expect(menuText).not.toContain('ARCHIVOS')
     })
 
@@ -440,18 +449,25 @@ describe('InputArea', () => {
       const buttons = container.querySelectorAll('button')
       const plusButton = Array.from(buttons).find(btn => {
         const svg = btn.querySelector('svg')
-        return svg && (svg.classList.contains('lucide-plus') || svg.getAttribute('class')?.includes('lucide'))
+        return (
+          svg &&
+          (svg.classList.contains('lucide-plus') || svg.getAttribute('class')?.includes('lucide'))
+        )
       })
       if (plusButton) await user.click(plusButton)
 
       await waitFor(() => {
         const menuButtons = container.querySelectorAll('button')
-        const menuText = Array.from(menuButtons).map(btn => btn.textContent?.toUpperCase()).join(' ')
+        const menuText = Array.from(menuButtons)
+          .map(btn => btn.textContent?.toUpperCase())
+          .join(' ')
         expect(menuText).toContain('ARCHIVOS')
       })
 
       const menuButtons = container.querySelectorAll('button')
-      const menuText = Array.from(menuButtons).map(btn => btn.textContent?.toUpperCase()).join(' ')
+      const menuText = Array.from(menuButtons)
+        .map(btn => btn.textContent?.toUpperCase())
+        .join(' ')
       expect(menuText).not.toContain('FOTOS')
     })
 
@@ -475,18 +491,25 @@ describe('InputArea', () => {
       const buttons = container.querySelectorAll('button')
       const plusButton = Array.from(buttons).find(btn => {
         const svg = btn.querySelector('svg')
-        return svg && (svg.classList.contains('lucide-plus') || svg.getAttribute('class')?.includes('lucide'))
+        return (
+          svg &&
+          (svg.classList.contains('lucide-plus') || svg.getAttribute('class')?.includes('lucide'))
+        )
       })
       if (plusButton) await user.click(plusButton)
 
       await waitFor(() => {
         const menuButtons = container.querySelectorAll('button')
-        const menuText = Array.from(menuButtons).map(btn => btn.textContent?.toUpperCase()).join(' ')
+        const menuText = Array.from(menuButtons)
+          .map(btn => btn.textContent?.toUpperCase())
+          .join(' ')
         expect(menuText).toContain('LOCATION')
       })
 
       const menuButtons = container.querySelectorAll('button')
-      const menuText = Array.from(menuButtons).map(btn => btn.textContent?.toUpperCase()).join(' ')
+      const menuText = Array.from(menuButtons)
+        .map(btn => btn.textContent?.toUpperCase())
+        .join(' ')
       expect(menuText).not.toContain('PHOTOS')
       expect(menuText).not.toContain('ARCHIVOS')
     })
@@ -510,13 +533,18 @@ describe('InputArea', () => {
       const buttons = container.querySelectorAll('button')
       const plusButton = Array.from(buttons).find(btn => {
         const svg = btn.querySelector('svg')
-        return svg && (svg.classList.contains('lucide-plus') || svg.getAttribute('class')?.includes('lucide'))
+        return (
+          svg &&
+          (svg.classList.contains('lucide-plus') || svg.getAttribute('class')?.includes('lucide'))
+        )
       })
       if (plusButton) await user.click(plusButton)
 
       await waitFor(() => {
         const menuButtons = container.querySelectorAll('button')
-        const menuText = Array.from(menuButtons).map(btn => btn.textContent?.toUpperCase()).join(' ')
+        const menuText = Array.from(menuButtons)
+          .map(btn => btn.textContent?.toUpperCase())
+          .join(' ')
         expect(menuText).toContain('PHOTOS')
         expect(menuText).toContain('ARCHIVOS')
       })
@@ -533,8 +561,8 @@ describe('InputArea', () => {
 
       // With default config, + button should be visible
       const buttons = container.querySelectorAll('button')
-      const hasMediaButton = Array.from(buttons).some(btn => 
-        btn.textContent?.includes('+') || btn.className.includes('shrink-0')
+      const hasMediaButton = Array.from(buttons).some(
+        btn => btn.textContent?.includes('+') || btn.className.includes('shrink-0')
       )
       expect(hasMediaButton).toBe(true)
     })
@@ -553,18 +581,25 @@ describe('InputArea', () => {
       const buttons = container.querySelectorAll('button')
       const plusButton = Array.from(buttons).find(btn => {
         const svg = btn.querySelector('svg')
-        return svg && (svg.classList.contains('lucide-plus') || svg.getAttribute('class')?.includes('lucide'))
+        return (
+          svg &&
+          (svg.classList.contains('lucide-plus') || svg.getAttribute('class')?.includes('lucide'))
+        )
       })
       if (plusButton) await user.click(plusButton)
 
       await waitFor(() => {
         const menuButtons = container.querySelectorAll('button')
-        const menuText = Array.from(menuButtons).map(btn => btn.textContent?.toUpperCase()).join(' ')
+        const menuText = Array.from(menuButtons)
+          .map(btn => btn.textContent?.toUpperCase())
+          .join(' ')
         expect(menuText).toContain('PHOTOS')
       })
 
       const menuButtons = container.querySelectorAll('button')
-      const menuText = Array.from(menuButtons).map(btn => btn.textContent?.toUpperCase()).join(' ')
+      const menuText = Array.from(menuButtons)
+        .map(btn => btn.textContent?.toUpperCase())
+        .join(' ')
       // Images should be enabled (default), files disabled
       expect(menuText).not.toContain('ARCHIVOS')
     })
@@ -602,8 +637,10 @@ describe('InputArea', () => {
       const hasMicIcon = Array.from(svgs).some(svg => {
         const className = svg.getAttribute('class') || ''
         const parentButton = svg.closest('button')
-        return className.includes('lucide-mic') || 
-               (parentButton && parentButton.classList.contains('rounded-full'))
+        return (
+          className.includes('lucide-mic') ||
+          (parentButton && parentButton.classList.contains('rounded-full'))
+        )
       })
       expect(hasMicIcon).toBe(true)
     })
@@ -624,7 +661,7 @@ describe('InputArea', () => {
         const className = svg.getAttribute('class') || ''
         return className.includes('lucide-send')
       })
-      
+
       expect(hasSendIcon).toBe(true)
     })
 
@@ -638,9 +675,7 @@ describe('InputArea', () => {
       )
 
       const buttons = container.querySelectorAll('button')
-      const hasMicButton = Array.from(buttons).some(btn => 
-        btn.textContent?.includes('🎤')
-      )
+      const hasMicButton = Array.from(buttons).some(btn => btn.textContent?.includes('🎤'))
       expect(hasMicButton).toBe(false)
     })
   })
@@ -689,10 +724,10 @@ describe('InputArea', () => {
       )
 
       const fileInputs = container.querySelectorAll('input[type="file"]')
-      const fileInput = Array.from(fileInputs).find(input => 
+      const fileInput = Array.from(fileInputs).find(input =>
         input.getAttribute('accept')?.includes('pdf')
       )
-      
+
       expect(fileInput).toBeInTheDocument()
       expect(fileInput?.getAttribute('accept')).toContain('.pdf')
       expect(fileInput?.getAttribute('accept')).toContain('.doc')
@@ -714,7 +749,7 @@ describe('InputArea', () => {
 
       const imageInput = container.querySelector('input[accept="image/*"]')
       const fileInputs = container.querySelectorAll('input[type="file"]')
-      
+
       expect(imageInput).toBeInTheDocument()
       expect(fileInputs.length).toBeGreaterThanOrEqual(2) // At least 2 inputs
     })
@@ -734,7 +769,7 @@ describe('InputArea', () => {
         const accept = input.getAttribute('accept')
         return accept && accept.includes('.pdf')
       })
-      
+
       // Default should include common types like pdf, jpg, png
       expect(fileInput).toBeInTheDocument()
     })

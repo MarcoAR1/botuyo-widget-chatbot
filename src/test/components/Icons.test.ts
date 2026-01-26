@@ -51,13 +51,31 @@ describe('Icons', () => {
 
     it('should export all icons as objects (React components)', () => {
       const iconNames = [
-        'X', 'ShieldCheck', 'Heart',
-        'Paperclip', 'Send', 'Loader2', 'ImageIcon', 'FileAudio', 'FileText',
-        'FileIcon', 'Plus', 'MapPin', 'Mic', 'Trash2',
-        'Play', 'Pause',
+        'X',
+        'ShieldCheck',
+        'Heart',
+        'Paperclip',
+        'Send',
+        'Loader2',
+        'ImageIcon',
+        'FileAudio',
+        'FileText',
+        'FileIcon',
+        'Plus',
+        'MapPin',
+        'Mic',
+        'Trash2',
+        'Play',
+        'Pause',
         'MessageCircle',
-        'ChevronLeft', 'ChevronRight', 'ZoomIn',
-        'CheckCheck', 'MapPinBubble', 'ExternalLink', 'ArrowRight', 'Download',
+        'ChevronLeft',
+        'ChevronRight',
+        'ZoomIn',
+        'CheckCheck',
+        'MapPinBubble',
+        'ExternalLink',
+        'ArrowRight',
+        'Download',
       ]
 
       iconNames.forEach(iconName => {
@@ -96,7 +114,7 @@ describe('Icons', () => {
       // which enables tree-shaking
       const keys = Object.keys(Icons)
       expect(keys.length).toBeGreaterThan(0)
-      
+
       // Verify no default export
       expect((Icons as any).default).toBeUndefined()
     })

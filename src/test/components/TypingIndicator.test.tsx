@@ -33,7 +33,7 @@ describe('TypingIndicator', () => {
       const { container } = render(<TypingIndicator />)
 
       const dots = container.querySelectorAll('.animate-bounce')
-      dots.forEach((dot) => {
+      dots.forEach(dot => {
         expect(dot.className).toContain('animate-bounce')
       })
     })

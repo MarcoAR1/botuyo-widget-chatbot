@@ -31,9 +31,7 @@ describe('useDynamicHeight', () => {
         value: 1000,
       })
 
-      const { result } = renderHook(() => 
-        useDynamicHeight({ isOpen: true })
-      )
+      const { result } = renderHook(() => useDynamicHeight({ isOpen: true }))
 
       expect(result.current).toMatchObject({
         height: '700px',
@@ -48,9 +46,7 @@ describe('useDynamicHeight', () => {
         value: 400, // Muy pequeño
       })
 
-      const { result } = renderHook(() => 
-        useDynamicHeight({ isOpen: true })
-      )
+      const { result } = renderHook(() => useDynamicHeight({ isOpen: true }))
 
       expect(result.current).toMatchObject({
         height: '500px', // DESKTOP_MIN_HEIGHT
@@ -65,9 +61,7 @@ describe('useDynamicHeight', () => {
         value: 2000, // Muy grande
       })
 
-      const { result } = renderHook(() => 
-        useDynamicHeight({ isOpen: true })
-      )
+      const { result } = renderHook(() => useDynamicHeight({ isOpen: true }))
 
       expect(result.current).toMatchObject({
         height: '700px', // DESKTOP_MAX_HEIGHT
@@ -76,9 +70,7 @@ describe('useDynamicHeight', () => {
     })
 
     it('should not calculate height when isOpen is false', () => {
-      const { result } = renderHook(() => 
-        useDynamicHeight({ isOpen: false })
-      )
+      const { result } = renderHook(() => useDynamicHeight({ isOpen: false }))
 
       expect(result.current).toEqual({})
     })
@@ -90,9 +82,7 @@ describe('useDynamicHeight', () => {
         value: 1000,
       })
 
-      const { result, rerender } = renderHook(() => 
-        useDynamicHeight({ isOpen: true })
-      )
+      const { result, rerender } = renderHook(() => useDynamicHeight({ isOpen: true }))
 
       expect(result.current.height).toBe('700px')
 
@@ -131,9 +121,7 @@ describe('useDynamicHeight', () => {
         value: mockVisualViewport,
       })
 
-      const { result } = renderHook(() => 
-        useDynamicHeight({ isOpen: true })
-      )
+      const { result } = renderHook(() => useDynamicHeight({ isOpen: true }))
 
       expect(result.current).toEqual({
         height: '500px',
@@ -145,8 +133,14 @@ describe('useDynamicHeight', () => {
         transform: 'none',
       })
 
-      expect(mockVisualViewport.addEventListener).toHaveBeenCalledWith('resize', expect.any(Function))
-      expect(mockVisualViewport.addEventListener).toHaveBeenCalledWith('scroll', expect.any(Function))
+      expect(mockVisualViewport.addEventListener).toHaveBeenCalledWith(
+        'resize',
+        expect.any(Function)
+      )
+      expect(mockVisualViewport.addEventListener).toHaveBeenCalledWith(
+        'scroll',
+        expect.any(Function)
+      )
     })
 
     it('should use fallback when visualViewport is not available', () => {
@@ -156,9 +150,7 @@ describe('useDynamicHeight', () => {
         value: undefined,
       })
 
-      const { result } = renderHook(() => 
-        useDynamicHeight({ isOpen: true })
-      )
+      const { result } = renderHook(() => useDynamicHeight({ isOpen: true }))
 
       expect(result.current).toEqual({
         height: '100dvh',
@@ -183,14 +175,18 @@ describe('useDynamicHeight', () => {
         value: mockVisualViewport,
       })
 
-      const { unmount } = renderHook(() => 
-        useDynamicHeight({ isOpen: true })
-      )
+      const { unmount } = renderHook(() => useDynamicHeight({ isOpen: true }))
 
       unmount()
 
-      expect(mockVisualViewport.removeEventListener).toHaveBeenCalledWith('resize', expect.any(Function))
-      expect(mockVisualViewport.removeEventListener).toHaveBeenCalledWith('scroll', expect.any(Function))
+      expect(mockVisualViewport.removeEventListener).toHaveBeenCalledWith(
+        'resize',
+        expect.any(Function)
+      )
+      expect(mockVisualViewport.removeEventListener).toHaveBeenCalledWith(
+        'scroll',
+        expect.any(Function)
+      )
     })
 
     it('should register event listeners for keyboard handling', () => {
@@ -208,13 +204,17 @@ describe('useDynamicHeight', () => {
         value: mockVisualViewport,
       })
 
-      renderHook(() => 
-        useDynamicHeight({ isOpen: true })
-      )
+      renderHook(() => useDynamicHeight({ isOpen: true }))
 
       // Verificar que se registraron los listeners para resize y scroll
-      expect(mockVisualViewport.addEventListener).toHaveBeenCalledWith('resize', expect.any(Function))
-      expect(mockVisualViewport.addEventListener).toHaveBeenCalledWith('scroll', expect.any(Function))
+      expect(mockVisualViewport.addEventListener).toHaveBeenCalledWith(
+        'resize',
+        expect.any(Function)
+      )
+      expect(mockVisualViewport.addEventListener).toHaveBeenCalledWith(
+        'scroll',
+        expect.any(Function)
+      )
     })
   })
 
@@ -236,9 +236,7 @@ describe('useDynamicHeight', () => {
         value: mockVisualViewport,
       })
 
-      const { result, rerender } = renderHook(() => 
-        useDynamicHeight({ isOpen: true })
-      )
+      const { result, rerender } = renderHook(() => useDynamicHeight({ isOpen: true }))
 
       expect(result.current.height).toBe('500px')
       expect(result.current.width).toBe('100%')

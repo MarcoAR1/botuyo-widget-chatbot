@@ -77,7 +77,7 @@ describe('ChatStorage', () => {
 
   it('should set and get metadata', async () => {
     const metadata = { sessionId: 'test-123', isOpen: true }
-    
+
     // Just test that setMetadata doesn't throw
     await expect(chatStorage.setMetadata(metadata)).resolves.not.toThrow()
     // getMetadata may return undefined with mocks, that's ok
@@ -121,12 +121,14 @@ describe('ChatStorage', () => {
 
   it('should handle initialization errors', async () => {
     // El storage debería manejar errores de inicialización
-    await expect(chatStorage.saveMessage({
-      id: '1',
-      type: 'text',
-      sender: 'user',
-      timestamp: new Date(),
-      content: 'Test',
-    })).resolves.not.toThrow()
+    await expect(
+      chatStorage.saveMessage({
+        id: '1',
+        type: 'text',
+        sender: 'user',
+        timestamp: new Date(),
+        content: 'Test',
+      })
+    ).resolves.not.toThrow()
   })
 })

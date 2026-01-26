@@ -21,7 +21,7 @@ describe('useHighContrast', () => {
       dispatchEvent: vi.fn(),
     }
 
-    window.matchMedia = vi.fn().mockImplementation((query) => {
+    window.matchMedia = vi.fn().mockImplementation(query => {
       matchMediaMock.media = query
       return matchMediaMock
     })
@@ -45,10 +45,7 @@ describe('useHighContrast', () => {
 
     // Should register listener for 'prefers-contrast: high'
     expect(window.matchMedia).toHaveBeenCalledWith('(prefers-contrast: high)')
-    expect(matchMediaMock.addEventListener).toHaveBeenCalledWith(
-      'change',
-      expect.any(Function)
-    )
+    expect(matchMediaMock.addEventListener).toHaveBeenCalledWith('change', expect.any(Function))
   })
 
   it('should cleanup event listeners on unmount', () => {
@@ -56,10 +53,7 @@ describe('useHighContrast', () => {
 
     unmount()
 
-    expect(matchMediaMock.removeEventListener).toHaveBeenCalledWith(
-      'change',
-      expect.any(Function)
-    )
+    expect(matchMediaMock.removeEventListener).toHaveBeenCalledWith('change', expect.any(Function))
   })
 
   it('should update when contrast preference changes', () => {
@@ -69,7 +63,7 @@ describe('useHighContrast', () => {
 
     // Simulate preference change
     matchMediaMock.matches = true
-    
+
     // Trigger the change event
     const changeHandler = matchMediaMock.addEventListener.mock.calls[0][1]
     changeHandler({ matches: true })

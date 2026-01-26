@@ -58,16 +58,16 @@ export function ChatWindow({
   const { t } = useTranslations()
   const isMobile = useIsMobile()
   const themePrimary = getPrimaryColor({ primaryColor })
-  const dynamicHeightStyles = useDynamicHeight({ 
+  const dynamicHeightStyles = useDynamicHeight({
     isOpen,
     height: theme?.height,
-    bottom: theme?.bottom
+    bottom: theme?.bottom,
   })
-  
+
   // Focus trap para accesibilidad
-  const dialogRef = useFocusTrap({ 
-    enabled: isOpen, 
-    onEscape: onClose 
+  const dialogRef = useFocusTrap({
+    enabled: isOpen,
+    onEscape: onClose,
   })
 
   useEffect(() => {
@@ -127,7 +127,7 @@ export function ChatWindow({
       }}
     >
       {/* --- HEADER --- */}
-      <header 
+      <header
         className="relative shrink-0 border-b z-20"
         style={{
           padding: 'var(--spacing-5)',
@@ -143,7 +143,12 @@ export function ChatWindow({
                 {logoError ? (
                   <div className="h-full w-full flex items-center justify-center bg-muted text-muted-foreground">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
                     </svg>
                   </div>
                 ) : (
@@ -165,7 +170,7 @@ export function ChatWindow({
 
             <div className="flex flex-col">
               <div className="flex items-center gap-1">
-                <span 
+                <span
                   id="chat-window-title"
                   className="font-black text-xs uppercase tracking-tight text-foreground"
                 >
@@ -193,7 +198,7 @@ export function ChatWindow({
       </header>
 
       {/* --- CHAT CONTENT --- */}
-      <main 
+      <main
         className="flex-1 min-h-0 relative flex flex-col"
         style={{
           padding: 'var(--spacing-5)',
@@ -237,16 +242,17 @@ export function ChatWindow({
           onSendLocation={onSendLocation}
         />
 
-        <div 
+        <div
           className="flex items-center justify-center gap-1 opacity-25 select-none"
-          style={{ 
+          style={{
             marginTop: 'var(--spacing-2)',
-            paddingBottom: 'var(--spacing-1)' 
+            paddingBottom: 'var(--spacing-1)',
           }}
         >
           <Heart className="h-2 w-2 text-primary fill-primary" />
           <span className="text-[7px] font-bold uppercase tracking-[0.2em]">
-            {t('con_amor_paseo_libre')}</span>
+            {t('con_amor_paseo_libre')}
+          </span>
         </div>
       </footer>
     </div>

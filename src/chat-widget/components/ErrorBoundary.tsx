@@ -14,25 +14,22 @@ interface ErrorBoundaryState {
 
 /**
  * 🛡️ ERROR BOUNDARY
- * 
+ *
  * Componente que captura errores de React en sus hijos y muestra un UI de fallback.
  * Previene que un error en un componente rompa toda la aplicación.
- * 
+ *
  * @example
  * ```tsx
  * <ErrorBoundary fallback={<div>Algo salió mal</div>}>
  *   <MiComponente />
  * </ErrorBoundary>
  * ```
- * 
+ *
  * Principios SOLID aplicados:
  * - Single Responsibility: Solo maneja captura de errores
  * - Open/Closed: Extensible mediante props fallback y onError
  */
-export class ErrorBoundary extends Component<
-  ErrorBoundaryProps,
-  ErrorBoundaryState
-> {
+export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props)
     this.state = { hasError: false, error: null }
@@ -60,9 +57,7 @@ export class ErrorBoundary extends Component<
       return (
         <div className="flex flex-col items-center justify-center p-8 bg-background text-center">
           <div className="text-6xl mb-4">⚠️</div>
-          <h2 className="text-xl font-bold text-foreground mb-2">
-            Algo salió mal
-          </h2>
+          <h2 className="text-xl font-bold text-foreground mb-2">Algo salió mal</h2>
           <p className="text-sm text-muted-foreground mb-6 max-w-md">
             {this.state.error?.message || 'Ocurrió un error inesperado'}
           </p>

@@ -24,18 +24,14 @@ describe('useAnalytics', () => {
   })
 
   it('should initialize analytics', () => {
-    const { result } = renderHook(() =>
-      useAnalytics('https://api.test.com', 'test-key', true)
-    )
+    const { result } = renderHook(() => useAnalytics('https://api.test.com', 'test-key', true))
 
     expect(result.current).toBeDefined()
     expect(result.current.trackOpen).toBeInstanceOf(Function)
   })
 
   it('should not send events when disabled', () => {
-    const { result } = renderHook(() =>
-      useAnalytics('https://api.test.com', 'test-key', false)
-    )
+    const { result } = renderHook(() => useAnalytics('https://api.test.com', 'test-key', false))
 
     act(() => {
       result.current.trackOpen()
@@ -45,9 +41,7 @@ describe('useAnalytics', () => {
   })
 
   it('should track chat open event', () => {
-    const { result } = renderHook(() =>
-      useAnalytics('https://api.test.com', 'test-key', true)
-    )
+    const { result } = renderHook(() => useAnalytics('https://api.test.com', 'test-key', true))
 
     act(() => {
       result.current.trackOpen()
@@ -58,9 +52,7 @@ describe('useAnalytics', () => {
   })
 
   it('should track different event types', () => {
-    const { result } = renderHook(() =>
-      useAnalytics('https://api.test.com', 'test-key', true)
-    )
+    const { result } = renderHook(() => useAnalytics('https://api.test.com', 'test-key', true))
 
     act(() => {
       result.current.trackOpen()

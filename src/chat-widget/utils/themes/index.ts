@@ -1,7 +1,7 @@
 /**
  * @package @botuyo/chat-widget
  * Exportaciones centrales del sistema de temas
- * 
+ *
  * Importa desde aquí todo lo relacionado con temas:
  * import { DEFAULT_THEME, getSolidStyles, mergeThemeWithDefaults } from './utils/themes'
  */
@@ -10,10 +10,7 @@
 export type { CSSVariables } from '../theme'
 
 // Constantes de Variables CSS
-export {
-  DEFAULT_CSS_VARIABLES,
-  DARK_CSS_VARIABLES,
-} from '../theme'
+export { DEFAULT_CSS_VARIABLES, DARK_CSS_VARIABLES } from '../theme'
 
 // Temas Predefinidos
 export {

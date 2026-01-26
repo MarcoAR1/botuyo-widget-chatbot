@@ -29,16 +29,16 @@ export function ChatWidget(props: ChatWidgetProps) {
   // Refs y estado local
   const containerRef = useRef<HTMLDivElement>(null!)
   const isMobile = useIsMobile()
-  
+
   // Dark mode detection - auto-applies 'dark' class to widget
   useDarkMode(containerRef)
 
   // Estado para tema recibido del socket
   const [socketTheme, setSocketTheme] = useState<ChatWidgetProps['theme'] | undefined>()
-  
+
   // Merge de temas: proyecto (theme) > socket (socketTheme) > default
   const { mergedTheme, mergedStyles, getContainerStyle } = useWidgetTheme(theme, socketTheme)
-  
+
   const {
     state,
     actions,
@@ -61,7 +61,7 @@ export function ChatWidget(props: ChatWidgetProps) {
     onNavigate,
     onEvent,
     onStateChange,
-    onThemeUpdate: setSocketTheme,  // Callback para recibir tema del socket
+    onThemeUpdate: setSocketTheme, // Callback para recibir tema del socket
   })
 
   // Helpers
@@ -74,10 +74,10 @@ export function ChatWidget(props: ChatWidgetProps) {
   // Aplicar CSS variables al widget
   const cssVariablesStyle = useMemo(() => {
     if (!mergedTheme.cssVariables) return {}
-    
+
     const vars: Record<string, string> = {}
     const cssVars = mergedTheme.cssVariables
-    
+
     if (cssVars.background) vars['--background'] = cssVars.background
     if (cssVars.foreground) vars['--foreground'] = cssVars.foreground
     if (cssVars.card) vars['--card'] = cssVars.card
@@ -96,7 +96,7 @@ export function ChatWidget(props: ChatWidgetProps) {
     if (cssVars.spacing5) vars['--spacing-5'] = cssVars.spacing5
     if (cssVars.spacing6) vars['--spacing-6'] = cssVars.spacing6
     if (cssVars.spacing8) vars['--spacing-8'] = cssVars.spacing8
-    
+
     return vars
   }, [mergedTheme.cssVariables])
 
@@ -106,8 +106,7 @@ export function ChatWidget(props: ChatWidgetProps) {
       id="botuyo-chat-widget"
       className={cn(
         'botuyo-chat-widget flex flex-col',
-        !isMobile &&
-          (theme?.position === 'bottom-left' ? 'items-start' : 'items-end')
+        !isMobile && (theme?.position === 'bottom-left' ? 'items-start' : 'items-end')
       )}
       style={{
         ...containerStyle,
@@ -154,10 +153,7 @@ export function ChatWidget(props: ChatWidgetProps) {
 
       {/* LANZADOR (LAUNCHER) */}
       <div
-        className={cn(
-          state.isOpen ? 'hidden' : 'block',
-          !isMobile && 'mt-4'
-        )}
+        className={cn(state.isOpen ? 'hidden' : 'block', !isMobile && 'mt-4')}
         style={{ pointerEvents: 'auto' }}
         onMouseDown={stopPropagation}
         onTouchStart={stopPropagation}

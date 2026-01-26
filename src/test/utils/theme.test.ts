@@ -81,7 +81,7 @@ describe('theme', () => {
   describe('mergeThemeWithDefaults', () => {
     it('should return default theme when no user theme provided', () => {
       const merged = mergeThemeWithDefaults()
-      
+
       expect(merged.primaryColor).toBe(DEFAULT_THEME.primaryColor)
       expect(merged.botName).toBe(DEFAULT_THEME.botName)
       expect(merged.cssVariables).toEqual(DEFAULT_CSS_VARIABLES)
@@ -92,9 +92,9 @@ describe('theme', () => {
         primaryColor: 'hsl(200, 100%, 50%)',
         botName: 'Custom Bot',
       }
-      
+
       const merged = mergeThemeWithDefaults(userTheme)
-      
+
       expect(merged.primaryColor).toBe('hsl(200, 100%, 50%)')
       expect(merged.botName).toBe('Custom Bot')
       expect(merged.position).toBe(DEFAULT_THEME.position) // Default
@@ -107,9 +107,9 @@ describe('theme', () => {
           radius: '1rem',
         },
       }
-      
+
       const merged = mergeThemeWithDefaults(userTheme)
-      
+
       expect(merged.cssVariables.primary).toBe('200 100% 50%')
       expect(merged.cssVariables.radius).toBe('1rem')
       expect(merged.cssVariables.background).toBe(DEFAULT_CSS_VARIABLES.background)
@@ -121,9 +121,9 @@ describe('theme', () => {
           primary: '180 80% 40%',
         },
       }
-      
+
       const merged = mergeThemeWithDefaults(userTheme)
-      
+
       expect(merged.cssVariables.primary).toBe('180 80% 40%')
       expect(merged.cssVariables.foreground).toBe(DEFAULT_CSS_VARIABLES.foreground)
     })
@@ -137,9 +137,9 @@ describe('theme', () => {
         welcomeMessage: 'Custom welcome',
         inputPlaceholder: 'Custom placeholder',
       }
-      
+
       const merged = mergeThemeWithDefaults(userTheme)
-      
+
       expect(merged.primaryColor).toBe(userTheme.primaryColor)
       expect(merged.botName).toBe(userTheme.botName)
       expect(merged.logoUrl).toBe(userTheme.logoUrl)
@@ -152,19 +152,19 @@ describe('theme', () => {
   describe('getPrimaryColor', () => {
     it('should return provided primary color', () => {
       const color = getPrimaryColor({ primaryColor: 'hsl(200, 50%, 50%)' })
-      
+
       expect(color).toBe('hsl(200, 50%, 50%)')
     })
 
     it('should return default color when not provided', () => {
       const color = getPrimaryColor({})
-      
+
       expect(color).toBe('hsl(160, 84%, 39%)')
     })
 
     it('should handle undefined primaryColor', () => {
       const color = getPrimaryColor({ primaryColor: undefined })
-      
+
       expect(color).toBe('hsl(160, 84%, 39%)')
     })
   })
@@ -172,7 +172,7 @@ describe('theme', () => {
   describe('cssVariablesToInlineStyles', () => {
     it('should convert CSS variables to inline styles', () => {
       const styles = cssVariablesToInlineStyles({})
-      
+
       expect(styles['--background']).toBe(DEFAULT_CSS_VARIABLES.background)
       expect(styles['--primary']).toBe(DEFAULT_CSS_VARIABLES.primary)
       expect(styles['--radius']).toBe(DEFAULT_CSS_VARIABLES.radius)
@@ -183,9 +183,9 @@ describe('theme', () => {
         primary: '200 100% 50%',
         radius: '2rem',
       }
-      
+
       const styles = cssVariablesToInlineStyles(customVars)
-      
+
       expect(styles['--primary']).toBe('200 100% 50%')
       expect(styles['--radius']).toBe('2rem')
       expect(styles['--background']).toBe(DEFAULT_CSS_VARIABLES.background)
@@ -193,7 +193,7 @@ describe('theme', () => {
 
     it('should convert all CSS variable properties', () => {
       const styles = cssVariablesToInlineStyles({})
-      
+
       expect(styles).toHaveProperty('--background')
       expect(styles).toHaveProperty('--foreground')
       expect(styles).toHaveProperty('--card')
@@ -209,7 +209,7 @@ describe('theme', () => {
 
     it('should handle kebab-case conversion', () => {
       const styles = cssVariablesToInlineStyles({})
-      
+
       // cardForeground -> card-foreground
       expect(styles['--card-foreground']).toBe(DEFAULT_CSS_VARIABLES.cardForeground)
       expect(styles['--primary-foreground']).toBe(DEFAULT_CSS_VARIABLES.primaryForeground)
@@ -220,7 +220,7 @@ describe('theme', () => {
   describe('getSolidStyles', () => {
     it('should convert HSL variables to solid colors', () => {
       const styles = getSolidStyles()
-      
+
       expect(styles.background).toBe(`hsl(${DEFAULT_CSS_VARIABLES.background})`)
       expect(styles.primary).toBe(`hsl(${DEFAULT_CSS_VARIABLES.primary})`)
     })
@@ -230,16 +230,16 @@ describe('theme', () => {
         primary: '200 100% 50%',
         background: '0 0% 95%',
       }
-      
+
       const styles = getSolidStyles(customVars)
-      
+
       expect(styles.primary).toBe('hsl(200 100% 50%)')
       expect(styles.background).toBe('hsl(0 0% 95%)')
     })
 
     it('should return all color properties', () => {
       const styles = getSolidStyles()
-      
+
       expect(styles).toHaveProperty('background')
       expect(styles).toHaveProperty('foreground')
       expect(styles).toHaveProperty('card')
@@ -254,7 +254,7 @@ describe('theme', () => {
 
     it('should create valid CSS color values', () => {
       const styles = getSolidStyles()
-      
+
       // Verificar que todos los valores empiezan con 'hsl('
       Object.values(styles).forEach(value => {
         expect(value).toMatch(/^hsl\(.+\)$/)
@@ -264,11 +264,7 @@ describe('theme', () => {
 
   describe('Theme Consistency', () => {
     it('all themes should have required properties', () => {
-      const themes = [
-        DEFAULT_THEME,
-        OCEAN_THEME,
-        SUNSET_THEME,
-      ]
+      const themes = [DEFAULT_THEME, OCEAN_THEME, SUNSET_THEME]
 
       themes.forEach(theme => {
         expect(theme.primaryColor).toBeDefined()
@@ -282,11 +278,7 @@ describe('theme', () => {
 
     it('all themes should have valid position values', () => {
       const validPositions = ['bottom-right', 'bottom-left', 'top-right', 'top-left']
-      const themes = [
-        DEFAULT_THEME,
-        OCEAN_THEME,
-        SUNSET_THEME,
-      ]
+      const themes = [DEFAULT_THEME, OCEAN_THEME, SUNSET_THEME]
 
       themes.forEach(theme => {
         // position is optional
@@ -297,11 +289,7 @@ describe('theme', () => {
     })
 
     it('all themes should have valid HSL color formats', () => {
-      const themes = [
-        DEFAULT_THEME,
-        OCEAN_THEME,
-        SUNSET_THEME,
-      ]
+      const themes = [DEFAULT_THEME, OCEAN_THEME, SUNSET_THEME]
 
       themes.forEach(theme => {
         expect(theme.primaryColor).toMatch(/^hsl\(\d+,\s*\d+%,\s*\d+%\)$/)
