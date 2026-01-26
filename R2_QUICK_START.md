@@ -38,8 +38,7 @@ En el bucket → Settings → CORS Policy:
 ```
 Settings → Public access → Connect domain
 Dominio: botuyo.com
-Subdominio: cdn
-Resultado: https://cdn.botuyo.com
+Resultado: https://botuyo.com
 ```
 
 **Opción B - Sin dominio** (Desarrollo):
@@ -98,11 +97,11 @@ git push origin v1.0.0
 <link rel="stylesheet" href="https://cdn.botuyo.com/v1.0.0/chatbot.css">
 
 <!-- JavaScript -->
-<script src="https://cdn.botuyo.com/v1.0.0/chatbot.umd.js"></script>
+<script type="module" src="https://botuyo.com/v1.0.0/botuyo-chat.js"></script>
 <script>
   BotUyoChat.init({
-    apiKey: 'your-key',
-    apiBaseUrl: 'https://api.botuyo.com'
+    serverUrl: 'https://api.botuyo.com',
+    emotion: '😊'
   });
 </script>
 ```
@@ -112,31 +111,35 @@ git push origin v1.0.0
 ```html
 <head>
   <!-- Preload para carga rápida -->
-  <link rel="dns-prefetch" href="https://cdn.botuyo.com">
-  <link rel="preconnect" href="https://cdn.botuyo.com" crossorigin>
-  <link rel="preload" href="https://cdn.botuyo.com/v1.0.0/chatbot.css" as="style">
-  <link rel="preload" href="https://cdn.botuyo.com/v1.0.0/chatbot.umd.js" as="script">
+  <link rel="dns-prefetch" href="https://botuyo.com">
+  <link rel="preconnect" href="https://botuyo.com" crossorigin>
+  <link rel="preload" href="https://botuyo.com/v1.0.0/botuyo-chat.css" as="style">
+  <link rel="preload" href="https://botuyo.com/v1.0.0/botuyo-chat.js" as="script">
   
   <!-- Stylesheet -->
-  <link rel="stylesheet" href="https://cdn.botuyo.com/v1.0.0/chatbot.css">
+  <link rel="stylesheet" href="https://botuyo.com/v1.0.0/botuyo-chat.css">
 </head>
 ```
 
 ## 📦 Estructura de URLs
 
 ```
-https://cdn.botuyo.com/
+https://botuyo.com/
 ├── v1.0.0/              # Versión específica (cache 1 año)
-│   ├── chatbot.umd.js
-│   ├── chatbot.es.js
-│   ├── chatbot.css
+│   ├── botuyo-chat.js   # Entry point (ES module)
+│   ├── botuyo-chat.css
+│   ├── vendor-react.js  # Chunk: React + ReactDOM
+│   ├── ChatWidget.js    # Chunk: Chat UI (lazy)
+│   ├── chunk-*.js       # Otros chunks
 │   └── index.d.ts
 ├── v1.0.1/              # Nueva versión
 │   └── ...
 └── latest/              # Siempre la última (cache 1 hora)
-    ├── chatbot.umd.js
-    ├── chatbot.es.js
-    ├── chatbot.css
+    ├── botuyo-chat.js
+    ├── botuyo-chat.css
+    ├── vendor-react.js
+    ├── ChatWidget.js
+    ├── chunk-*.js
     └── index.d.ts
 ```
 
@@ -170,7 +173,7 @@ https://cdn.botuyo.com/
 
 ```bash
 # Verifica que los archivos existan
-curl -I https://cdn.botuyo.com/v1.0.0/chatbot.umd.js
+curl -I https://botuyo.com/v1.0.0/botuyo-chat.js
 
 # Respuesta esperada:
 # HTTP/2 200

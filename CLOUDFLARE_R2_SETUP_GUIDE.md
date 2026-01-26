@@ -120,7 +120,7 @@ Si tienes un dominio en Cloudflare:
 2. Busca **Public access**
 3. Haz clic en **Connect domain**
 4. Elige tu dominio (ej: `botuyo.com`)
-5. Ingresa el subdominio: `cdn` (quedará como `cdn.botuyo.com`)
+5. Ingresa el subdominio: `cdn` (quedará como `botuyo.com`)
 6. Haz clic en **Connect domain**
 
 Cloudflare configurará automáticamente:
@@ -147,7 +147,7 @@ Prueba que el bucket sea accesible públicamente:
 
 ```bash
 # Debería devolver 404 (aún no hay archivos)
-curl -I https://cdn.botuyo.com/test.js
+curl -I https://botuyo.com/test.js
 # O con r2.dev:
 curl -I https://pub-xxxxx.r2.dev/test.js
 ```
@@ -265,7 +265,7 @@ Si todo salió bien:
 
 ```bash
 # Reemplaza con tu dominio
-curl -I https://cdn.botuyo.com/v1.0.0-test/chatbot.umd.js
+curl -I https://botuyo.com/v1.0.0-test/botuyo-chat.js
 
 # Deberías ver:
 # HTTP/2 200
@@ -304,7 +304,7 @@ git push origin v1.0.0
   <title>Mi Sitio con BotUyo</title>
   
   <!-- BotUyo Chat Widget - Versión Específica (Recomendado) -->
-  <link rel="stylesheet" href="https://cdn.botuyo.com/v1.0.0/chatbot.css">
+  <link rel="stylesheet" href="https://botuyo.com/v1.0.0/botuyo-chat.css">
 </head>
 <body>
   <h1>Mi Sitio Web</h1>
@@ -312,7 +312,7 @@ git push origin v1.0.0
   <!-- Widget se inyectará aquí automáticamente -->
   
   <!-- BotUyo Chat Widget -->
-  <script src="https://cdn.botuyo.com/v1.0.0/chatbot.umd.js"></script>
+  <script src="https://botuyo.com/v1.0.0/botuyo-chat.js"></script>
   <script>
     BotUyoChat.init({
       apiKey: 'tu-api-key-aqui',
@@ -331,8 +331,8 @@ git push origin v1.0.0
 
 ```html
 <!-- Siempre carga la última versión -->
-<link rel="stylesheet" href="https://cdn.botuyo.com/latest/chatbot.css">
-<script src="https://cdn.botuyo.com/latest/chatbot.umd.js"></script>
+<link rel="stylesheet" href="https://botuyo.com/latest/botuyo-chat.css">
+<script src="https://botuyo.com/latest/botuyo-chat.js"></script>
 ```
 
 > **⚠️ Advertencia**: `/latest/` se actualiza automáticamente. Úsalo solo si estás seguro de que las actualizaciones no romperán tu implementación.
@@ -342,17 +342,17 @@ git push origin v1.0.0
 ```html
 <head>
   <!-- DNS Prefetch -->
-  <link rel="dns-prefetch" href="https://cdn.botuyo.com">
+  <link rel="dns-prefetch" href="https://botuyo.com">
   
   <!-- Preconnect -->
-  <link rel="preconnect" href="https://cdn.botuyo.com" crossorigin>
+  <link rel="preconnect" href="https://botuyo.com" crossorigin>
   
   <!-- Preload Assets -->
-  <link rel="preload" href="https://cdn.botuyo.com/v1.0.0/chatbot.css" as="style">
-  <link rel="preload" href="https://cdn.botuyo.com/v1.0.0/chatbot.umd.js" as="script">
+  <link rel="preload" href="https://botuyo.com/v1.0.0/botuyo-chat.css" as="style">
+  <link rel="preload" href="https://botuyo.com/v1.0.0/botuyo-chat.js" as="script">
   
   <!-- Stylesheet -->
-  <link rel="stylesheet" href="https://cdn.botuyo.com/v1.0.0/chatbot.css">
+  <link rel="stylesheet" href="https://botuyo.com/v1.0.0/botuyo-chat.css">
 </head>
 ```
 
@@ -363,7 +363,7 @@ git push origin v1.0.0
 /// <reference types="@botuyo/chat-widget-standalone" />
 
 // O descarga los tipos
-// https://cdn.botuyo.com/v1.0.0/index.d.ts
+// https://botuyo.com/v1.0.0/index.d.ts
 
 // app.ts
 declare global {
@@ -409,7 +409,7 @@ window.BotUyoChat.init({
    ```
 2. O edita el nombre del bucket en R2 para que coincida
 
-### Error: "No such file or directory: dist/chatbot.umd.js"
+### Error: "No such file or directory: dist/botuyo-chat.js"
 
 **Problema**: El build no generó los archivos esperados.
 
@@ -434,10 +434,10 @@ window.BotUyoChat.init({
 **Solución**:
 ```bash
 # Limpia cache con query string
-https://cdn.botuyo.com/latest/chatbot.umd.js?v=1234567890
+https://botuyo.com/latest/botuyo-chat.js?v=1234567890
 
 # O usa versiones específicas
-https://cdn.botuyo.com/v1.0.1/chatbot.umd.js
+https://botuyo.com/v1.0.1/botuyo-chat.js
 ```
 
 ### GitHub Action falla sin error claro
@@ -516,7 +516,7 @@ git tag v1.0.1-beta
 git push origin v1.0.1-beta
 
 # 2. Prueba en staging
-https://cdn.botuyo.com/v1.0.1-beta/chatbot.umd.js
+https://botuyo.com/v1.0.1-beta/botuyo-chat.js
 
 # 3. Si funciona, deploy a producción
 git tag v1.0.1
@@ -549,7 +549,7 @@ Antes de ir a producción, verifica:
 - [ ] Cuenta de Cloudflare creada
 - [ ] Bucket R2 creado (`chatbot-cdn`)
 - [ ] CORS configurado correctamente
-- [ ] Dominio público conectado (cdn.botuyo.com)
+- [ ] Dominio público conectado (botuyo.com)
 - [ ] API Token creado con permisos correctos
 - [ ] GitHub Secrets configurados
   - [ ] `CLOUDFLARE_ACCOUNT_ID`

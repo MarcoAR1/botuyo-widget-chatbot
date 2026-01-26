@@ -34,8 +34,8 @@ jobs:
       - name: Verify build outputs
         run: |
           ls -lah dist/
-          echo "UMD size: $(wc -c < dist/chatbot.umd.js | numfmt --to=iec)"
-          echo "CSS size: $(wc -c < dist/chatbot.css | numfmt --to=iec)"
+          echo "Main JS size: $(wc -c < dist/botuyo-chat.js | numfmt --to=iec)"
+          echo "CSS size: $(wc -c < dist/botuyo-chat.css | numfmt --to=iec)"
       
       - name: Install Wrangler
         run: npm install -g wrangler
@@ -64,29 +64,37 @@ jobs:
           
           echo "🚀 Deploying to R2: ${BUCKET}/${VERSION}/"
           
-          # Deploy chatbot.umd.js
-          wrangler r2 object put ${BUCKET}/${VERSION}/chatbot.umd.js \
-            --file dist/chatbot.umd.js \
+          # Deploy botuyo-chat.js (main entry)
+          wrangler r2 object put ${BUCKET}/${VERSION}/botuyo-chat.js \
+            --file dist/botuyo-chat.js \
             --content-type application/javascript \
             --cache-control "public, max-age=31536000, immutable"
           
-          # Deploy chatbot.es.js
-          wrangler r2 object put ${BUCKET}/${VERSION}/chatbot.es.js \
-            --file dist/chatbot.es.js \
-            --content-type application/javascript \
-            --cache-control "public, max-age=31536000, immutable"
-          
-          # Deploy chatbot.css
-          wrangler r2 object put ${BUCKET}/${VERSION}/chatbot.css \
-            --file dist/chatbot.css \
+          # Deploy botuyo-chat.css
+          wrangler r2 object put ${BUCKET}/${VERSION}/botuyo-chat.css \
+            --file dist/botuyo-chat.css \
             --content-type text/css \
             --cache-control "public, max-age=31536000, immutable"
           
-          # Deploy index.d.ts
+          # Deploy type definitions
           wrangler r2 object put ${BUCKET}/${VERSION}/index.d.ts \
             --file dist/index.d.ts \
             --content-type text/plain \
             --cache-control "public, max-age=31536000, immutable"
+          
+          # Deploy all chunk files (vendor-react.js, ChatWidget.js, etc.)
+          echo "📦 Deploying chunk files..."
+          for file in dist/*.js; do
+            filename=$(basename "$file")
+            # Skip main entry (already deployed)
+            if [ "$filename" != "botuyo-chat.js" ]; then
+              echo "  Uploading ${filename}..."
+              wrangler r2 object put ${BUCKET}/${VERSION}/${filename} \
+                --file "$file" \
+                --content-type application/javascript \
+                --cache-control "public, max-age=31536000, immutable"
+            fi
+          done
           
           echo "✅ Deployed to ${BUCKET}/${VERSION}/"
       
@@ -101,18 +109,13 @@ jobs:
           echo "🚀 Also deploying to ${BUCKET}/latest/"
           
           # Deploy with shorter cache for /latest/
-          wrangler r2 object put ${BUCKET}/latest/chatbot.umd.js \
-            --file dist/chatbot.umd.js \
+          wrangler r2 object put ${BUCKET}/latest/botuyo-chat.js \
+            --file dist/botuyo-chat.js \
             --content-type application/javascript \
             --cache-control "public, max-age=3600"
           
-          wrangler r2 object put ${BUCKET}/latest/chatbot.es.js \
-            --file dist/chatbot.es.js \
-            --content-type application/javascript \
-            --cache-control "public, max-age=3600"
-          
-          wrangler r2 object put ${BUCKET}/latest/chatbot.css \
-            --file dist/chatbot.css \
+          wrangler r2 object put ${BUCKET}/latest/botuyo-chat.css \
+            --file dist/botuyo-chat.css \
             --content-type text/css \
             --cache-control "public, max-age=3600"
           
@@ -120,6 +123,19 @@ jobs:
             --file dist/index.d.ts \
             --content-type text/plain \
             --cache-control "public, max-age=3600"
+          
+          # Deploy all chunk files to /latest/
+          echo "📦 Deploying chunk files to latest..."
+          for file in dist/*.js; do
+            filename=$(basename "$file")
+            if [ "$filename" != "botuyo-chat.js" ]; then
+              echo "  Uploading ${filename}..."
+              wrangler r2 object put ${BUCKET}/latest/${filename} \
+                --file "$file" \
+                --content-type application/javascript \
+                --cache-control "public, max-age=3600"
+            fi
+          done
           
           echo "✅ Deployed to ${BUCKET}/latest/"
       
@@ -135,21 +151,30 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| File | Size |" >> $GITHUB_STEP_SUMMARY
           echo "|------|------|" >> $GITHUB_STEP_SUMMARY
-          echo "| chatbot.umd.js | $(wc -c < dist/chatbot.umd.js | numfmt --to=iec) |" >> $GITHUB_STEP_SUMMARY
-          echo "| chatbot.es.js | $(wc -c < dist/chatbot.es.js | numfmt --to=iec) |" >> $GITHUB_STEP_SUMMARY
-          echo "| chatbot.css | $(wc -c < dist/chatbot.css | numfmt --to=iec) |" >> $GITHUB_STEP_SUMMARY
+          echo "| botuyo-chat.js | $(wc -c < dist/botuyo-chat.js | numfmt --to=iec) |" >> $GITHUB_STEP_SUMMARY
+          echo "| botuyo-chat.css | $(wc -c < dist/botuyo-chat.css | numfmt --to=iec) |" >> $GITHUB_STEP_SUMMARY
           echo "| index.d.ts | $(wc -c < dist/index.d.ts | numfmt --to=iec) |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🔗 CDN URLs" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo '```html' >> $GITHUB_STEP_SUMMARY
           echo "<!-- Version specific (recommended) -->" >> $GITHUB_STEP_SUMMARY
-          echo "<script src=\"https://cdn.paseolibre.com/${VERSION}/chatbot.umd.js\"></script>" >> $GITHUB_STEP_SUMMARY
-          echo "<link rel=\"stylesheet\" href=\"https://cdn.paseolibre.com/${VERSION}/chatbot.css\">" >> $GITHUB_STEP_SUMMARY
+          echo "<script type=\"module\" src=\"https://botuyo.com/${VERSION}/botuyo-chat.js\"></script>" >> $GITHUB_STEP_SUMMARY
+          echo "<link rel=\"stylesheet\" href=\"https://botuyo.com/${VERSION}/botuyo-chat.css\">" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "<!-- Latest version (auto-updates) -->" >> $GITHUB_STEP_SUMMARY
-          echo "<script src=\"https://cdn.paseolibre.com/latest/chatbot.umd.js\"></script>" >> $GITHUB_STEP_SUMMARY
-          echo "<link rel=\"stylesheet\" href=\"https://cdn.paseolibre.com/latest/chatbot.css\">" >> $GITHUB_STEP_SUMMARY
+          echo "<script type=\"module\" src=\"https://botuyo.com/latest/botuyo-chat.js\"></script>" >> $GITHUB_STEP_SUMMARY
+          echo "<link rel=\"stylesheet\" href=\"https://botuyo.com/latest/botuyo-chat.css\">" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 💡 Usage" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```javascript' >> $GITHUB_STEP_SUMMARY
+          echo "// Initialize the chat widget" >> $GITHUB_STEP_SUMMARY
+          echo "const widget = BotUyoChat.init({" >> $GITHUB_STEP_SUMMARY
+          echo "  serverUrl: 'https://api.botuyo.com'," >> $GITHUB_STEP_SUMMARY
+          echo "  emotion: '😊'" >> $GITHUB_STEP_SUMMARY
+          echo "});" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "✅ **Deployment successful!**" >> $GITHUB_STEP_SUMMARY
