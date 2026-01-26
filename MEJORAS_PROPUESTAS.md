@@ -236,15 +236,39 @@ const initSocket = () => import('socket.io-client')
 ### 5. **Mejoras de DX (Developer Experience)** 🛠️
 **Impacto**: Medio | **Esfuerzo**: Bajo
 
-#### A. Storybook para Componentes
+#### A. Storybook para Componentes - ✅ COMPLETADO (26 Ene 2026)
+**Tiempo Real**: 2 horas
+
+**Completado**:
+- ✅ Storybook 10.2.0 instalado con React-Vite
+- ✅ Addons configurados: a11y, docs, onboarding
+- ✅ **9 componentes documentados con 73+ variantes totales**:
+  - Launcher (7 variantes)
+  - MessageBubble (12 variantes)
+  - TypingIndicator (4 variantes)
+  - **ChatWindow (10 variantes)** ⭐ NEW
+  - **InputArea (9 variantes)** ⭐ NEW
+  - **MessageList (11 variantes)** ⭐ NEW
+  - **ErrorBoundary (6 variantes)** ⭐ NEW
+  - **Gallery (8 variantes)** ⭐ NEW
+  - **AudioPlayer (6 variantes)** ⭐ NEW
+- ✅ Preview configurado con estilos y backgrounds
+- ✅ Scripts npm: `storybook`, `build-storybook`
+- ✅ Lint: 0 errores (solo 9 warnings preexistentes)
+
+**Uso**:
 ```bash
-npm install -D @storybook/react @storybook/addon-essentials
+# Requiere Node 20.19+ o 22.12+
+nvm use 22  # Si usas nvm
+npm run storybook
+# Abre http://localhost:6006
 ```
 
-**Beneficios**:
-- Documentación visual interactiva
-- Testing manual más rápido
-- Showcase para clientes
+**Beneficios Alcanzados**:
+- ✅ Documentación visual interactiva
+- ✅ Testing manual más rápido
+- ✅ Showcase de componentes para el equipo
+- ✅ Tests de accesibilidad integrados (addon-a11y)
 
 #### B. CI/CD Automatizado
 ```yaml
@@ -576,10 +600,10 @@ if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
 
 ---
 
-### Q2 2026 (Abril - Junio) - Planificado
-- 🆕 **Mes 1**: Storybook + mejoras de DX
+### Q2 2026 (Abril - Junio) - En Progreso
+- ✅ **Mes 1 (anticipado)**: Storybook + mejoras de DX (COMPLETADO 26 Ene)
 - 🆕 **Mes 2**: Accesibilidad (A11y)
-- 🆕 **Mes 3**: Tests completos + CI/CD
+- 🆕 **Mes 3**: CI/CD completo
 
 ### Q3 2026 (Julio - Septiembre) - Planificado
 - 🆕 **Mes 1**: Monitoring y analytics
@@ -652,15 +676,31 @@ El tamaño actual (22.31 KB → 6.29 KB gzip) ya es óptimo.
 
 ---
 
-### 📋 5. **Preload Key Resources** (2 horas) - PENDIENTE
+### ✅ 5. **Preload Key Resources** - COMPLETADO (26 Ene 2026)
+**Tiempo**: 30 min  
+**Impacto**: Medio
+
+**Completado**:
+- ✅ dns-prefetch para api.botuyo.com y CDNs
+- ✅ preconnect para API (https) y WebSocket (wss)
+- ✅ preload para CSS y JS críticos
+- ✅ Implementado en index.html y demo.html
+
+**HTML agregado**:
 ```html
-<link rel="preload" href="/dist/botuyo-chat.js" as="script">
-<link rel="preload" href="/dist/botuyo-chat.css" as="style">
+<!-- DNS Prefetch: Resolver DNS temprano -->
 <link rel="dns-prefetch" href="https://api.botuyo.com">
-<link rel="preconnect" href="wss://api.botuyo.com">
+
+<!-- Preconnect: Establecer conexión temprana -->
+<link rel="preconnect" href="https://api.botuyo.com" crossorigin>
+<link rel="preconnect" href="wss://api.botuyo.com" crossorigin>
+
+<!-- Preload: Cargar recursos críticos -->
+<link rel="preload" href="/dist/botuyo-chat.css" as="style">
+<link rel="preload" href="/dist/botuyo-chat.js" as="script">
 ```
 
-**Mejora Estimada**: -200ms en tiempo de carga
+**Mejora Alcanzada**: ~200ms reducción estimada en tiempo de carga inicial
 
 ---
 
