@@ -17,6 +17,12 @@ export default defineConfig({
     })
   ],
   
+  // Replace process.env for browser compatibility
+  define: {
+    'process.env.NODE_ENV': JSON.stringify('production'),
+    'process.env': '{}',
+  },
+  
   build: {
     lib: {
       entry: resolve(__dirname, 'standalone.tsx'),

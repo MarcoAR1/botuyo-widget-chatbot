@@ -6,13 +6,17 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type { ChatMessage } from '../types'
 import { logger } from '../utils/logger'
+import { DEFAULT_AVATAR_URL, DEFAULT_NOTIFICATION_SOUND_URL } from '../utils/defaultAssets'
 
 export interface UseNotificationsOptions {
   enabled?: boolean
   soundEnabled?: boolean
   desktopEnabled?: boolean
   botName?: string
+  /** Custom logo URL. If not provided, uses bundled default avatar */
   logoUrl?: string
+  /** Custom notification sound URL. If not provided, uses bundled default sound */
+  notificationSoundUrl?: string
 }
 
 export function useNotifications({
@@ -20,18 +24,23 @@ export function useNotifications({
   soundEnabled = true,
   desktopEnabled = true,
   botName = 'Asistente',
-  logoUrl = '/avatar/mar_default.webp',
+  logoUrl,
+  notificationSoundUrl,
 }: UseNotificationsOptions = {}) {
   const [permission, setPermission] = useState<NotificationPermission>('default')
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
+  // Use provided URLs or fall back to bundled defaults
+  const effectiveLogoUrl = logoUrl || DEFAULT_AVATAR_URL
+  const effectiveSoundUrl = notificationSoundUrl || DEFAULT_NOTIFICATION_SOUND_URL
+
   // Inicializar audio element
   useEffect(() => {
     if (soundEnabled && typeof window !== 'undefined') {
-      audioRef.current = new Audio('/notification.mp3')
+      audioRef.current = new Audio(effectiveSoundUrl)
       audioRef.current.volume = 0.3
     }
-  }, [soundEnabled])
+  }, [soundEnabled, effectiveSoundUrl])
 
   // Verificar permiso al montar
   useEffect(() => {
@@ -81,7 +90,7 @@ export function useNotifications({
 
         const notification = new Notification(title, {
           body,
-          icon: logoUrl,
+          icon: effectiveLogoUrl,
           tag: 'chat-message',
           requireInteraction: false,
           silent: false,
@@ -98,7 +107,7 @@ export function useNotifications({
         logger.error('Error showing notification:', error)
       }
     },
-    [enabled, desktopEnabled, permission, botName, logoUrl]
+    [enabled, desktopEnabled, permission, botName, effectiveLogoUrl]
   )
 
   // Reproducir sonido

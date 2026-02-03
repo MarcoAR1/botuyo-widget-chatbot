@@ -12,6 +12,7 @@ import { useIsMobile } from '../hooks/useIsMobile'
 import { useDynamicHeight } from '../hooks/useDynamicHeight'
 import { useFocusTrap } from '../hooks/useFocusTrap'
 import { EmotionAvatarMap } from './Launcher'
+import { DEFAULT_AVATAR_URL } from '../utils/defaultAssets'
 
 export interface ChatWindowProps {
   isOpen: boolean
@@ -164,7 +165,7 @@ export function ChatWindow({
                     </div>
                   ) : (
                     <img
-                      src={logoUrl || '/avatar/mar_happy.webp'}
+                      src={logoUrl || DEFAULT_AVATAR_URL}
                       alt={botName}
                       className="h-full w-full object-cover"
                       onError={() => setLogoError(true)}

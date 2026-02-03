@@ -344,55 +344,43 @@
     </footer>
   </div>
 
-  <!-- BotUyo Widget - Using production CDN -->
-  <script>
-    // Initialize widget when ready
-    window.BotUyoChat = window.BotUyoChat || {};
-    window.BotUyoChat.init = window.BotUyoChat.init || function(config) {
-      window._botuyoConfig = config;
-    };
-
-    window.BotUyoChat.init({
-      apiKey: 'bty_paseo_test_2024_local_dev_key',
-      apiBaseUrl: 'https://api.botuyo.com',
-      theme: {
-        primaryColor: '#10b981',
-        botName: 'BotUyo Live Call Demo',
-        welcomeMessage: '¡Hola! 👋 Probá el botón de llamada para iniciar una conversación por voz.',
-      },
-      // Enable voice feature
-      voice: {
-        enabled: true,
-      },
-      onEvent: function(event) {
-        console.log('[Demo] Widget event:', event);
-      },
-      onStateChange: function(state) {
-        console.log('[Demo] Widget state:', state);
-        updateStatus(state);
-      }
-    });
-
-    function updateStatus(state) {
-      const statusEl = document.getElementById('status');
-      const statusText = document.getElementById('status-text');
-      
-      if (state && state.isOpen !== undefined) {
-        statusEl.classList.add('connected');
-        statusText.textContent = state.isOpen ? 'Chat abierto' : 'Widget cargado';
-      }
-    }
-
-    // Check if widget loaded
-    window.addEventListener('load', function() {
-      setTimeout(function() {
-        if (window.BotUyoChat && window.BotUyoChat.__loaded) {
-          document.getElementById('status').classList.add('connected');
-          document.getElementById('status-text').textContent = 'Widget cargado ✓';
+  <!-- BotUyo Widget - CDN -->
+  <link rel="stylesheet" href="https://cdn-chatbot.botuyo.com/latest/botuyo-chat.css">
+  <script type="module">
+    // Import widget from CDN
+    import('https://cdn-chatbot.botuyo.com/latest/botuyo-chat.js').then(() => {
+      window.BotUyoChat.init({
+        apiKey: 'bty_paseo_test_2024_local_dev_key',
+        apiBaseUrl: 'http://localhost:3000',
+        theme: {
+          primaryColor: '#10b981',
+          botName: 'BotUyo Live Call Demo',
+          welcomeMessage: '¡Hola! 👋 Probá el botón de llamada para iniciar una conversación por voz.',
+        },
+        voice: {
+          enabled: true,
+          wsEndpoint: 'ws://localhost:3000/voice/widget'
+        },
+        onEvent: function(event) {
+          console.log('[Demo] Widget event:', event);
+        },
+        onStateChange: function(state) {
+          console.log('[Demo] Widget state:', state);
+          const statusEl = document.getElementById('status');
+          const statusText = document.getElementById('status-text');
+          if (state && state.isOpen !== undefined) {
+            statusEl.classList.add('connected');
+            statusText.textContent = state.isOpen ? 'Chat abierto' : 'Widget cargado';
+          }
         }
-      }, 2000);
+      });
+      
+      document.getElementById('status').classList.add('connected');
+      document.getElementById('status-text').textContent = 'Widget cargado ✓';
+    }).catch(err => {
+      console.error('[Demo] Failed to load widget:', err);
+      document.getElementById('status-text').textContent = 'Error cargando widget';
     });
   </script>
-  <script src="https://cdn.botuyo.com/chat-widget.js" async></script>
 </body>
 </html>

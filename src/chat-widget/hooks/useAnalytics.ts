@@ -102,7 +102,7 @@ class ChatAnalytics {
     this.queue = []
 
     try {
-      await fetch(this.endpoint, {
+      const response = await fetch(this.endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -113,11 +113,20 @@ class ChatAnalytics {
         keepalive: true,
       })
 
-      logger.debug(`Analytics: Flushed ${batch.length} events`)
+      // Don't re-queue on 4xx errors (endpoint not available, auth failed, etc.)
+      if (response.ok) {
+        logger.debug(`Analytics: Flushed ${batch.length} events`)
+      } else if (response.status >= 400 && response.status < 500) {
+        // Client errors (404, 401, etc.) - don't retry, just log once
+        logger.debug(`Analytics endpoint returned ${response.status}, events discarded`)
+      } else {
+        // Server errors (5xx) - re-queue for retry
+        throw new Error(`Server error: ${response.status}`)
+      }
     } catch (error) {
-      logger.error('Analytics flush failed:', error)
+      logger.debug('Analytics flush failed:', error)
 
-      // Re-encolar solo si no excedemos el límite
+      // Re-queue only for network errors, not for HTTP errors
       if (this.queue.length + batch.length <= this.MAX_QUEUE_SIZE) {
         this.queue.unshift(...batch)
       }
