@@ -13,6 +13,8 @@ export interface MediaConfig {
   enableImages?: boolean
   /** Habilitar grabación y envío de audio (default: true) */
   enableAudio?: boolean
+  /** Habilitar voice chat en tiempo real - Enterprise (default: false) */
+  enableVoice?: boolean
   /** Habilitar envío de archivos (default: true) */
   enableFiles?: boolean
   /** Habilitar compartir ubicación (default: true) */
@@ -21,6 +23,23 @@ export interface MediaConfig {
   allowedFileTypes?: string[]
   /** Tamaño máximo de archivo en MB (default: 10) */
   maxFileSizeMB?: number
+}
+
+/**
+ * Voice chat configuration (Enterprise tier)
+ * Received from /api/widget/config endpoint
+ */
+export interface VoiceConfig {
+  /** If false, voice feature is disabled for this tenant */
+  enabled: boolean
+  /** Preferred language for STT/TTS (e.g., 'es-AR', 'en-US') */
+  language?: string
+  /** Voice ID for TTS (default or custom cloned voice) */
+  voiceId?: string
+  /** Maximum recording duration in seconds (default: 60) */
+  maxDurationSeconds?: number
+  /** WebSocket endpoint override (optional) */
+  wsEndpoint?: string
 }
 
 /**

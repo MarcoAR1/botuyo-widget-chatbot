@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎙️ BotUyo Live Call - Demo Interna</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      min-height: 100vh;
+      color: #e4e4e7;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(90deg, #10b981, #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: #a1a1aa;
+      font-size: 1.1rem;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(16, 185, 129, 0.2);
+      color: #10b981;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      margin-top: 1rem;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      backdrop-filter: blur(10px);
+    }
+
+    .card h2 {
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card h2 span {
+      font-size: 1.5rem;
+    }
+
+    .checklist {
+      list-style: none;
+    }
+
+    .checklist li {
+      padding: 0.5rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .checklist li::before {
+      content: "✅";
+    }
+
+    .states-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1rem;
+    }
+
+    .state-item {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 0.5rem;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .state-item .icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .state-item .name {
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+      color: #a1a1aa;
+    }
+
+    .protocol-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .protocol-table th,
+    .protocol-table td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .protocol-table th {
+      color: #10b981;
+      font-weight: 600;
+    }
+
+    .msg-type {
+      font-family: 'Consolas', 'Monaco', monospace;
+      background: rgba(16, 185, 129, 0.1);
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      font-size: 0.875rem;
+    }
+
+    .instructions {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1));
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 1rem;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .instructions h2 {
+      justify-content: center;
+    }
+
+    .instructions ol {
+      text-align: left;
+      max-width: 400px;
+      margin: 1.5rem auto;
+    }
+
+    .instructions li {
+      padding: 0.5rem 0;
+    }
+
+    .arrow {
+      font-size: 2rem;
+      margin: 1rem 0;
+      animation: bounce 1s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(10px); }
+    }
+
+    .footer {
+      text-align: center;
+      color: #71717a;
+      font-size: 0.875rem;
+      margin-top: 2rem;
+    }
+
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .status-indicator.connected {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ef4444;
+      animation: pulse 2s infinite;
+    }
+
+    .status-indicator.connected .status-dot {
+      background: #10b981;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎙️ BotUyo Live Call</h1>
+      <p class="subtitle">Demo Interna - Testing de Llamadas en Vivo</p>
+      <span class="badge">v1.0.0 - Development</span>
+      
+      <div class="status-indicator" id="status">
+        <span class="status-dot"></span>
+        <span id="status-text">Esperando widget...</span>
+      </div>
+    </header>
+
+    <div class="card">
+      <h2><span>🧪</span> Funcionalidades a Probar</h2>
+      <ul class="checklist">
+        <li>Iniciar llamada (botón Start Call)</li>
+        <li>Conectar WebSocket y enviar auth + start_call</li>
+        <li>Capturar audio con AudioWorklet (PCM 16kHz)</li>
+        <li>Recibir transcripción en tiempo real</li>
+        <li>Escuchar respuesta del bot (TTS)</li>
+        <li>Terminar llamada (botón End Call)</li>
+        <li>Timer de duración de llamada</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2><span>🔄</span> Estados de la Llamada</h2>
+      <div class="states-grid">
+        <div class="state-item">
+          <div class="icon">📞</div>
+          <div class="name">IDLE</div>
+        </div>
+        <div class="state-item">
+          <div class="icon">⏳</div>
+          <div class="name">CALLING</div>
+        </div>
+        <div class="state-item">
+          <div class="icon">✅</div>
+          <div class="name">READY</div>
+        </div>
+        <div class="state-item">
+          <div class="icon">🎤</div>
+          <div class="name">LISTENING</div>
+        </div>
+        <div class="state-item">
+          <div class="icon">🧠</div>
+          <div class="name">THINKING</div>
+        </div>
+        <div class="state-item">
+          <div class="icon">🔊</div>
+          <div class="name">SPEAKING</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span>📡</span> Protocolo WebSocket</h2>
+      <table class="protocol-table">
+        <thead>
+          <tr>
+            <th>Mensaje</th>
+            <th>Dirección</th>
+            <th>Descripción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="msg-type">start_call</span></td>
+            <td>→ Server</td>
+            <td>Inicia la llamada</td>
+          </tr>
+          <tr>
+            <td><span class="msg-type">call_started</span></td>
+            <td>← Server</td>
+            <td>Llamada establecida</td>
+          </tr>
+          <tr>
+            <td><span class="msg-type">listening</span></td>
+            <td>← Server</td>
+            <td>VAD detectó voz</td>
+          </tr>
+          <tr>
+            <td><span class="msg-type">transcription</span></td>
+            <td>← Server</td>
+            <td>Texto transcrito</td>
+          </tr>
+          <tr>
+            <td><span class="msg-type">speaking</span></td>
+            <td>← Server</td>
+            <td>Bot respondiendo</td>
+          </tr>
+          <tr>
+            <td><span class="msg-type">response_text</span></td>
+            <td>← Server</td>
+            <td>Texto de respuesta</td>
+          </tr>
+          <tr>
+            <td><span class="msg-type">done</span></td>
+            <td>← Server</td>
+            <td>Turno completo</td>
+          </tr>
+          <tr>
+            <td><span class="msg-type">end_call</span></td>
+            <td>→ Server</td>
+            <td>Termina la llamada</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="instructions">
+      <h2><span>👇</span> Cómo Probar</h2>
+      <ol>
+        <li>Asegurate que el backend esté corriendo en <code>localhost:3000</code></li>
+        <li>Hacé click en el botón del chat (abajo a la derecha)</li>
+        <li>Buscá el botón <strong>📞 Start Call</strong></li>
+        <li>Aceptá el permiso de micrófono</li>
+        <li>¡Hablá con el bot!</li>
+      </ol>
+      <div class="arrow">👇</div>
+      <p><strong>El widget debería aparecer abajo a la derecha</strong></p>
+    </div>
+
+    <footer class="footer">
+      <p>BotUyo Chat Widget - Demo Interna</p>
+      <p>Conectando a: <code>http://localhost:3000</code></p>
+    </footer>
+  </div>
+
+  <!-- BotUyo Widget - Using production CDN -->
+  <script>
+    // Initialize widget when ready
+    window.BotUyoChat = window.BotUyoChat || {};
+    window.BotUyoChat.init = window.BotUyoChat.init || function(config) {
+      window._botuyoConfig = config;
+    };
+
+    window.BotUyoChat.init({
+      apiKey: 'bty_paseo_test_2024_local_dev_key',
+      apiBaseUrl: 'https://api.botuyo.com',
+      theme: {
+        primaryColor: '#10b981',
+        botName: 'BotUyo Live Call Demo',
+        welcomeMessage: '¡Hola! 👋 Probá el botón de llamada para iniciar una conversación por voz.',
+      },
+      // Enable voice feature
+      voice: {
+        enabled: true,
+      },
+      onEvent: function(event) {
+        console.log('[Demo] Widget event:', event);
+      },
+      onStateChange: function(state) {
+        console.log('[Demo] Widget state:', state);
+        updateStatus(state);
+      }
+    });
+
+    function updateStatus(state) {
+      const statusEl = document.getElementById('status');
+      const statusText = document.getElementById('status-text');
+      
+      if (state && state.isOpen !== undefined) {
+        statusEl.classList.add('connected');
+        statusText.textContent = state.isOpen ? 'Chat abierto' : 'Widget cargado';
+      }
+    }
+
+    // Check if widget loaded
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        if (window.BotUyoChat && window.BotUyoChat.__loaded) {
+          document.getElementById('status').classList.add('connected');
+          document.getElementById('status-text').textContent = 'Widget cargado ✓';
+        }
+      }, 2000);
+    });
+  </script>
+  <script src="https://cdn.botuyo.com/chat-widget.js" async></script>
+</body>
+</html>
