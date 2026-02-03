@@ -76,12 +76,6 @@ jobs:
             --content-type text/css \
             --cache-control "public, max-age=31536000, immutable"
           
-          # Deploy type definitions
-          wrangler r2 object put ${BUCKET}/${VERSION}/index.d.ts \
-            --file dist/index.d.ts \
-            --content-type text/plain \
-            --cache-control "public, max-age=31536000, immutable"
-          
           # Deploy all chunk files (vendor-react.js, ChatWidget.js, etc.)
           echo "📦 Deploying chunk files..."
           for file in dist/*.js; do
@@ -119,11 +113,6 @@ jobs:
             --content-type text/css \
             --cache-control "public, max-age=3600"
           
-          wrangler r2 object put ${BUCKET}/latest/index.d.ts \
-            --file dist/index.d.ts \
-            --content-type text/plain \
-            --cache-control "public, max-age=3600"
-          
           # Deploy all chunk files to /latest/
           echo "📦 Deploying chunk files to latest..."
           for file in dist/*.js; do
@@ -153,7 +142,6 @@ jobs:
           echo "|------|------|" >> $GITHUB_STEP_SUMMARY
           echo "| botuyo-chat.js | $(wc -c < dist/botuyo-chat.js | numfmt --to=iec) |" >> $GITHUB_STEP_SUMMARY
           echo "| botuyo-chat.css | $(wc -c < dist/botuyo-chat.css | numfmt --to=iec) |" >> $GITHUB_STEP_SUMMARY
-          echo "| index.d.ts | $(wc -c < dist/index.d.ts | numfmt --to=iec) |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🔗 CDN URLs" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
