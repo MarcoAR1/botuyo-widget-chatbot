@@ -151,6 +151,9 @@ export interface ChatWidgetProps {
 
   /** Callback cuando el widget cambia de estado (abierto/cerrado) */
   onStateChange?: (isOpen: boolean) => void
+
+  /** Callback para iniciar una llamada de voz con el bot */
+  onVoiceCall?: () => void
 }
 
 export interface BubbleStyles {

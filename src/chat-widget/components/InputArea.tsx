@@ -3,7 +3,7 @@
 import { useState, useRef, useMemo } from 'react'
 import { useTranslations } from '@/chat-widget/i18n'
 import type { MediaConfig } from '../types'
-import { Send, ImageIcon, Loader2, Plus, MapPin, Mic, X, Trash2, FileIcon } from './Icons'
+import { Send, ImageIcon, Loader2, Plus, MapPin, Mic, X, Trash2, FileIcon, Phone } from './Icons'
 import { cn } from '@/lib/utils'
 import { getPrimaryColor } from '../utils/theme'
 import { logger } from '../utils/logger'
@@ -35,6 +35,7 @@ export interface InputAreaProps {
   onSendMessage: (message: string) => void
   onSendAttachment?: (file: File, type: 'image' | 'audio' | 'file') => void
   onSendLocation?: (location: { latitude: number; longitude: number }) => void
+  onVoiceCall?: () => void // Voice call callback
 }
 
 export function InputArea({
@@ -45,6 +46,7 @@ export function InputArea({
   onSendMessage,
   onSendAttachment,
   onSendLocation,
+  onVoiceCall,
 }: InputAreaProps) {
   const { t } = useTranslations()
   const [inputValue, setInputValue] = useState('')
@@ -382,6 +384,26 @@ export function InputArea({
                       <MapPin size={18} className="text-emerald-500" />
                     )}{' '}
                     {t('ubicacion')}
+                  </button>
+                )}
+
+                {/* Opción: Llamada de Voz */}
+                {config.enableVoice && onVoiceCall && (
+                  <button
+                    onClick={() => {
+                      onVoiceCall?.()
+                      setIsMenuOpen(false)
+                    }}
+                    className="flex items-center border shadow-soft-2xl rounded-2xl transition-colors text-[10px] font-black uppercase tracking-widest"
+                    style={{
+                      gap: 'var(--spacing-3)',
+                      padding: 'var(--spacing-3) var(--spacing-5)',
+                      backgroundColor: 'hsl(var(--card))',
+                      borderColor: 'hsl(var(--border))',
+                      color: 'hsl(var(--card-foreground))',
+                    }}
+                  >
+                    <Phone size={18} className="text-amber-500" /> Llamar
                   </button>
                 )}
               </div>

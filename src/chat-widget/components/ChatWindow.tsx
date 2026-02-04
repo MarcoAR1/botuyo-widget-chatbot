@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useTranslations } from '@/chat-widget/i18n'
-import { X, ShieldCheck, Heart } from './Icons'
+import { X, ShieldCheck, Heart, Phone } from './Icons'
 import { cn } from '@/lib/utils'
 import type { BubbleStyles, ChatMessage, MediaConfig } from '../types'
 import { MessageList } from './MessageList'
@@ -13,6 +13,7 @@ import { useDynamicHeight } from '../hooks/useDynamicHeight'
 import { useFocusTrap } from '../hooks/useFocusTrap'
 import { EmotionAvatarMap } from './Launcher'
 import { DEFAULT_AVATAR_URL } from '../utils/defaultAssets'
+import { VoiceCallDemo } from './VoiceCallDemo'
 
 export interface ChatWindowProps {
   isOpen: boolean
@@ -33,6 +34,7 @@ export interface ChatWindowProps {
   avatars?: EmotionAvatarMap
   onSendAttachment?: (file: File, type: 'image' | 'audio' | 'file') => void
   onSendLocation?: (location: { latitude: number; longitude: number }) => void
+  onVoiceCall?: () => void // Voice call callback
   theme?: import('../types').ChatTheme
 }
 
@@ -53,9 +55,11 @@ export function ChatWindow({
   avatars,
   onSendAttachment,
   onSendLocation,
+  onVoiceCall,
   theme,
 }: ChatWindowProps) {
   const [logoError, setLogoError] = useState(false)
+  const [showVoiceDemo, setShowVoiceDemo] = useState(false)
   const { t } = useTranslations()
   const isMobile = useIsMobile()
   const themePrimary = getPrimaryColor({ primaryColor })
@@ -197,14 +201,28 @@ export function ChatWindow({
               </div>
             </div>
 
-            <button
-              onClick={onClose}
-              aria-label={t('accessibility.closeChat')}
-              title="Esc"
-              className="h-8 w-8 flex items-center justify-center rounded-full bg-muted/60 hover:bg-muted text-foreground transition-all active:scale-90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-            >
-              <X className="h-4 w-4" aria-hidden="true" />
-            </button>
+            <div className="flex items-center gap-2">
+              {/* Voice Call Button - shows when onVoiceCall callback is provided */}
+              {onVoiceCall && (
+                <button
+                  onClick={() => setShowVoiceDemo(true)}
+                  aria-label="Iniciar llamada de voz"
+                  title="Llamar"
+                  className="h-8 w-8 flex items-center justify-center rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 transition-all active:scale-90 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                >
+                  <Phone className="h-4 w-4" aria-hidden="true" />
+                </button>
+              )}
+
+              <button
+                onClick={onClose}
+                aria-label={t('accessibility.closeChat')}
+                title="Esc"
+                className="h-8 w-8 flex items-center justify-center rounded-full bg-muted/60 hover:bg-muted text-foreground transition-all active:scale-90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              >
+                <X className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </div>
           </div>
         </header>
 
@@ -253,6 +271,7 @@ export function ChatWindow({
             onSendMessage={onSendMessage}
             onSendAttachment={onSendAttachment}
             onSendLocation={onSendLocation}
+            onVoiceCall={onVoiceCall}
           />
 
           <div
@@ -268,6 +287,13 @@ export function ChatWindow({
             </span>
           </div>
         </footer>
+
+        {/* Voice Call Demo Overlay */}
+        <VoiceCallDemo 
+          isOpen={showVoiceDemo} 
+          onClose={() => setShowVoiceDemo(false)}
+          primaryColor={themePrimary}
+        />
       </div>
     </>
   )

@@ -24,11 +24,14 @@ describe('Icons', () => {
       expect(Icons.MapPin).toBeDefined()
       expect(Icons.Mic).toBeDefined()
       expect(Icons.Trash2).toBeDefined()
+      expect(Icons.Phone).toBeDefined()
     })
 
     it('should export AudioPlayer icons', () => {
       expect(Icons.Play).toBeDefined()
       expect(Icons.Pause).toBeDefined()
+      expect(Icons.AlertCircle).toBeDefined()
+      expect(Icons.RotateCw).toBeDefined()
     })
 
     it('should export Launcher icons', () => {
@@ -76,6 +79,9 @@ describe('Icons', () => {
         'ExternalLink',
         'ArrowRight',
         'Download',
+        'Phone',
+        'AlertCircle',
+        'RotateCw',
       ]
 
       iconNames.forEach(iconName => {
@@ -93,9 +99,9 @@ describe('Icons', () => {
       expect(Icons.MapPin).toBe(Icons.MapPinBubble)
     })
 
-    it('should export 25 unique icon references', () => {
+    it('should export 28 unique icon references', () => {
       const exportedKeys = Object.keys(Icons)
-      expect(exportedKeys.length).toBe(25)
+      expect(exportedKeys.length).toBe(28)
     })
   })
 

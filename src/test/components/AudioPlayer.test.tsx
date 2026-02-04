@@ -8,6 +8,16 @@ import userEvent from '@testing-library/user-event'
 import { AudioPlayer } from '../../chat-widget/components/AudioPlayer'
 
 describe('AudioPlayer', () => {
+  // Helper to simulate audio ready state
+  const simulateAudioReady = (audioElement: HTMLAudioElement) => {
+    Object.defineProperty(audioElement, 'duration', {
+      value: 120,
+      writable: true,
+    })
+    audioElement.dispatchEvent(new Event('loadedmetadata'))
+    audioElement.dispatchEvent(new Event('canplaythrough'))
+  }
+
   describe('Rendering', () => {
     it('should render audio player with play button', () => {
       const { container } = renderWithI18n(<AudioPlayer url="https://example.com/audio.mp3" isBot={true} />)
@@ -30,14 +40,8 @@ describe('AudioPlayer', () => {
     it('should display duration after audio loads', async () => {
       const { container } = renderWithI18n(<AudioPlayer url="https://example.com/audio.mp3" isBot={true} />)
 
-      const audioElement = container.querySelector('audio')
-      Object.defineProperty(audioElement, 'duration', {
-        value: 120,
-        writable: true,
-      })
-
-      const loadedEvent = new Event('loadedmetadata')
-      audioElement?.dispatchEvent(loadedEvent)
+      const audioElement = container.querySelector('audio')!
+      simulateAudioReady(audioElement)
 
       await waitFor(() => {
         const button = screen.getByRole('button')
@@ -53,11 +57,7 @@ describe('AudioPlayer', () => {
       const audioElement = container.querySelector('audio')!
       const playSpy = vi.spyOn(audioElement, 'play').mockResolvedValue(undefined)
 
-      Object.defineProperty(audioElement, 'duration', {
-        value: 120,
-        writable: true,
-      })
-      audioElement.dispatchEvent(new Event('loadedmetadata'))
+      simulateAudioReady(audioElement)
 
       await waitFor(() => {
         expect(screen.getByRole('button')).not.toBeDisabled()
@@ -76,11 +76,7 @@ describe('AudioPlayer', () => {
       const playSpy = vi.spyOn(audioElement, 'play').mockResolvedValue(undefined)
       const pauseSpy = vi.spyOn(audioElement, 'pause')
 
-      Object.defineProperty(audioElement, 'duration', {
-        value: 120,
-        writable: true,
-      })
-      audioElement.dispatchEvent(new Event('loadedmetadata'))
+      simulateAudioReady(audioElement)
 
       await waitFor(() => {
         expect(screen.getByRole('button')).not.toBeDisabled()
@@ -119,6 +115,7 @@ describe('AudioPlayer', () => {
       })
 
       audioElement.dispatchEvent(new Event('loadedmetadata'))
+      audioElement.dispatchEvent(new Event('canplaythrough'))
       audioElement.dispatchEvent(new Event('timeupdate'))
 
       await waitFor(() => {
@@ -133,11 +130,7 @@ describe('AudioPlayer', () => {
       const audioElement = container.querySelector('audio')!
       vi.spyOn(audioElement, 'play').mockResolvedValue(undefined)
 
-      Object.defineProperty(audioElement, 'duration', {
-        value: 120,
-        writable: true,
-      })
-      audioElement.dispatchEvent(new Event('loadedmetadata'))
+      simulateAudioReady(audioElement)
 
       await waitFor(() => {
         expect(screen.getByRole('button')).not.toBeDisabled()
@@ -151,6 +144,49 @@ describe('AudioPlayer', () => {
       await waitFor(() => {
         expect(button).toBeInTheDocument()
       })
+    })
+  })
+
+  describe('Error Handling', () => {
+    it('should show error state when audio fails to load', async () => {
+      const { container } = renderWithI18n(<AudioPlayer url="https://example.com/audio.mp3" isBot={true} />)
+
+      const audioElement = container.querySelector('audio')!
+      audioElement.dispatchEvent(new Event('error'))
+
+      await waitFor(() => {
+        expect(screen.getByText('No se pudo cargar')).toBeInTheDocument()
+      })
+    })
+
+    it('should show retry button on error', async () => {
+      const { container } = renderWithI18n(<AudioPlayer url="https://example.com/audio.mp3" isBot={true} />)
+
+      const audioElement = container.querySelector('audio')!
+      audioElement.dispatchEvent(new Event('error'))
+
+      await waitFor(() => {
+        const retryButton = screen.getByRole('button', { name: /reintentar/i })
+        expect(retryButton).toBeInTheDocument()
+      })
+    })
+
+    it('should reload audio when retry button is clicked', async () => {
+      const { container } = renderWithI18n(<AudioPlayer url="https://example.com/audio.mp3" isBot={true} />)
+
+      const audioElement = container.querySelector('audio')!
+      const loadSpy = vi.spyOn(audioElement, 'load')
+      
+      audioElement.dispatchEvent(new Event('error'))
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /reintentar/i })).toBeInTheDocument()
+      })
+
+      const retryButton = screen.getByRole('button', { name: /reintentar/i })
+      await userEvent.click(retryButton)
+
+      expect(loadSpy).toHaveBeenCalled()
     })
   })
 

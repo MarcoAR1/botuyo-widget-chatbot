@@ -35,7 +35,7 @@ describe('useDynamicHeight', () => {
 
       expect(result.current).toMatchObject({
         height: '700px',
-        maxHeight: '936px', // 1000 - 64 (DESKTOP_MARGIN_TOP)
+        maxHeight: '912px', // 1000 - 64 - 24 (DESKTOP_MARGIN_TOP + DEFAULT_BOTTOM)
       })
     })
 
@@ -50,7 +50,7 @@ describe('useDynamicHeight', () => {
 
       expect(result.current).toMatchObject({
         height: '500px', // DESKTOP_MIN_HEIGHT
-        maxHeight: '336px', // 400 - 64
+        maxHeight: '312px', // 400 - 64 - 24
       })
     })
 
@@ -65,7 +65,7 @@ describe('useDynamicHeight', () => {
 
       expect(result.current).toMatchObject({
         height: '700px', // DESKTOP_MAX_HEIGHT
-        maxHeight: '1936px', // 2000 - 64
+        maxHeight: '1912px', // 2000 - 64 - 24
       })
     })
 
@@ -252,7 +252,7 @@ describe('useDynamicHeight', () => {
       rerender()
 
       expect(result.current.height).toBe('700px')
-      expect(result.current.maxHeight).toBe('936px')
+      expect(result.current.maxHeight).toBe('912px')
       expect(result.current.width).toBeUndefined()
     })
   })

@@ -147,10 +147,12 @@ class BotUyoChatWidget {
       userContext: this.config.userContext,
       pageContext: this.config.pageContext,
       includeSEOMetadata: this.config.includeSEOMetadata ?? false,
+      mediaConfig: this.config.mediaConfig, // Media features config
       onNavigate: this.config.onNavigate,
       onLogin: this.config.onLogin,
       onEvent: this.config.onEvent,
       onStateChange: this.config.onStateChange,
+      onVoiceCall: this.config.onVoiceCall, // Voice call callback
     };
 
     // Render React component with Suspense for code splitting

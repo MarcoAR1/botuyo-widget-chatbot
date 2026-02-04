@@ -77,15 +77,45 @@
           window.BotUyoChat.init({
             apiKey: 'static-test-key',
             apiBaseUrl: 'http://127.0.0.1:9090',
+            // Media config - enable all features including voice call
+            mediaConfig: {
+              enableImages: true,
+              enableAudio: true,
+              enableVoice: true,  // 🎤 Voice call feature
+              enableFiles: true,
+              enableLocation: true,
+            },
             theme: {
-              primaryColor: '#4f46e5',
-              botName: 'Test Bot',
+              primaryColor: '#10B981',
+              botName: 'Premium Bot',
               position: 'bottom-right',
-              welcomeMessage: 'Hello! I am the test bot.',
-              logoUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=test'
+              welcomeMessage: '¡Hola! Soy tu asistente premium con soporte de voz.',
+              logoUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=premium',
+              height: '550px',
+              bottom: '24px',
+              // Premium animations
+              animations: {
+                enabled: true,
+                messageEntry: 'spring',
+                typingIndicator: 'wave',
+                launcherPulse: true,
+                speedMultiplier: 1,
+              },
+              // Premium effects
+              effects: {
+                glassmorphism: true,
+                softShadows: true,
+                glowEffects: true,
+                hapticFeedback: true,
+              },
             },
             onStateChange: (isOpen) => {
               log(`Widget ${isOpen ? 'opened' : 'closed'}`);
+            },
+            // Voice call demo is now integrated in the React widget itself (VoiceCallDemo.tsx)
+            // This callback just needs to exist to enable the voice call button
+            onVoiceCall: () => {
+              log('🎤 Voice call button clicked - Demo abierto dentro del widget con micrófono real');
             }
           });
           

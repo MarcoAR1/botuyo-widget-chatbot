@@ -28,6 +28,7 @@ export function ChatWidget(props: ChatWidgetProps) {
     onNavigate,
     onEvent,
     onStateChange,
+    onVoiceCall,
   } = props
 
   // Refs y estado local
@@ -129,10 +130,15 @@ export function ChatWidget(props: ChatWidgetProps) {
         {/* VENTANA DE CHAT */}
         <div
           className={cn(
-            'transition-all duration-500 ease-in-out origin-bottom',
+            // Smooth spring-like animation originating from launcher position
+            'transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]',
+            // Mobile: origin from bottom-right where launcher is
+            isMobile 
+              ? (theme?.position === 'bottom-left' ? 'origin-bottom-left' : 'origin-bottom-right')
+              : 'origin-bottom',
             state.isOpen
               ? 'opacity-100 scale-100 h-full w-full translate-y-0 pointer-events-auto'
-              : 'opacity-0 scale-95 pointer-events-none translate-y-full h-0 w-0'
+              : 'opacity-0 scale-[0.85] pointer-events-none translate-y-8 h-0 w-0'
           )}
           style={{ pointerEvents: state.isOpen ? 'auto' : 'none' }}
           onMouseDown={stopPropagation}
@@ -158,6 +164,7 @@ export function ChatWidget(props: ChatWidgetProps) {
               avatars={theme?.avatars}
               mediaConfig={mediaConfig}
               theme={mergedTheme}
+              onVoiceCall={onVoiceCall}
             />
           </ErrorBoundary>
         </div>

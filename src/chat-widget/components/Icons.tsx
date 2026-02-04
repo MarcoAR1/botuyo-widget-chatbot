@@ -22,10 +22,13 @@ export {
   MapPin,
   Mic,
   Trash2,
+  Phone, // Voice call icon
 
   // AudioPlayer icons
   Play,
   Pause,
+  AlertCircle, // Error state
+  RotateCw, // Retry button
 
   // Launcher icons
   MessageCircle,
