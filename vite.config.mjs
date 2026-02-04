@@ -27,8 +27,8 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, 'standalone.tsx'),
       name: 'BotUyoChat',
-      formats: ['es'], // ES module format for modern browsers with code splitting
-      fileName: () => 'botuyo-chat.js',
+      formats: ['es'], // ES module format only
+      fileName: () => 'botuyo-chat.es.js',
     },
     rollupOptions: {
       external: [],

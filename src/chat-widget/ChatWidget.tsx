@@ -5,11 +5,15 @@ import type { ChatWidgetProps } from './types'
 import { Launcher } from './components/Launcher'
 import { ChatWindow } from './components/ChatWindow'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { PremiumConfigProvider } from './contexts/AnimationContext'
 import { cn } from '@/lib/utils'
 import { useIsMobile } from './hooks/useIsMobile'
 import { useWidgetTheme } from './hooks/useWidgetTheme'
 import { useChatWidget } from './hooks/useChatWidget'
 import { useDarkMode } from './hooks/useDarkMode'
+
+// Premium animations
+import './styles/premium-animations.css'
 
 export function ChatWidget(props: ChatWidgetProps) {
   const {
@@ -101,78 +105,86 @@ export function ChatWidget(props: ChatWidgetProps) {
   }, [mergedTheme.cssVariables])
 
   return (
-    <div
-      ref={containerRef}
-      id="botuyo-chat-widget"
-      className={cn(
-        'botuyo-chat-widget flex flex-col',
-        !isMobile && (theme?.position === 'bottom-left' ? 'items-start' : 'items-end')
-      )}
-      style={{
-        ...containerStyle,
-        ...cssVariablesStyle,
-        pointerEvents: 'auto',
-        backgroundColor: 'transparent',
-      }}
+    <PremiumConfigProvider
+      animations={theme?.animations}
+      effects={theme?.effects}
     >
-      {/* VENTANA DE CHAT */}
       <div
+        ref={containerRef}
+        id="botuyo-chat-widget"
         className={cn(
-          'transition-all duration-500 ease-in-out origin-bottom',
-          state.isOpen
-            ? 'opacity-100 scale-100 h-full w-full translate-y-0 pointer-events-auto'
-            : 'opacity-0 scale-95 pointer-events-none translate-y-full h-0 w-0'
+          'botuyo-chat-widget flex flex-col',
+          !isMobile && (theme?.position === 'bottom-left' ? 'items-start' : 'items-end')
         )}
-        style={{ pointerEvents: state.isOpen ? 'auto' : 'none' }}
-        onMouseDown={stopPropagation}
-        onTouchStart={stopPropagation}
+        style={{
+          ...containerStyle,
+          ...cssVariablesStyle,
+          pointerEvents: 'auto',
+          backgroundColor: 'transparent',
+        }}
+        data-animations-disabled={theme?.animations?.enabled === false ? 'true' : undefined}
+        data-effects-glassmorphism={theme?.effects?.glassmorphism === false ? 'false' : undefined}
+        data-effects-shadows={theme?.effects?.softShadows === false ? 'false' : undefined}
       >
-        <ErrorBoundary>
-          <ChatWindow
-            isOpen={state.isOpen}
-            isConnected={isConnected}
-            isTyping={state.isTyping}
-            messages={state.messages}
-            onClose={() => actions.closeWindow()}
-            onSendMessage={handleSendText}
-            onSendAttachment={handleSendAttachment}
-            onSendLocation={handleSendLocation}
-            botName={theme?.botName}
-            logoUrl={theme?.logoUrl}
-            welcomeMessage={theme?.welcomeMessage}
-            inputPlaceholder={theme?.inputPlaceholder}
-            primaryColor={theme?.primaryColor}
-            position={theme?.position}
-            bubbleStyles={mergedStyles}
-            avatars={theme?.avatars}
-            mediaConfig={mediaConfig}
-            theme={mergedTheme}
-          />
-        </ErrorBoundary>
-      </div>
+        {/* VENTANA DE CHAT */}
+        <div
+          className={cn(
+            'transition-all duration-500 ease-in-out origin-bottom',
+            state.isOpen
+              ? 'opacity-100 scale-100 h-full w-full translate-y-0 pointer-events-auto'
+              : 'opacity-0 scale-95 pointer-events-none translate-y-full h-0 w-0'
+          )}
+          style={{ pointerEvents: state.isOpen ? 'auto' : 'none' }}
+          onMouseDown={stopPropagation}
+          onTouchStart={stopPropagation}
+        >
+          <ErrorBoundary>
+            <ChatWindow
+              isOpen={state.isOpen}
+              isConnected={isConnected}
+              isTyping={state.isTyping}
+              messages={state.messages}
+              onClose={() => actions.closeWindow()}
+              onSendMessage={handleSendText}
+              onSendAttachment={handleSendAttachment}
+              onSendLocation={handleSendLocation}
+              botName={theme?.botName}
+              logoUrl={theme?.logoUrl}
+              welcomeMessage={theme?.welcomeMessage}
+              inputPlaceholder={theme?.inputPlaceholder}
+              primaryColor={theme?.primaryColor}
+              position={theme?.position}
+              bubbleStyles={mergedStyles}
+              avatars={theme?.avatars}
+              mediaConfig={mediaConfig}
+              theme={mergedTheme}
+            />
+          </ErrorBoundary>
+        </div>
 
-      {/* LANZADOR (LAUNCHER) */}
-      <div
-        className={cn(state.isOpen ? 'hidden' : 'block', !isMobile && 'mt-4')}
-        style={{ pointerEvents: 'auto' }}
-        onMouseDown={stopPropagation}
-        onTouchStart={stopPropagation}
-      >
-        <Launcher
-          isOpen={state.isOpen}
-          onClick={handleToggle}
-          unreadCount={unreadCount}
-          position={theme?.position || 'bottom-right'}
-          primaryColor={theme?.primaryColor}
-          logoUrl={theme?.logoUrl}
-          starterPrompt={theme?.starterPrompt}
-          avatars={theme?.avatars}
-          emotion={currentBotEmotion}
-          styles={mergedStyles}
-          promptPersistence={theme?.promptPersistence}
-          avatarScale={theme?.avatarScale}
-        />
+        {/* LANZADOR (LAUNCHER) */}
+        <div
+          className={cn(state.isOpen ? 'hidden' : 'block', !isMobile && 'mt-4')}
+          style={{ pointerEvents: 'auto' }}
+          onMouseDown={stopPropagation}
+          onTouchStart={stopPropagation}
+        >
+          <Launcher
+            isOpen={state.isOpen}
+            onClick={handleToggle}
+            unreadCount={unreadCount}
+            position={theme?.position || 'bottom-right'}
+            primaryColor={theme?.primaryColor}
+            logoUrl={theme?.logoUrl}
+            starterPrompt={theme?.starterPrompt}
+            avatars={theme?.avatars}
+            emotion={currentBotEmotion}
+            styles={mergedStyles}
+            promptPersistence={theme?.promptPersistence}
+            avatarScale={theme?.avatarScale}
+          />
+        </div>
       </div>
-    </div>
+    </PremiumConfigProvider>
   )
 }

@@ -26,6 +26,56 @@ export interface MediaConfig {
 }
 
 /**
+ * Animation configuration - all toggleable
+ * Control every aspect of widget animations
+ */
+export interface AnimationConfig {
+  /** Enable all animations (master toggle, default: true) */
+  enabled?: boolean
+  /** Message entry animation style */
+  messageEntry?: 'slide' | 'fade' | 'scale' | 'spring' | 'none'
+  /** Typing indicator animation style */
+  typingIndicator?: 'dots' | 'wave' | 'pulse' | 'none'
+  /** Enable button micro-interactions (hover, press effects) */
+  buttonEffects?: boolean
+  /** Enable smooth scroll in message list */
+  smoothScroll?: boolean
+  /** Animation duration multiplier (0.5 = faster, 2 = slower, default: 1) */
+  speedMultiplier?: number
+  /** Stagger delay between sequential message animations in ms (default: 50) */
+  staggerDelay?: number
+  /** Enable chat window entry/exit animations */
+  windowTransitions?: boolean
+  /** Enable launcher pulse animation */
+  launcherPulse?: boolean
+}
+
+/**
+ * Visual effects configuration
+ * Premium visual enhancements - all toggleable
+ */
+export interface EffectsConfig {
+  /** Enable glassmorphism blur effect on headers (default: true) */
+  glassmorphism?: boolean
+  /** Enable gradient backgrounds (default: true) */
+  gradients?: boolean
+  /** Enable soft shadow effects (default: true) */
+  softShadows?: boolean
+  /** Enable glow effects on hover/focus (default: true) */
+  glowEffects?: boolean
+  /** Enable particle/confetti effects on actions (default: false) */
+  particles?: boolean
+  /** Enable UI sound effects (default: false) */
+  soundEffects?: boolean
+  /** Enable haptic feedback on mobile (default: true) */
+  hapticFeedback?: boolean
+  /** Enable shimmer loading effect (default: true) */
+  shimmerLoading?: boolean
+  /** Enable hover lift effect on cards (default: true) */
+  hoverLift?: boolean
+}
+
+/**
  * Voice chat configuration (Enterprise tier)
  * Received from /api/widget/config endpoint
  */
@@ -214,6 +264,12 @@ export interface ChatTheme {
     /** Spacing 8 - Extra large (ej: "2rem") */
     spacing8?: string
   }
+
+  /** Animation configuration - control all widget animations */
+  animations?: AnimationConfig
+
+  /** Visual effects configuration - premium visual enhancements */
+  effects?: EffectsConfig
 }
 
 export interface UserContext {

@@ -117,6 +117,8 @@ export const DEFAULT_THEME: Required<
     | 'height'
     | 'bottom'
     | 'defaultLocale'
+    | 'animations' // Optional - defaults via AnimationContext
+    | 'effects'    // Optional - defaults via AnimationContext
   >
 > = {
   primaryColor: 'hsl(160, 84%, 39%)',
@@ -263,6 +265,8 @@ export function mergeThemeWithDefaults(
     | 'height'
     | 'bottom'
     | 'defaultLocale'
+    | 'animations' // Optional - defaults via AnimationContext
+    | 'effects'    // Optional - defaults via AnimationContext
   >
 > {
   // Merge de cssVariables con prioridad: user > socket > default

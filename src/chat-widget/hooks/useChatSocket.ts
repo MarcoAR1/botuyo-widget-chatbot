@@ -18,6 +18,20 @@ import { getOrCreateDeviceId } from '../utils/deviceId'
 import { logger } from '../utils/logger'
 import { throttle } from '../utils/performance'
 
+// Zod schema defined at module level for stable reference
+const BotMessageSchema = z.object({
+  id: z.string().optional(),
+  type: z.enum(['text', 'image', 'audio', 'location', 'system']).default('text'),
+  content: z.string().optional(),
+  imageUrl: z.string().url().optional(),
+  audioUrl: z.string().url().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+  timestamp: z.string().optional(),
+  sender: z.enum(['bot', 'user', 'system']).optional(),
+  emotion: z.any().optional(),
+})
+
 export interface UseChatSocketOptions {
   apiKey: string
   apiBaseUrl: string
@@ -52,20 +66,6 @@ export function useChatSocket(options: UseChatSocketOptions) {
   useEffect(() => {
     pageContextRef.current = pageContext
   }, [pageContext])
-
-  // zod schemas para validar y sanear payloads del servidor
-  const BotMessageSchema = z.object({
-    id: z.string().optional(),
-    type: z.enum(['text', 'image', 'audio', 'location', 'system']).default('text'),
-    content: z.string().optional(),
-    imageUrl: z.string().url().optional(),
-    audioUrl: z.string().url().optional(),
-    latitude: z.number().optional(),
-    longitude: z.number().optional(),
-    timestamp: z.string().optional(),
-    sender: z.enum(['bot', 'user', 'system']).optional(),
-    emotion: z.any().optional(),
-  })
 
   const sanitizeIncomingMessage = useCallback(
     (raw: unknown): ChatMessage => {
@@ -125,7 +125,7 @@ export function useChatSocket(options: UseChatSocketOptions) {
           }
       }
     },
-    [BotMessageSchema]
+    [] // No dependencies - BotMessageSchema is now at module level
   )
 
   const connect = useCallback(() => {
@@ -205,7 +205,8 @@ export function useChatSocket(options: UseChatSocketOptions) {
     })
 
     socketRef.current = socket
-  }, [apiKey, apiBaseUrl, userContext?.token, userContext?.metadata, sanitizeIncomingMessage])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Deliberately minimal deps to prevent reconnection loops
+  }, [apiKey, apiBaseUrl])
 
   const disconnect = useCallback(() => {
     if (socketRef.current) {
@@ -215,10 +216,20 @@ export function useChatSocket(options: UseChatSocketOptions) {
     }
   }, [])
 
+  // Store connect in ref to avoid re-running effect
+  const connectRef = useRef(connect)
+  connectRef.current = connect
+
   useEffect(() => {
-    connect()
-    return () => disconnect()
-  }, [connect, disconnect])
+    connectRef.current()
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect()
+        socketRef.current = null
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally only run on mount
+  }, [])
 
   // Cola offline para mensajes salientes
   const outboundQueueRef = useRef<

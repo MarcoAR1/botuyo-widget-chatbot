@@ -8,6 +8,7 @@ import rehypeSanitize from 'rehype-sanitize'
 import { CheckCheck, MapPin, ExternalLink, ArrowRight, FileIcon, Download } from './Icons'
 import { cn } from '@/lib/utils'
 import { getPrimaryColor } from '../utils/theme'
+import { useMessageEntryClass } from '../contexts/AnimationContext'
 import type {
   ChatMessage,
   BubbleStyles,
@@ -32,6 +33,7 @@ export interface MessageBubbleProps {
   avatars?: EmotionAvatarMap
   isFirst?: boolean
   isLast?: boolean
+  index?: number // For stagger animation
 }
 
 export const MessageBubble = memo(
@@ -43,6 +45,7 @@ export const MessageBubble = memo(
     avatars,
     isFirst = true,
     isLast = true,
+    index = 0,
   }: MessageBubbleProps) {
     const { t } = useTranslations('extracted')
     const isUser = message.sender === 'user'
@@ -50,6 +53,10 @@ export const MessageBubble = memo(
     const isBot = !isUser && !isSystem
 
     const brandColor = getPrimaryColor({ primaryColor })
+    
+    // Premium animation hooks
+    const messageEntryClass = useMessageEntryClass()
+    // Note: usePremiumEffects available for future enhancements (hover lift, haptics, etc.)
 
     // --- AVATAR LOGIC ---
     const currentAvatar = useMemo(() => {
@@ -317,11 +324,15 @@ export const MessageBubble = memo(
     return (
       <div
         className={cn(
-          'flex w-full mb-0.5 group animate-in fade-in slide-in-from-bottom-2 duration-200',
+          'flex w-full mb-0.5 group',
+          messageEntryClass, // Configurable animation
           isUser ? 'justify-end' : 'justify-start gap-3',
           isFirst && 'mt-3',
           isLast && 'mb-3'
         )}
+        style={{
+          animationDelay: `${index * 50}ms`,
+        }}
       >
         {/* AVATAR BOT */}
         {!isUser && (

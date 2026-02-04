@@ -89,7 +89,6 @@ export function ChatWindow({
 
   if (!isOpen) return null
 
-  const desktopBottom = theme?.bottom || '24px'
   const isBottomLeft = theme?.position === 'bottom-left'
 
   return (
@@ -124,13 +123,8 @@ export function ChatWindow({
           isMobile && ['fixed inset-0 w-full']
         )}
         style={{
+          // useDynamicHeight already calculates height, maxHeight, and bottom correctly
           ...dynamicHeightStyles,
-          // Aplicar bottom personalizado solo en desktop
-          ...(!isMobile && { 
-            bottom: desktopBottom,
-            // CRITICAL: Ensure chat never exceeds top margin (64px from top)
-            maxHeight: `calc(100vh - 64px - ${desktopBottom})`,
-          }),
           // 🎨 CSS VARIABLES - Los temas se aplican automáticamente
           backgroundColor: 'hsl(var(--background))',
           borderColor: 'hsl(var(--border))',

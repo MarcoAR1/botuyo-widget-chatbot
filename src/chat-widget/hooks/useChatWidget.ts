@@ -250,6 +250,40 @@ export function useChatWidget(options: UseChatWidgetOptions) {
     [actions, socket]
   )
 
+  // Listen for custom events from Standalone API
+  useEffect(() => {
+    const handleOpen = () => {
+      if (!state.isOpen) actions.openWindow()
+    }
+
+    const handleClose = () => {
+      if (state.isOpen) actions.closeWindow()
+    }
+
+    const handleToggleEvent = () => {
+      if (state.isOpen) actions.closeWindow()
+      else actions.openWindow()
+    }
+
+    const handleSendMessageEvent = (e: CustomEvent<{ message: string }>) => {
+      if (e.detail?.message) {
+        handleSendText(e.detail.message)
+      }
+    }
+
+    window.addEventListener('botuyo-chat:open', handleOpen)
+    window.addEventListener('botuyo-chat:close', handleClose)
+    window.addEventListener('botuyo-chat:toggle', handleToggleEvent)
+    window.addEventListener('botuyo-chat:send-message', handleSendMessageEvent as EventListener)
+
+    return () => {
+      window.removeEventListener('botuyo-chat:open', handleOpen)
+      window.removeEventListener('botuyo-chat:close', handleClose)
+      window.removeEventListener('botuyo-chat:toggle', handleToggleEvent)
+      window.removeEventListener('botuyo-chat:send-message', handleSendMessageEvent as EventListener)
+    }
+  }, [state.isOpen, actions, handleSendText])
+
   // Register sendMessage handler for ChatWidgetProvider
   useEffect(() => {
     _setInternalSendMessage(handleSendText)

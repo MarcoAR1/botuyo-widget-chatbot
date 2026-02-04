@@ -5,6 +5,7 @@ import { useTranslations } from '@/chat-widget/i18n'
 import { MessageCircle, X } from './Icons'
 import { cn } from '@/lib/utils'
 import { getPrimaryColor } from '../utils/theme'
+import { useAnimations, usePremiumEffects } from '../contexts/AnimationContext'
 import type { BubbleStyles } from '../types'
 import { logger } from '../utils/logger'
 import { DEFAULT_AVATAR_URL } from '../utils/defaultAssets'
@@ -54,7 +55,13 @@ export function Launcher({
   const { t } = useTranslations('extracted')
   const themeColor = getPrimaryColor({ primaryColor })
   const customLauncherStyle = styles?.launcher?.bg
-  const showPulse = styles?.launcher?.pulse !== false
+  
+  // Premium animation hooks
+  const animations = useAnimations()
+  const { triggerHaptic, getGlowClass } = usePremiumEffects()
+  
+  // Use context-based pulse setting, fallback to styles prop
+  const showPulse = animations.launcherPulse && (styles?.launcher?.pulse !== false)
 
   const [isPromptVisible, setIsPromptVisible] = useState(false)
   const [isFadingOut, setIsFadingOut] = useState(false)
@@ -123,6 +130,7 @@ export function Launcher({
 
   const handleMainAction = () => {
     logger.debug('Launcher handleMainAction called, isOpen:', isOpen)
+    triggerHaptic() // Haptic feedback on click
     setHasDismissed(true)
     if (promptPersistence === 'forever') localStorage.setItem(STORAGE_KEY, 'dismissed')
     onClick()
@@ -209,12 +217,15 @@ export function Launcher({
             'flex items-center justify-center text-white transition-all duration-500',
             'hover:scale-110 active:scale-95 shadow-soft-xl cursor-pointer',
             !isOpen && 'hover:rotate-6',
+            !isOpen && animations.enabled && 'animate-glow-pulse', // Premium glow when enabled
             styles?.radius?.button || 'rounded-full',
-            customLauncherStyle
+            customLauncherStyle,
+            getGlowClass()
           )}
           style={{
             backgroundColor: themeColor || 'hsl(160, 84%, 39%)',
-          }}
+            '--primary-glow': `${themeColor}66`,
+          } as React.CSSProperties}
           aria-label={isOpen ? 'Cerrar chat' : 'Abrir chat'}
         >
           <div className="relative h-full w-full flex items-center justify-center overflow-hidden rounded-inherit">
