@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { getPrimaryColor } from '../utils/theme'
 import type { BubbleStyles } from '../types'
 import { logger } from '../utils/logger'
+import { DEFAULT_AVATAR_URL } from '../utils/defaultAssets'
 
 export type BotEmotion =
   | 'default'
@@ -64,7 +65,7 @@ export function Launcher({
   const STORAGE_KEY = 'chat_launcher_prompt_state'
 
   const currentImageSrc = useMemo(
-    () => avatars[emotion] || avatars.default || logoUrl,
+    () => avatars[emotion] || avatars.default || logoUrl || DEFAULT_AVATAR_URL,
     [emotion, avatars, logoUrl]
   )
 

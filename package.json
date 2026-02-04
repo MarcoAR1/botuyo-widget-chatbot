@@ -37,8 +37,7 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\"",
-    "prepare": "husky"
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\""
   },
   "lint-staged": {
     "*.{ts,tsx}": [

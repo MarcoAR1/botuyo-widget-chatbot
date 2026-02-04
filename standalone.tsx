@@ -135,7 +135,7 @@ class BotUyoChatWidget {
         // Defaults
         primaryColor: '#10b981',
         botName: 'Asistente Virtual',
-        logoUrl: '/avatar/mar_default.webp',
+        // logoUrl is optional - components use DEFAULT_AVATAR_URL if not provided
         position: 'bottom-right',
         welcomeMessage: '¡Hola! 👋 ¿En qué puedo ayudarte?',
         inputPlaceholder: 'Escribe tu mensaje...',

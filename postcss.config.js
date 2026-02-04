@@ -1,39 +1,29 @@
 /**
  * PostCSS Configuration
- * Optimizes CSS with cssnano for production builds
+ * Procesa Tailwind CSS v4 y optimiza con cssnano en producción
  */
 
 export default {
   plugins: {
-    cssnano: {
-      preset: [
-        'advanced',
-        {
-          // Optimizations
-          discardComments: {
-            removeAll: true,
-          },
-          reduceIdents: true,
-          mergeRules: true,
-          mergeLonghand: true,
-          minifySelectors: true,
-          minifyParams: true,
+    '@tailwindcss/postcss': {},
+    autoprefixer: {},
+    // Optimización de CSS con cssnano (solo en producción)
+    ...(process.env.NODE_ENV === 'production' ? {
+      cssnano: {
+        preset: ['default', {
+          // Opciones de optimización segura
+          discardComments: { removeAll: true },
           normalizeWhitespace: true,
-          
-          // CSS Variables - preserve for theming
-          discardUnused: {
-            fontFace: false,
-          },
-          
-          // Z-index optimization (preserve our stacking)
-          zindex: false,
-          
-          // Grid optimization
-          cssDeclarationSorter: {
-            order: 'smacss',
-          },
-        },
-      ],
-    },
+          colormin: true,
+          minifyFontValues: true,
+          minifyGradients: true,
+          minifySelectors: true,
+          mergeLonghand: true,
+          mergeRules: true,
+          reduceIdents: false, // No minificar @keyframes
+          zindex: false, // No optimizar z-index
+        }]
+      }
+    } : {})
   },
-};
+}

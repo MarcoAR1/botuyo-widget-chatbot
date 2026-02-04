@@ -134,6 +134,7 @@ export function useChatSocket(options: UseChatSocketOptions) {
     setIsConnecting(true)
 
     const socket = io(apiBaseUrl, {
+      path: '/webchat', // Backend webchat endpoint
       auth: {
         apiKey,
         deviceId: deviceIdRef.current,
@@ -142,6 +143,8 @@ export function useChatSocket(options: UseChatSocketOptions) {
       },
       transports: ['websocket'],
       reconnection: true,
+      reconnectionAttempts: 5, // Limit reconnection attempts
+      reconnectionDelay: 1000,
       extraHeaders: {
         'bypass-tunnel-reminder': 'true',
         'X-Tunnel-Skip-Anti-Phishing-Page': 'true',
@@ -151,6 +154,9 @@ export function useChatSocket(options: UseChatSocketOptions) {
     socket.on('connect', () => {
       setIsConnecting(false)
       setIsConnected(true)
+      // Call onConnected immediately with a temporary sessionId
+      // This ensures the widget shows as connected even if server doesn't send connection_ack
+      handlersRef.current.onConnected(`temp-${Date.now()}`, undefined)
     })
 
     socket.on('disconnect', _reason => {

@@ -55,23 +55,31 @@ export function useDynamicHeight({ isOpen, height, bottom }: DynamicHeightOption
       }
     } else {
       // En desktop, usar altura personalizada o calcular dinámicamente
+      // Solo usamos bottom - el widget crece hacia arriba
+      const bottomPx = parseFloat(bottom || DEFAULT_BOTTOM) || 24
+      // Calcular la altura máxima disponible desde bottom hasta el margen superior
+      const maxAvailableHeight = window.innerHeight - DESKTOP_MARGIN_TOP - bottomPx
+      
       if (height) {
-        // Si hay altura personalizada, usarla directamente
+        // Si hay altura personalizada, usarla pero limitar al máximo disponible
+        const heightValue = parseFloat(height) || DESKTOP_MAX_HEIGHT
+        const clampedHeight = Math.min(heightValue, maxAvailableHeight)
+        
         setDynamicHeight({
-          height: height,
+          height: `${clampedHeight}px`,
+          maxHeight: `${maxAvailableHeight}px`,
           bottom: bottom || DEFAULT_BOTTOM,
         })
       } else {
         // Calcular altura disponible dinámicamente
-        const availableHeight = window.innerHeight - DESKTOP_MARGIN_TOP
         const calculatedHeight = Math.min(
           DESKTOP_MAX_HEIGHT,
-          Math.max(DESKTOP_MIN_HEIGHT, availableHeight)
+          Math.max(DESKTOP_MIN_HEIGHT, maxAvailableHeight)
         )
 
         setDynamicHeight({
           height: `${calculatedHeight}px`,
-          maxHeight: `${availableHeight}px`,
+          maxHeight: `${maxAvailableHeight}px`,
           bottom: bottom || DEFAULT_BOTTOM,
         })
       }

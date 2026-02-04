@@ -126,7 +126,11 @@ export function ChatWindow({
         style={{
           ...dynamicHeightStyles,
           // Aplicar bottom personalizado solo en desktop
-          ...(!isMobile && { bottom: desktopBottom }),
+          ...(!isMobile && { 
+            bottom: desktopBottom,
+            // CRITICAL: Ensure chat never exceeds top margin (64px from top)
+            maxHeight: `calc(100vh - 64px - ${desktopBottom})`,
+          }),
           // 🎨 CSS VARIABLES - Los temas se aplican automáticamente
           backgroundColor: 'hsl(var(--background))',
           borderColor: 'hsl(var(--border))',

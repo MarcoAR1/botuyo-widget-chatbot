@@ -17,6 +17,8 @@ class ChatAnalytics {
   private endpoint: string
   private apiKey: string
   private flushInterval: NodeJS.Timeout | null = null
+  private isFlushing = false
+  private isDisabled = false // Disable permanently after first error
   private readonly MAX_QUEUE_SIZE = 100
   private readonly FLUSH_INTERVAL_MS = 30000 // 30s
   private readonly BATCH_SIZE = 10
@@ -29,7 +31,8 @@ class ChatAnalytics {
 
   private startAutoFlush() {
     this.flushInterval = setInterval(() => {
-      if (this.queue.length > 0) {
+      // Don't flush if disabled or empty queue
+      if (!this.isDisabled && this.queue.length > 0) {
         this.flush()
       }
     }, this.FLUSH_INTERVAL_MS)
@@ -73,6 +76,9 @@ class ChatAnalytics {
   }
 
   private track(event: string, properties?: Record<string, any>) {
+    // Don't track if analytics is disabled
+    if (this.isDisabled) return
+    
     this.queue.push({
       event,
       properties: {
@@ -96,8 +102,10 @@ class ChatAnalytics {
   }
 
   async flush() {
-    if (this.queue.length === 0) return
-
+    // Don't flush if disabled, empty, or already flushing
+    if (this.isDisabled || this.queue.length === 0 || this.isFlushing) return
+    
+    this.isFlushing = true
     const batch = [...this.queue]
     this.queue = []
 
@@ -109,27 +117,24 @@ class ChatAnalytics {
           Authorization: `Bearer ${this.apiKey}`,
         },
         body: JSON.stringify({ events: batch }),
-        // Usar keepalive para garantizar envío al cerrar pestaña
         keepalive: true,
       })
 
-      // Don't re-queue on 4xx errors (endpoint not available, auth failed, etc.)
       if (response.ok) {
         logger.debug(`Analytics: Flushed ${batch.length} events`)
-      } else if (response.status >= 400 && response.status < 500) {
-        // Client errors (404, 401, etc.) - don't retry, just log once
-        logger.debug(`Analytics endpoint returned ${response.status}, events discarded`)
       } else {
-        // Server errors (5xx) - re-queue for retry
-        throw new Error(`Server error: ${response.status}`)
+        // Disable analytics permanently on any HTTP error
+        this.isDisabled = true
+        this.queue = [] // Clear remaining queue
+        logger.debug(`Analytics disabled: endpoint returned ${response.status}`)
       }
     } catch (error) {
-      logger.debug('Analytics flush failed:', error)
-
-      // Re-queue only for network errors, not for HTTP errors
-      if (this.queue.length + batch.length <= this.MAX_QUEUE_SIZE) {
-        this.queue.unshift(...batch)
-      }
+      // Disable analytics permanently on network error
+      this.isDisabled = true
+      this.queue = [] // Clear remaining queue
+      logger.debug('Analytics disabled due to network error')
+    } finally {
+      this.isFlushing = false
     }
   }
 

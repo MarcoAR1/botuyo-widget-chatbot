@@ -344,11 +344,26 @@
     </footer>
   </div>
 
-  <!-- BotUyo Widget - CDN -->
-  <link rel="stylesheet" href="https://cdn-chatbot.botuyo.com/latest/botuyo-chat.css">
+  <!-- BotUyo Widget -->
+  <!-- Try CDN first, fallback to local build -->
+  <link id="botuyo-css" rel="stylesheet" href="https://cdn-chatbot.botuyo.com/latest/botuyo-chat.css" 
+        onerror="this.href='botuyo-chat.css'; console.log('[Demo] Using local CSS')">
+  
   <script type="module">
-    // Import widget from CDN
-    import('https://cdn-chatbot.botuyo.com/latest/botuyo-chat.js').then(() => {
+    const CDN_URL = 'https://cdn-chatbot.botuyo.com/latest/botuyo-chat.js';
+    const LOCAL_URL = './botuyo-chat.js';
+    
+    async function loadWidget() {
+      try {
+        // Try CDN first
+        await import(CDN_URL);
+        console.log('[Demo] Loaded from CDN');
+      } catch (cdnError) {
+        console.log('[Demo] CDN unavailable, using local build');
+        await import(LOCAL_URL);
+      }
+      
+      // Initialize widget
       window.BotUyoChat.init({
         apiKey: 'bty_paseo_test_2024_local_dev_key',
         apiBaseUrl: 'http://localhost:3000',
@@ -377,7 +392,9 @@
       
       document.getElementById('status').classList.add('connected');
       document.getElementById('status-text').textContent = 'Widget cargado ✓';
-    }).catch(err => {
+    }
+    
+    loadWidget().catch(err => {
       console.error('[Demo] Failed to load widget:', err);
       document.getElementById('status-text').textContent = 'Error cargando widget';
     });
