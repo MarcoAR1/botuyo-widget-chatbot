@@ -23,3 +23,7 @@ Thumbs.db
 storybook-static
 
 demo
+
+# Local publish scripts (contain secrets)
+publish-local.ps1
+.npmrc
