@@ -1,17 +1,19 @@
 {
   "name": "@botuyo/chat-widget-standalone",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "type": "module",
   "description": "BotUyo Chat Widget - Standalone CDN version with React/TypeScript support",
-  "main": "dist/botuyo-chat.js",
-  "module": "dist/botuyo-chat.js",
+  "main": "dist/botuyo-chat.umd.js",
+  "module": "dist/botuyo-chat.es.js",
   "types": "dist/standalone.d.ts",
   "exports": {
     ".": {
       "types": "./dist/standalone.d.ts",
-      "import": "./dist/botuyo-chat.js",
-      "require": "./dist/botuyo-chat.js"
-    }
+      "import": "./dist/botuyo-chat.es.js",
+      "require": "./dist/botuyo-chat.umd.js"
+    },
+    "./dist/style.css": "./dist/botuyo-chat.css",
+    "./style.css": "./dist/botuyo-chat.css"
   },
   "scripts": {
     "dev": "vite",
