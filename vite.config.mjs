@@ -31,17 +31,19 @@ export default defineConfig({
       fileName: () => 'botuyo-chat.es.js',
     },
     rollupOptions: {
-      external: [],
+      // Externalize React for npm package consumers (they provide their own React)
+      external: ['react', 'react-dom', 'react/jsx-runtime'],
       output: {
-        globals: {},
+        globals: {
+          react: 'React',
+          'react-dom': 'ReactDOM',
+          'react/jsx-runtime': 'jsxRuntime',
+        },
         exports: 'named',
         assetFileNames: 'botuyo-chat.[ext]',
         // Manual chunks for code splitting
         manualChunks: (id) => {
-          // React vendor chunk (highest priority)
-          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
-            return 'vendor-react';
-          }
+          // React is now external, no need for vendor-react chunk
           
           // ReactMarkdown y plugins (heavy - lazy loaded en MessageBubble)
           // Must be before chat-ui to avoid circular deps

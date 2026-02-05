@@ -133,17 +133,17 @@ export function useChatSocket(options: UseChatSocketOptions) {
     if (socketRef.current?.connected) return
     setIsConnecting(true)
 
-    const socket = io(apiBaseUrl, {
-      path: '/webchat', // Backend webchat endpoint
+    const socket = io(`${apiBaseUrl}/webchat`, {
+      // Namespace is specified in URL, path stays default '/socket.io'
       auth: {
         apiKey,
         deviceId: deviceIdRef.current,
         token: userContext?.token,
         metadata: userContext?.metadata,
       },
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'], // Allow fallback to polling
       reconnection: true,
-      reconnectionAttempts: 5, // Limit reconnection attempts
+      reconnectionAttempts: 5,
       reconnectionDelay: 1000,
       extraHeaders: {
         'bypass-tunnel-reminder': 'true',

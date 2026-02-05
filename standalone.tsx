@@ -297,7 +297,24 @@ declare global {
 
 window.BotUyoChat = instance;
 
-// Export for module systems
+// Export for module systems (CDN/standalone usage)
 export default instance;
 export { BotUyoChatWidget };
 export type { StandaloneConfig };
+
+// Re-export React components for npm package usage
+export { ChatWidget } from './src/chat-widget/ChatWidget';
+export { ChatWidgetProvider, useChatWidget } from './src/chat-widget/ChatWidgetProvider';
+export type { ChatWidgetContextValue, ChatWidgetProviderProps } from './src/chat-widget/ChatWidgetProvider';
+export type { 
+  ChatWidgetProps, 
+  ChatTheme, 
+  UserContext, 
+  ChatMessage, 
+  TextMessage, 
+  ImageMessage, 
+  AudioMessage, 
+  LocationMessage, 
+  PageContext 
+} from './src/chat-widget/types';
+export { LanguageProvider, useLanguage } from './src/chat-widget/i18n/LanguageContext';
