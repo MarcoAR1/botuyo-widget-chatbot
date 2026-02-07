@@ -85,7 +85,7 @@ export function useWidgetTheme(projectTheme?: ChatTheme, socketTheme?: ChatTheme
       top: isMobile && isOpen ? 0 : 'auto',
       left: isMobile && isOpen ? 0 : position === 'bottom-left' ? '24px' : 'auto',
       right: isMobile && isOpen ? 0 : position === 'bottom-right' || !position ? '24px' : 'auto',
-      bottom: isMobile && isOpen ? 0 : '100px',
+      bottom: isMobile && isOpen ? 0 : '24px',
       width: isMobile && isOpen ? '100%' : 'auto',
       height: isMobile && isOpen ? '100%' : 'auto',
     } as React.CSSProperties
