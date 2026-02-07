@@ -143,77 +143,126 @@ export function Launcher({
         isRight ? 'flex-row ml-auto' : 'flex-row-reverse mr-auto'
       )}
     >
-      {/* --- PROMPT BUBBLE (PREMIUM) --- */}
+      {/* --- PROMPT BUBBLE (Intercom-style chat message) --- */}
       <div
         className={cn(
-          'transition-all duration-700 ease-in-out flex items-center',
+          'transition-all duration-700 ease-in-out flex items-end',
           isPromptVisible
             ? cn('opacity-100 translate-x-0 w-auto max-w-[350px]', isRight ? 'mr-3' : 'ml-3')
-            : cn('opacity-0 w-0 max-w-0 overflow-hidden', isRight ? 'translate-x-4' : '-translate-x-4')
+            : cn('opacity-0 w-0 max-w-0 overflow-hidden pointer-events-none', isRight ? 'translate-x-4' : '-translate-x-4')
         )}
       >
         <div
           className={cn(
-            'relative overflow-hidden flex items-stretch',
-            styles?.radius?.card || 'rounded-2xl',
+            'relative flex items-center gap-2.5 cursor-pointer',
             isFadingOut && 'opacity-0 scale-95 transition-all duration-300',
             !isPromptVisible && 'hidden'
           )}
-          style={{
-            width: 'max-content',
-            maxWidth: '300px',
-            backgroundColor: 'hsl(var(--background) / 0.85)',
-            backdropFilter: 'blur(12px) saturate(1.8)',
-            WebkitBackdropFilter: 'blur(12px) saturate(1.8)',
-            color: 'hsl(var(--foreground))',
-            boxShadow: '0 8px 32px -4px rgba(0,0,0,0.12), 0 4px 8px -2px rgba(0,0,0,0.06), 0 0 0 1px hsl(var(--border) / 0.5)',
-          }}
+          onClick={handleMainAction}
+          style={{ width: 'max-content' }}
         >
-          {/* Gradient accent bar */}
+          {/* Mini avatar */}
           <div
-            className="shrink-0"
+            className="shrink-0 overflow-hidden"
             style={{
-              width: '4px',
-              background: `linear-gradient(180deg, ${themeColor || 'hsl(160,84%,39%)'}, ${themeColor || 'hsl(160,84%,39%)'}88)`,
-              borderRadius: isRight ? '1rem 0 0 1rem' : '0 1rem 1rem 0',
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              backgroundColor: themeColor || 'hsl(160,84%,39%)',
+              boxShadow: `0 2px 8px ${themeColor || 'hsl(160,84%,39%)'}44`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
-          />
-
-          {/* Content */}
-          <div className="flex items-center gap-3 px-4 py-3">
-            <div className="flex flex-col gap-0.5 min-w-0">
-              <span
-                className="text-sm font-semibold leading-tight tracking-tight whitespace-nowrap"
-                style={{ color: 'hsl(var(--foreground))' }}
-              >
-                {starterPrompt}
-              </span>
-            </div>
-
-            {/* Close button */}
-            <button
-              onClick={e => {
-                e.stopPropagation()
-                handleClosePrompt()
-              }}
-              className="shrink-0 p-1 rounded-full transition-all duration-200 cursor-pointer"
-              style={{
-                color: 'hsl(var(--muted-foreground))',
-                backgroundColor: 'transparent',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.backgroundColor = 'hsl(var(--muted))'
-                e.currentTarget.style.color = 'hsl(var(--foreground))'
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.backgroundColor = 'transparent'
-                e.currentTarget.style.color = 'hsl(var(--muted-foreground))'
-              }}
-              aria-label="Cerrar"
-            >
-              <X className="h-3.5 w-3.5" style={{ strokeWidth: 2.5 }} />
-            </button>
+          >
+            {currentImageSrc && !imageError ? (
+              <img
+                src={currentImageSrc}
+                alt=""
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  borderRadius: '50%',
+                }}
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <MessageCircle
+                style={{
+                  width: '18px',
+                  height: '18px',
+                  color: 'white',
+                  fill: 'white',
+                }}
+              />
+            )}
           </div>
+
+          {/* Message bubble */}
+          <div
+            style={{
+              position: 'relative',
+              maxWidth: '260px',
+              padding: '10px 14px',
+              borderRadius: '16px 16px 16px 4px',
+              background: `linear-gradient(135deg, ${themeColor || 'hsl(160,84%,39%)'}, ${themeColor || 'hsl(160,84%,39%)'}dd)`,
+              color: 'white',
+              boxShadow: `0 4px 16px -2px ${themeColor || 'hsl(160,84%,39%)'}40, 0 2px 4px rgba(0,0,0,0.08)`,
+            }}
+          >
+            <span
+              style={{
+                display: 'block',
+                fontSize: '13.5px',
+                fontWeight: 600,
+                lineHeight: 1.4,
+                letterSpacing: '-0.01em',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {starterPrompt}
+            </span>
+          </div>
+
+          {/* Close button — floating top-right */}
+          <button
+            onClick={e => {
+              e.stopPropagation()
+              handleClosePrompt()
+            }}
+            style={{
+              position: 'absolute',
+              top: '-6px',
+              right: '-6px',
+              width: '20px',
+              height: '20px',
+              borderRadius: '50%',
+              backgroundColor: 'hsl(var(--background))',
+              border: '1px solid hsl(var(--border))',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              color: 'hsl(var(--muted-foreground))',
+              padding: 0,
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.backgroundColor = 'hsl(var(--destructive))'
+              e.currentTarget.style.color = 'white'
+              e.currentTarget.style.borderColor = 'hsl(var(--destructive))'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.backgroundColor = 'hsl(var(--background))'
+              e.currentTarget.style.color = 'hsl(var(--muted-foreground))'
+              e.currentTarget.style.borderColor = 'hsl(var(--border))'
+            }}
+            aria-label="Cerrar"
+          >
+            <X className="h-3 w-3" style={{ strokeWidth: 2.5 }} />
+          </button>
         </div>
       </div>
 
