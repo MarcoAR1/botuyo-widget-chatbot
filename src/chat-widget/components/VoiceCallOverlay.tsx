@@ -1,6 +1,6 @@
 /**
  * @package @botuyo/chat-widget
- * Voice Call Component (Gemini Live Edition)
+ * Voice Call Overlay Component
  *
  * Real-time voice call overlay using Gemini Live API via Socket.IO.
  * Sends raw PCM 16kHz audio chunks and receives PCM 24kHz audio responses.
@@ -49,7 +49,7 @@ export interface VoiceOverlayConfig {
   thinkingScale?: number
 }
 
-interface VoiceCallDemoProps {
+interface VoiceCallOverlayProps {
   isOpen: boolean
   onClose: () => void
   primaryColor?: string
@@ -372,7 +372,7 @@ function WaveformBars({ isActive, audioLevel, color }: { isActive: boolean; audi
   )
 }
 
-export function VoiceCallDemo({
+export function VoiceCallOverlay({
   isOpen,
   onClose,
   primaryColor = '#10b981',
@@ -380,7 +380,7 @@ export function VoiceCallDemo({
   avatars,
   logoUrl,
   voiceConfig,
-}: VoiceCallDemoProps) {
+}: VoiceCallOverlayProps) {
   // Resolve all config defaults once
   const cfg = useMemo(() => resolveVoiceConfig(voiceConfig, primaryColor), [voiceConfig, primaryColor])
 

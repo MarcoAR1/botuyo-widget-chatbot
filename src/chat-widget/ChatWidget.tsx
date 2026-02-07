@@ -28,7 +28,6 @@ export function ChatWidget(props: ChatWidgetProps) {
     onNavigate,
     onEvent,
     onStateChange,
-    onVoiceCall,
   } = props
 
   // Refs y estado local
@@ -164,7 +163,6 @@ export function ChatWidget(props: ChatWidgetProps) {
               avatars={theme?.avatars}
               mediaConfig={mediaConfig}
               theme={mergedTheme}
-              onVoiceCall={onVoiceCall}
             />
           </ErrorBoundary>
         </div>

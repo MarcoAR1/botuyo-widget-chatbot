@@ -13,7 +13,7 @@ import { useDynamicHeight } from '../hooks/useDynamicHeight'
 import { useFocusTrap } from '../hooks/useFocusTrap'
 import { EmotionAvatarMap } from './Launcher'
 import { DEFAULT_AVATAR_URL } from '../utils/defaultAssets'
-import { VoiceCallDemo } from './VoiceCallDemo'
+import { VoiceCallOverlay } from './VoiceCallOverlay'
 
 export interface ChatWindowProps {
   isOpen: boolean
@@ -34,7 +34,6 @@ export interface ChatWindowProps {
   avatars?: EmotionAvatarMap
   onSendAttachment?: (file: File, type: 'image' | 'audio' | 'file') => void
   onSendLocation?: (location: { latitude: number; longitude: number }) => void
-  onVoiceCall?: () => void // Voice call callback
   theme?: import('../types').ChatTheme
 }
 
@@ -55,11 +54,10 @@ export function ChatWindow({
   avatars,
   onSendAttachment,
   onSendLocation,
-  onVoiceCall,
   theme,
 }: ChatWindowProps) {
   const [logoError, setLogoError] = useState(false)
-  const [showVoiceDemo, setShowVoiceDemo] = useState(false)
+  const [showVoiceOverlay, setShowVoiceOverlay] = useState(false)
   const { t } = useTranslations()
   const isMobile = useIsMobile()
   const themePrimary = getPrimaryColor({ primaryColor })
@@ -202,10 +200,10 @@ export function ChatWindow({
             </div>
 
             <div className="flex items-center gap-2">
-              {/* Voice Call Button - shows when onVoiceCall callback is provided */}
-              {onVoiceCall && (
+              {/* Voice Call Button - shows only when enableVoice is true in mediaConfig (premium) */}
+              {mediaConfig?.enableVoice && (
                 <button
-                  onClick={() => setShowVoiceDemo(true)}
+                  onClick={() => setShowVoiceOverlay(true)}
                   aria-label="Iniciar llamada de voz"
                   title="Llamar"
                   className="h-8 w-8 flex items-center justify-center rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 transition-all active:scale-90 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
@@ -271,7 +269,7 @@ export function ChatWindow({
             onSendMessage={onSendMessage}
             onSendAttachment={onSendAttachment}
             onSendLocation={onSendLocation}
-            onVoiceCall={onVoiceCall}
+            onVoiceCall={mediaConfig?.enableVoice ? () => setShowVoiceOverlay(true) : undefined}
           />
 
           <div
@@ -288,10 +286,10 @@ export function ChatWindow({
           </div>
         </footer>
 
-        {/* Voice Call Demo Overlay */}
-        <VoiceCallDemo 
-          isOpen={showVoiceDemo} 
-          onClose={() => setShowVoiceDemo(false)}
+        {/* Voice Call Overlay */}
+        <VoiceCallOverlay 
+          isOpen={showVoiceOverlay} 
+          onClose={() => setShowVoiceOverlay(false)}
           primaryColor={themePrimary}
           avatars={avatars}
           logoUrl={logoUrl}
