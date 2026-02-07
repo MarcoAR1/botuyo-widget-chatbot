@@ -189,6 +189,7 @@ export function ChatWidget(props: ChatWidgetProps) {
             styles={mergedStyles}
             promptPersistence={theme?.promptPersistence}
             avatarScale={theme?.avatarScale}
+            showPromptAvatar={theme?.showPromptAvatar}
           />
         </div>
       </div>

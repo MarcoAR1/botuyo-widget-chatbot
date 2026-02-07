@@ -223,6 +223,9 @@ export interface ChatTheme {
 
   avatarScale?: number // Zoom del avatar (ej: 1.2 para 20% más grande)
 
+  /** Muestra un mini avatar en el prompt bubble (default: false) */
+  showPromptAvatar?: boolean
+
   /** Idioma por defecto del widget */
   defaultLocale?: 'es' | 'en' | 'pt' | 'fr'
 

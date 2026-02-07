@@ -36,6 +36,7 @@ interface LauncherProps {
   styles?: BubbleStyles
   promptPersistence?: PromptStrategy
   avatarScale?: number
+  showPromptAvatar?: boolean
 }
 
 export function Launcher({
@@ -51,6 +52,7 @@ export function Launcher({
   styles,
   promptPersistence = 'session',
   avatarScale = 1.0,
+  showPromptAvatar = false,
 }: LauncherProps) {
   const { t } = useTranslations('extracted')
   const themeColor = getPrimaryColor({ primaryColor })
@@ -148,7 +150,7 @@ export function Launcher({
         className={cn(
           'transition-all duration-700 ease-in-out flex items-end',
           isPromptVisible
-            ? cn('opacity-100 translate-x-0 w-auto max-w-[350px]', isRight ? 'mr-3' : 'ml-3')
+            ? cn('opacity-100 translate-x-0 w-auto max-w-[350px]', isRight ? 'mr-5' : 'ml-5')
             : cn('opacity-0 w-0 max-w-0 overflow-hidden pointer-events-none', isRight ? 'translate-x-4' : '-translate-x-4')
         )}
       >
@@ -161,54 +163,58 @@ export function Launcher({
           onClick={handleMainAction}
           style={{ width: 'max-content' }}
         >
-          {/* Mini avatar */}
-          <div
-            className="shrink-0 overflow-hidden"
-            style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              backgroundColor: themeColor || 'hsl(160,84%,39%)',
-              boxShadow: `0 2px 8px ${themeColor || 'hsl(160,84%,39%)'}44`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            {currentImageSrc && !imageError ? (
-              <img
-                src={currentImageSrc}
-                alt=""
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  borderRadius: '50%',
-                }}
-                onError={() => setImageError(true)}
-              />
-            ) : (
-              <MessageCircle
-                style={{
-                  width: '18px',
-                  height: '18px',
-                  color: 'white',
-                  fill: 'white',
-                }}
-              />
-            )}
-          </div>
+          {/* Mini avatar (optional — hidden by default) */}
+          {showPromptAvatar && (
+            <div
+              className="shrink-0 overflow-hidden"
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                backgroundColor: themeColor || 'hsl(160,84%,39%)',
+                boxShadow: `0 2px 8px ${themeColor || 'hsl(160,84%,39%)'}44`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {currentImageSrc && !imageError ? (
+                <img
+                  src={currentImageSrc}
+                  alt=""
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    borderRadius: '50%',
+                  }}
+                  onError={() => setImageError(true)}
+                />
+              ) : (
+                <MessageCircle
+                  style={{
+                    width: '18px',
+                    height: '18px',
+                    color: 'white',
+                    fill: 'white',
+                  }}
+                />
+              )}
+            </div>
+          )}
 
-          {/* Message bubble */}
+          {/* Message bubble — transparent background */}
           <div
             style={{
               position: 'relative',
-              maxWidth: '260px',
-              padding: '10px 14px',
-              borderRadius: '16px 16px 16px 4px',
-              background: `linear-gradient(135deg, ${themeColor || 'hsl(160,84%,39%)'}, ${themeColor || 'hsl(160,84%,39%)'}dd)`,
-              color: 'white',
-              boxShadow: `0 4px 16px -2px ${themeColor || 'hsl(160,84%,39%)'}40, 0 2px 4px rgba(0,0,0,0.08)`,
+              maxWidth: '280px',
+              padding: '10px 16px',
+              borderRadius: '18px',
+              backgroundColor: 'hsl(var(--background) / 0.92)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              color: 'hsl(var(--foreground))',
+              boxShadow: '0 4px 20px -4px rgba(0,0,0,0.12), 0 0 0 1px hsl(var(--border) / 0.6)',
             }}
           >
             <span
