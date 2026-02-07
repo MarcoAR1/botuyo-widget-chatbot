@@ -741,7 +741,7 @@ export function VoiceCallDemo({
         'absolute inset-0 z-50 flex flex-col overflow-hidden',
         'animate-in fade-in duration-300'
       )}
-      style={{ backgroundColor: '#0a0a0f' }}
+      style={{ backgroundColor: '#0a0a0f', borderRadius: 'inherit' }}
     >
       {/* Ambient gradient mesh background */}
       <div className="absolute inset-0 pointer-events-none" style={{ overflow: 'hidden' }}>
@@ -938,7 +938,6 @@ export function VoiceCallDemo({
             width: '52px',
             height: '52px',
             borderRadius: '50%',
-            border: 'none',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
