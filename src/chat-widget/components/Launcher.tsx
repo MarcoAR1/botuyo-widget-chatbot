@@ -143,58 +143,77 @@ export function Launcher({
         isRight ? 'flex-row ml-auto' : 'flex-row-reverse mr-auto'
       )}
     >
-      {/* --- PROMPT BUBBLE (GLOBO) --- */}
+      {/* --- PROMPT BUBBLE (PREMIUM) --- */}
       <div
         className={cn(
           'transition-all duration-700 ease-in-out flex items-center',
           isPromptVisible
-            ? cn('opacity-100 translate-x-0 w-auto max-w-[350px]', isRight ? 'mr-4' : 'ml-4')
-            : 'opacity-0 translate-x-8 w-0 max-w-0 overflow-hidden'
+            ? cn('opacity-100 translate-x-0 w-auto max-w-[350px]', isRight ? 'mr-3' : 'ml-3')
+            : cn('opacity-0 w-0 max-w-0 overflow-hidden', isRight ? 'translate-x-4' : '-translate-x-4')
         )}
       >
         <div
           className={cn(
-            'relative px-5 py-3.5 shadow-soft-xl border flex items-center gap-3',
-            styles?.radius?.card || 'rounded-[20px]',
+            'relative overflow-hidden flex items-stretch',
+            styles?.radius?.card || 'rounded-2xl',
             isFadingOut && 'opacity-0 scale-95 transition-all duration-300',
             !isPromptVisible && 'hidden'
           )}
           style={{
             width: 'max-content',
-            maxWidth: '280px',
-            backgroundColor: 'hsl(var(--background))',
+            maxWidth: '300px',
+            backgroundColor: 'hsl(var(--background) / 0.85)',
+            backdropFilter: 'blur(12px) saturate(1.8)',
+            WebkitBackdropFilter: 'blur(12px) saturate(1.8)',
             color: 'hsl(var(--foreground))',
-            borderColor: 'hsl(var(--border))',
+            boxShadow: '0 8px 32px -4px rgba(0,0,0,0.12), 0 4px 8px -2px rgba(0,0,0,0.06), 0 0 0 1px hsl(var(--border) / 0.5)',
           }}
         >
-          <span className="text-sm font-semibold leading-tight tracking-tight whitespace-nowrap">
-            {starterPrompt}
-          </span>
-          <button
-            onClick={e => {
-              e.stopPropagation()
-              handleClosePrompt()
+          {/* Gradient accent bar */}
+          <div
+            className="shrink-0"
+            style={{
+              width: '4px',
+              background: `linear-gradient(180deg, ${themeColor || 'hsl(160,84%,39%)'}, ${themeColor || 'hsl(160,84%,39%)'}88)`,
+              borderRadius: isRight ? '1rem 0 0 1rem' : '0 1rem 1rem 0',
             }}
-            className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-full hover:bg-muted shrink-0"
-          >
-            <X className="h-3.5 w-3.5 stroke-[2.5]" />
-          </button>
+          />
 
-          {/* Triángulo del globo (Dark Mode Ready) */}
-          <div
-            className={cn(
-              'absolute top-1/2 -translate-y-1/2 w-0 h-0 border-[7px] border-transparent',
-              // El borde debe coincidir con el color de fondo del globo (bg-background)
-              isRight ? 'right-[-14px] border-l-background' : 'left-[-14px] border-r-background'
-            )}
-          />
-          {/* Mini borde para el triángulo en dark mode */}
-          <div
-            className={cn(
-              'absolute top-1/2 -translate-y-1/2 w-0 h-0 border-[7px] border-transparent -z-10',
-              isRight ? 'right-[-15px] border-l-border' : 'left-[-15px] border-r-border'
-            )}
-          />
+          {/* Content */}
+          <div className="flex items-center gap-3 px-4 py-3">
+            <div className="flex flex-col gap-0.5 min-w-0">
+              <span
+                className="text-sm font-semibold leading-tight tracking-tight whitespace-nowrap"
+                style={{ color: 'hsl(var(--foreground))' }}
+              >
+                {starterPrompt}
+              </span>
+            </div>
+
+            {/* Close button */}
+            <button
+              onClick={e => {
+                e.stopPropagation()
+                handleClosePrompt()
+              }}
+              className="shrink-0 p-1 rounded-full transition-all duration-200 cursor-pointer"
+              style={{
+                color: 'hsl(var(--muted-foreground))',
+                backgroundColor: 'transparent',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.backgroundColor = 'hsl(var(--muted))'
+                e.currentTarget.style.color = 'hsl(var(--foreground))'
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.backgroundColor = 'transparent'
+                e.currentTarget.style.color = 'hsl(var(--muted-foreground))'
+              }}
+              aria-label="Cerrar"
+            >
+              <X className="h-3.5 w-3.5" style={{ strokeWidth: 2.5 }} />
+            </button>
+          </div>
         </div>
       </div>
 
