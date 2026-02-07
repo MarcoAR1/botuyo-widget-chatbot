@@ -372,6 +372,7 @@ export function useChatSocket(options: UseChatSocketOptions) {
     isConnecting,
     sendMessage,
     sendTyping: sendTypingThrottled,
+    getSocket: useCallback(() => socketRef.current, []),
     requestHistory: useCallback(() => {
       socketRef.current?.emit('request_history')
     }, []),

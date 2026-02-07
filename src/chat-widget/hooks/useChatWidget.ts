@@ -319,6 +319,7 @@ export function useChatWidget(options: UseChatWidgetOptions) {
     unreadCount,
     currentBotEmotion,
     isConnected: socket.isConnected,
+    getSocket: socket.getSocket,
 
     // Handlers
     handleToggle,

@@ -785,10 +785,12 @@ export function VoiceCallOverlay({
 
       {/* Header — glassmorphism bar */}
       <div
-        className="relative flex items-center justify-between px-5 py-4"
+        className="relative flex items-center justify-between"
         style={{
           background: 'rgba(255,255,255,0.03)',
           borderBottom: '1px solid rgba(255,255,255,0.06)',
+          padding: '16px 24px',
+          paddingTop: '20px',
         }}
       >
         <div className="flex items-center gap-3">

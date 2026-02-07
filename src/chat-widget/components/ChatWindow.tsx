@@ -34,6 +34,7 @@ export interface ChatWindowProps {
   avatars?: EmotionAvatarMap
   onSendAttachment?: (file: File, type: 'image' | 'audio' | 'file') => void
   onSendLocation?: (location: { latitude: number; longitude: number }) => void
+  getSocket?: () => any
   theme?: import('../types').ChatTheme
 }
 
@@ -54,6 +55,7 @@ export function ChatWindow({
   avatars,
   onSendAttachment,
   onSendLocation,
+  getSocket,
   theme,
 }: ChatWindowProps) {
   const [logoError, setLogoError] = useState(false)
@@ -293,6 +295,7 @@ export function ChatWindow({
           primaryColor={themePrimary}
           avatars={avatars}
           logoUrl={logoUrl}
+          getSocket={getSocket}
         />
       </div>
     </>

@@ -53,6 +53,7 @@ export function ChatWidget(props: ChatWidgetProps) {
     handleSendText,
     handleSendAttachment,
     handleSendLocation,
+    getSocket,
   } = useChatWidget({
     apiKey,
     apiBaseUrl,
@@ -163,6 +164,7 @@ export function ChatWidget(props: ChatWidgetProps) {
               avatars={theme?.avatars}
               mediaConfig={mediaConfig}
               theme={mergedTheme}
+              getSocket={getSocket}
             />
           </ErrorBoundary>
         </div>
