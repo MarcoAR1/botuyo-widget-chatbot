@@ -69,6 +69,20 @@ export function ChatWidget(props: ChatWidgetProps) {
     onThemeUpdate: setSocketTheme, // Callback para recibir tema del socket
   })
 
+  // Voice transcript persistence — creates ChatMessage objects from voice entries
+  const handleAddVoiceMessage = useCallback(
+    (msg: { sender: 'user' | 'bot'; content: string }) => {
+      actions.addMessage({
+        id: `voice-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        type: 'text',
+        sender: msg.sender,
+        timestamp: new Date(),
+        content: msg.content,
+      })
+    },
+    [actions]
+  )
+
   // Helpers
   const stopPropagation = useCallback((e: React.SyntheticEvent) => {
     e.stopPropagation()
@@ -165,6 +179,7 @@ export function ChatWidget(props: ChatWidgetProps) {
               mediaConfig={mediaConfig}
               theme={mergedTheme}
               getSocket={getSocket}
+              onAddVoiceMessage={handleAddVoiceMessage}
             />
           </ErrorBoundary>
         </div>

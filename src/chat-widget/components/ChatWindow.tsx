@@ -35,6 +35,7 @@ export interface ChatWindowProps {
   onSendAttachment?: (file: File, type: 'image' | 'audio' | 'file') => void
   onSendLocation?: (location: { latitude: number; longitude: number }) => void
   getSocket?: () => any
+  onAddVoiceMessage?: (message: { sender: 'user' | 'bot'; content: string }) => void
   theme?: import('../types').ChatTheme
 }
 
@@ -56,6 +57,7 @@ export function ChatWindow({
   onSendAttachment,
   onSendLocation,
   getSocket,
+  onAddVoiceMessage,
   theme,
 }: ChatWindowProps) {
   const [logoError, setLogoError] = useState(false)
@@ -296,6 +298,7 @@ export function ChatWindow({
           avatars={avatars}
           logoUrl={logoUrl}
           getSocket={getSocket}
+          onAddMessage={onAddVoiceMessage}
         />
       </div>
     </>

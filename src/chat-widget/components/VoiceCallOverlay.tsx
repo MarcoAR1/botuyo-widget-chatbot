@@ -58,6 +58,8 @@ interface VoiceCallOverlayProps {
   logoUrl?: string
   /** Voice overlay configuration for full customizability */
   voiceConfig?: VoiceOverlayConfig
+  /** Callback to persist voice transcripts to the main chat history */
+  onAddMessage?: (message: { sender: 'user' | 'bot'; content: string }) => void
 }
 
 type CallState = 'idle' | 'connecting' | 'listening' | 'speaking' | 'thinking'
@@ -380,6 +382,7 @@ export function VoiceCallOverlay({
   avatars,
   logoUrl,
   voiceConfig,
+  onAddMessage,
 }: VoiceCallOverlayProps) {
   // Resolve all config defaults once
   const cfg = useMemo(() => resolveVoiceConfig(voiceConfig, primaryColor), [voiceConfig, primaryColor])
@@ -401,10 +404,12 @@ export function VoiceCallOverlay({
   const processorUrlRef = useRef<string | null>(null)
   const conversationEndRef = useRef<HTMLDivElement>(null)
 
-  // Audio playback
+  // Audio playback — gapless scheduling
   const playbackCtxRef = useRef<AudioContext | null>(null)
   const audioQueueRef = useRef<Float32Array[]>([])
   const isPlayingRef = useRef(false)
+  const nextPlayTimeRef = useRef(0) // Schedule cursor for gapless playback
+  const activeSourcesRef = useRef<AudioBufferSourceNode[]>([])
 
   // Format duration as MM:SS
   const formatDuration = useCallback((seconds: number): string => {
@@ -414,32 +419,50 @@ export function VoiceCallOverlay({
   }, [])
 
   // ═══════════════════════════════════════
-  // AUDIO PLAYBACK — PCM 24kHz via Web Audio API
+  // AUDIO PLAYBACK — Gapless PCM 24kHz scheduling
   // ═══════════════════════════════════════
-  const playNextChunk = useCallback(() => {
-    if (audioQueueRef.current.length === 0) {
-      isPlayingRef.current = false
-      setCallState(prev => prev === 'speaking' ? 'listening' : prev)
-      return
-    }
-
-    isPlayingRef.current = true
-    setCallState('speaking')
+  const scheduleChunks = useCallback(() => {
+    if (audioQueueRef.current.length === 0) return
 
     if (!playbackCtxRef.current || playbackCtxRef.current.state === 'closed') {
       playbackCtxRef.current = new AudioContext({ sampleRate: OUTPUT_SAMPLE_RATE })
     }
 
     const ctx = playbackCtxRef.current
-    const float32Data = audioQueueRef.current.shift()!
-    const buffer = ctx.createBuffer(1, float32Data.length, OUTPUT_SAMPLE_RATE)
-    buffer.getChannelData(0).set(float32Data)
+    isPlayingRef.current = true
+    setCallState('speaking')
 
-    const source = ctx.createBufferSource()
-    source.buffer = buffer
-    source.connect(ctx.destination)
-    source.onended = () => playNextChunk()
-    source.start()
+    // Ensure the schedule cursor is at least "now"
+    const now = ctx.currentTime
+    if (nextPlayTimeRef.current < now) {
+      nextPlayTimeRef.current = now
+    }
+
+    // Schedule all queued chunks back-to-back
+    while (audioQueueRef.current.length > 0) {
+      const float32Data = audioQueueRef.current.shift()!
+      const buffer = ctx.createBuffer(1, float32Data.length, OUTPUT_SAMPLE_RATE)
+      buffer.getChannelData(0).set(float32Data)
+
+      const source = ctx.createBufferSource()
+      source.buffer = buffer
+      source.connect(ctx.destination)
+      source.start(nextPlayTimeRef.current)
+
+      // Track active sources for cleanup on interrupt
+      activeSourcesRef.current.push(source)
+      source.onended = () => {
+        activeSourcesRef.current = activeSourcesRef.current.filter(s => s !== source)
+        // When the last source finishes and no more queued → back to listening
+        if (activeSourcesRef.current.length === 0 && audioQueueRef.current.length === 0) {
+          isPlayingRef.current = false
+          setCallState(prev => prev === 'speaking' ? 'listening' : prev)
+        }
+      }
+
+      // Advance cursor by chunk duration (samples / sampleRate)
+      nextPlayTimeRef.current += float32Data.length / OUTPUT_SAMPLE_RATE
+    }
   }, [])
 
   // ═══════════════════════════════════════
@@ -469,12 +492,16 @@ export function VoiceCallOverlay({
       if (!data?.data) return
       const pcmFloat32 = base64ToFloat32(data.data)
       audioQueueRef.current.push(pcmFloat32)
-      if (!isPlayingRef.current) playNextChunk()
+      // Schedule immediately — gapless scheduling handles timing
+      scheduleChunks()
     }
 
     const onVoiceInterrupted = () => {
-      // Barge-in: clear playback queue
+      // Barge-in: stop all scheduled sources + clear queue
+      activeSourcesRef.current.forEach(s => { try { s.stop() } catch {} })
+      activeSourcesRef.current = []
       audioQueueRef.current.length = 0
+      nextPlayTimeRef.current = 0
       isPlayingRef.current = false
       setCallState('listening')
     }
@@ -545,7 +572,7 @@ export function VoiceCallOverlay({
     socket.on('voice_model_thinking', onVoiceModelThinking)
 
     socketListenersRef.current = true
-  }, [getSocket, playNextChunk])
+  }, [getSocket, scheduleChunks])
 
   const removeSocketListeners = useCallback(() => {
     const socket = getSocket?.()
@@ -679,8 +706,11 @@ export function VoiceCallOverlay({
     // Stop mic
     stopMicCapture()
 
-    // Stop playback
+    // Stop all scheduled audio sources
+    activeSourcesRef.current.forEach(s => { try { s.stop() } catch {} })
+    activeSourcesRef.current = []
     audioQueueRef.current = []
+    nextPlayTimeRef.current = 0
     isPlayingRef.current = false
     playbackCtxRef.current?.close()
     playbackCtxRef.current = null
@@ -695,15 +725,26 @@ export function VoiceCallOverlay({
     const socket = getSocket?.()
     if (socket?.connected) socket.emit('voice_stop')
 
+    // Persist voice transcripts to main chat history
+    if (onAddMessage && conversation.length > 0) {
+      conversation.forEach(entry => {
+        onAddMessage({
+          sender: entry.role === 'user' ? 'user' : 'bot',
+          content: entry.text,
+        })
+      })
+    }
+
     // Cleanup
     removeSocketListeners()
     setCallState('idle')
     setAudioLevel(0)
     setDuration(0)
     setIsMuted(false)
+    setConversation([])
 
     onClose()
-  }, [getSocket, stopMicCapture, removeSocketListeners, onClose])
+  }, [getSocket, stopMicCapture, removeSocketListeners, onClose, onAddMessage, conversation])
 
   const toggleMute = useCallback(() => {
     setIsMuted(prev => !prev)
