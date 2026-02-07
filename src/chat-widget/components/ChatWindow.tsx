@@ -293,6 +293,8 @@ export function ChatWindow({
           isOpen={showVoiceDemo} 
           onClose={() => setShowVoiceDemo(false)}
           primaryColor={themePrimary}
+          avatars={avatars}
+          logoUrl={logoUrl}
         />
       </div>
     </>
