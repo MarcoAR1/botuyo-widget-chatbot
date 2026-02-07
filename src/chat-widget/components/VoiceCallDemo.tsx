@@ -187,8 +187,8 @@ function resolveVoiceConfig(cfg?: VoiceOverlayConfig, primaryColor = '#10b981'):
     showEmojis: cfg?.showEmojis ?? true,
     showEmotionLabel: cfg?.showEmotionLabel ?? true,
     showWaveform: cfg?.showWaveform ?? true,
-    showBadge: cfg?.showBadge ?? true,
-    badgeText: cfg?.badgeText ?? 'Gemini Live',
+    showBadge: cfg?.showBadge ?? false,
+    badgeText: cfg?.badgeText ?? '',
     emotionEmojis: { ...DEFAULT_EMOTION_EMOJIS, ...(cfg?.emotionEmojis as Record<string, string> | undefined) },
     statusLabels: { ...DEFAULT_STATUS_LABELS, ...(cfg?.statusLabels as Record<CallState, string> | undefined) },
     orbSize: cfg?.orbSize ?? 128,
@@ -223,31 +223,74 @@ function AvatarOrb({ avatars, logoUrl, emotion, callState, audioLevel, config }:
 
   const orbPx = config.orbSize
 
-  // If no avatar configured, show emoji orb or plain indicator
+  // If no avatar configured, show premium animated orb
   if (!avatarUrl) {
-    const emoji = config.showEmojis
-      ? (emotion ? (config.emotionEmojis[emotion] || '💬') : '🎤')
-      : null
     return (
-      <div className="relative flex flex-col items-center gap-4">
-        {/* Glow ring */}
-        <div
-          className={cn(
-            'rounded-full flex items-center justify-center text-5xl',
-            'transition-all duration-500 ease-out',
-            isActive && 'animate-pulse',
-          )}
-          style={{
-            width: `${orbPx}px`,
-            height: `${orbPx}px`,
-            background: `radial-gradient(circle, ${glowColor}30 0%, transparent 70%)`,
-            boxShadow: isActive ? `0 0 40px ${glowColor}40, 0 0 80px ${glowColor}20` : 'none',
-            transform: `scale(${scale})`,
-          }}
-        >
-          {emoji}
+      <div className="relative flex flex-col items-center gap-6">
+        {/* Orbital rings */}
+        <div className="relative" style={{ width: `${orbPx + 48}px`, height: `${orbPx + 48}px` }}>
+          {/* Outer orbit */}
+          <div
+            className="absolute inset-0 rounded-full"
+            style={{
+              border: `1.5px solid ${glowColor}20`,
+              animation: isActive ? 'spin 8s linear infinite' : 'none',
+            }}
+          />
+          {/* Middle orbit */}
+          <div
+            className="absolute rounded-full"
+            style={{
+              inset: '12px',
+              border: `1px solid ${glowColor}15`,
+              animation: isActive ? 'spin 12s linear infinite reverse' : 'none',
+            }}
+          />
+          {/* Center orb */}
+          <div
+            className="absolute rounded-full flex items-center justify-center"
+            style={{
+              inset: '24px',
+              background: `radial-gradient(circle at 35% 35%, ${glowColor}40, ${glowColor}10 60%, transparent 80%)`,
+              boxShadow: isActive
+                ? `0 0 60px ${glowColor}35, 0 0 120px ${glowColor}15, inset 0 0 40px ${glowColor}10`
+                : `0 0 30px ${glowColor}15`,
+              transform: `scale(${scale})`,
+              transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+            }}
+          >
+            {/* Inner glow dot */}
+            <div
+              className="rounded-full"
+              style={{
+                width: `${orbPx * 0.35}px`,
+                height: `${orbPx * 0.35}px`,
+                background: `radial-gradient(circle, ${glowColor}90, ${glowColor}40)`,
+                boxShadow: `0 0 20px ${glowColor}60`,
+                animation: isActive ? 'pulse 2s ease-in-out infinite' : 'none',
+              }}
+            />
+          </div>
+          {/* Orbiting dots */}
+          {isActive && [0, 1, 2].map(i => (
+            <div
+              key={i}
+              className="absolute rounded-full"
+              style={{
+                width: '4px',
+                height: '4px',
+                backgroundColor: glowColor,
+                opacity: 0.6,
+                top: '50%',
+                left: '50%',
+                transform: `rotate(${i * 120 + (Date.now() / 20) % 360}deg) translateX(${(orbPx + 48) / 2}px)`,
+                animation: `spin ${6 + i * 2}s linear infinite`,
+                boxShadow: `0 0 6px ${glowColor}`,
+              }}
+            />
+          ))}
         </div>
-        {/* Waveform bars below */}
+        {/* Waveform bars */}
         {config.showWaveform && (
           <WaveformBars isActive={isActive} audioLevel={audioLevel} color={glowColor} />
         )}
@@ -305,17 +348,24 @@ function AvatarOrb({ avatars, logoUrl, emotion, callState, audioLevel, config }:
   )
 }
 
-/** Reusable waveform bars component */
+/** Reusable waveform bars component — premium style */
 function WaveformBars({ isActive, audioLevel, color }: { isActive: boolean; audioLevel: number; color: string }) {
   return (
-    <div className="flex items-end gap-1 h-8">
-      {Array.from({ length: 9 }).map((_, i) => {
+    <div className="flex items-center gap-[3px] h-10">
+      {Array.from({ length: 12 }).map((_, i) => {
+        const center = 5.5
+        const dist = Math.abs(i - center) / center
         const h = isActive
-          ? Math.max(3, audioLevel * 32 * (0.5 + Math.sin(Date.now() / 120 + i * 0.7) * 0.5))
-          : 3
+          ? Math.max(4, audioLevel * 40 * (1 - dist * 0.5) * (0.5 + Math.sin(Date.now() / 100 + i * 0.8) * 0.5))
+          : 4
         return (
-          <div key={i} className="w-1 rounded-full transition-all duration-75"
-            style={{ height: `${h}px`, backgroundColor: `${color}80` }} />
+          <div key={i} className="rounded-full transition-all duration-100"
+            style={{
+              width: '3px',
+              height: `${h}px`,
+              backgroundColor: color,
+              opacity: isActive ? 0.7 - dist * 0.3 : 0.2,
+            }} />
         )
       })}
     </div>
@@ -679,59 +729,131 @@ export function VoiceCallDemo({
 
   if (!isOpen) return null
 
+  // Derive state-based colors
+  const stateColor = callState === 'speaking' ? cfg.speakingColor
+    : callState === 'thinking' ? cfg.thinkingColor
+    : callState === 'listening' ? cfg.listeningColor
+    : primaryColor
+
   return (
     <div
       className={cn(
-        'absolute inset-0 z-50 flex flex-col',
+        'absolute inset-0 z-50 flex flex-col overflow-hidden',
         'animate-in fade-in duration-300'
       )}
-      style={{ backgroundColor: cfg.backgroundColor }}
+      style={{ backgroundColor: '#0a0a0f' }}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between px-6 pt-6 pb-2">
+      {/* Ambient gradient mesh background */}
+      <div className="absolute inset-0 pointer-events-none" style={{ overflow: 'hidden' }}>
+        <div
+          className="absolute rounded-full"
+          style={{
+            width: '300px',
+            height: '300px',
+            top: '-80px',
+            right: '-60px',
+            background: `radial-gradient(circle, ${stateColor}18 0%, transparent 70%)`,
+            transition: 'background 1.5s ease',
+            filter: 'blur(40px)',
+          }}
+        />
+        <div
+          className="absolute rounded-full"
+          style={{
+            width: '250px',
+            height: '250px',
+            bottom: '-40px',
+            left: '-50px',
+            background: `radial-gradient(circle, ${cfg.thinkingColor}12 0%, transparent 70%)`,
+            filter: 'blur(50px)',
+          }}
+        />
+        <div
+          className="absolute rounded-full"
+          style={{
+            width: '200px',
+            height: '200px',
+            top: '40%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: `radial-gradient(circle, ${stateColor}10 0%, transparent 70%)`,
+            transition: 'background 1.5s ease',
+            filter: 'blur(60px)',
+          }}
+        />
+      </div>
+
+      {/* Header — glassmorphism bar */}
+      <div
+        className="relative flex items-center justify-between px-5 py-4"
+        style={{
+          background: 'rgba(255,255,255,0.03)',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+        }}
+      >
         <div className="flex items-center gap-3">
-          <div
-            className={cn(
-              'h-3 w-3 rounded-full',
-              callState === 'idle' || callState === 'connecting'
-                ? 'bg-amber-500 animate-pulse'
-                : callState === 'thinking'
-                  ? 'bg-purple-500 animate-pulse'
-                  : callState === 'speaking'
-                    ? 'bg-violet-500'
-                    : 'bg-emerald-500'
-            )}
-          />
-          <span className="text-sm font-medium text-white/70">
+          <div className="relative">
+            <div
+              className="h-2.5 w-2.5 rounded-full"
+              style={{
+                backgroundColor: stateColor,
+                boxShadow: `0 0 8px ${stateColor}80`,
+                animation: callState !== 'idle' ? 'pulse 2s ease-in-out infinite' : 'none',
+              }}
+            />
+          </div>
+          <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '13px', fontWeight: 500, letterSpacing: '-0.01em' }}>
             {cfg.statusLabels[callState] || callState}
           </span>
         </div>
         <div className="flex items-center gap-3">
           {cfg.showEmotionLabel && currentEmotion && (
-            <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-white/60 transition-opacity duration-300">
+            <span
+              style={{
+                fontSize: '11px',
+                padding: '2px 10px',
+                borderRadius: '20px',
+                background: `${stateColor}15`,
+                border: `1px solid ${stateColor}25`,
+                color: stateColor,
+                fontWeight: 600,
+              }}
+            >
               {cfg.showEmojis && (cfg.emotionEmojis[currentEmotion] || '💬')} {currentEmotion}
             </span>
           )}
-          <span className="text-sm font-mono text-white/50 tabular-nums">
+          <span style={{
+            fontSize: '13px',
+            fontFamily: 'ui-monospace, monospace',
+            color: 'rgba(255,255,255,0.4)',
+            fontVariantNumeric: 'tabular-nums',
+          }}>
             {formatDuration(duration)}
           </span>
         </div>
       </div>
 
-      {/* Badge */}
-      {cfg.showBadge && (
-        <div className="flex justify-center py-2">
-          <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-gradient-to-r from-indigo-500 to-purple-600 text-white">
+      {/* Badge — only if explicitly enabled */}
+      {cfg.showBadge && cfg.badgeText && (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
+          <span style={{
+            padding: '4px 14px',
+            borderRadius: '20px',
+            fontSize: '11px',
+            fontWeight: 700,
+            background: `linear-gradient(135deg, ${primaryColor}, ${cfg.thinkingColor})`,
+            color: 'white',
+          }}>
             {cfg.badgeText}
           </span>
         </div>
       )}
 
-      {/* Conversation Transcript */}
-      <div className="flex-1 overflow-y-auto px-5 py-3 space-y-2">
-        {conversation.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full gap-6">
-            {/* Avatar Center — resolves per emotion */}
+      {/* Main content — Orb or Conversation */}
+      <div className="relative flex-1 overflow-y-auto px-5 py-4" style={{ scrollbarWidth: 'none' }}>
+        {conversation.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full gap-4">
+            {/* Avatar Center */}
             <AvatarOrb
               avatars={avatars}
               logoUrl={logoUrl}
@@ -741,61 +863,149 @@ export function VoiceCallDemo({
               config={cfg}
             />
           </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {conversation.map((entry, i) => (
+              <div
+                key={i}
+                style={{
+                  maxWidth: '85%',
+                  padding: '10px 14px',
+                  borderRadius: entry.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                  fontSize: '13.5px',
+                  lineHeight: 1.5,
+                  color: 'white',
+                  marginLeft: entry.role === 'user' ? 'auto' : '0',
+                  marginRight: entry.role === 'user' ? '0' : 'auto',
+                  backgroundColor: entry.role === 'user'
+                    ? 'rgba(255,255,255,0.08)'
+                    : `${primaryColor}25`,
+                  backdropFilter: 'blur(8px)',
+                  border: entry.role === 'user'
+                    ? '1px solid rgba(255,255,255,0.08)'
+                    : `1px solid ${primaryColor}20`,
+                }}
+                dangerouslySetInnerHTML={{ __html: renderMarkdown(entry.text) }}
+              />
+            ))}
+            <div ref={conversationEndRef} />
+          </div>
         )}
-        {conversation.map((entry, i) => (
-          <div
-            key={i}
-            className={cn(
-              'max-w-[85%] px-3 py-2 rounded-2xl text-sm leading-relaxed',
-              entry.role === 'user'
-                ? 'ml-auto bg-white/10 text-white rounded-br-sm'
-                : 'mr-auto text-white rounded-bl-sm'
-            )}
-            style={entry.role === 'bot' ? { backgroundColor: `${primaryColor}33` } : undefined}
-            dangerouslySetInnerHTML={{ __html: renderMarkdown(entry.text) }}
-          />
-        ))}
-        <div ref={conversationEndRef} />
       </div>
 
-      {/* Status Text */}
-      <div className="text-center pb-4">
-        <p className="text-xs text-white/30 font-mono">
-          {isMuted ? '🔇 Micrófono silenciado' : callState === 'thinking' ? '🧠 Pensando...' : callState === 'speaking' ? '🔊 Respuesta de voz' : '🎤 Habla cuando quieras'}
-        </p>
+      {/* Status pill */}
+      <div style={{ textAlign: 'center', paddingBottom: '12px' }}>
+        <span style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px',
+          padding: '4px 16px',
+          borderRadius: '20px',
+          fontSize: '11px',
+          fontWeight: 500,
+          color: 'rgba(255,255,255,0.35)',
+          background: 'rgba(255,255,255,0.04)',
+          border: '1px solid rgba(255,255,255,0.06)',
+          letterSpacing: '0.02em',
+        }}>
+          {isMuted ? (
+            <><MicOff style={{ width: '12px', height: '12px' }} /> Micrófono silenciado</>
+          ) : callState === 'thinking' ? (
+            'Procesando...'
+          ) : callState === 'speaking' ? (
+            <><Volume2 style={{ width: '12px', height: '12px' }} /> Respuesta de voz</>
+          ) : (
+            'Habla cuando quieras'
+          )}
+        </span>
       </div>
 
-      {/* Controls */}
-      <div className="flex items-center justify-center gap-8 pb-8">
+      {/* Controls — glassmorphism bar */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '20px',
+          paddingBottom: '28px',
+          paddingTop: '8px',
+        }}
+      >
         {/* Mute button */}
         <button
           onClick={toggleMute}
-          className={cn(
-            'h-14 w-14 rounded-full flex items-center justify-center transition-all',
-            isMuted ? 'bg-red-500/20 text-red-400' : 'bg-white/10 text-white/70 hover:bg-white/15'
-          )}
+          style={{
+            width: '52px',
+            height: '52px',
+            borderRadius: '50%',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.2s',
+            backgroundColor: isMuted ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.08)',
+            color: isMuted ? '#f87171' : 'rgba(255,255,255,0.7)',
+            backdropFilter: 'blur(12px)',
+            border: `1px solid ${isMuted ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.08)'}`,
+          }}
+          aria-label={isMuted ? 'Activar micrófono' : 'Silenciar micrófono'}
         >
-          {isMuted ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
+          {isMuted ? <MicOff style={{ width: '22px', height: '22px' }} /> : <Mic style={{ width: '22px', height: '22px' }} />}
         </button>
 
-        {/* End call button */}
+        {/* End call button — prominent red */}
         <button
           onClick={endCall}
-          className="h-16 w-16 rounded-full bg-red-500 flex items-center justify-center text-white shadow-lg hover:bg-red-600 transition-all active:scale-95"
+          style={{
+            width: '64px',
+            height: '64px',
+            borderRadius: '50%',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#ef4444',
+            color: 'white',
+            boxShadow: '0 4px 24px rgba(239,68,68,0.4), 0 0 0 4px rgba(239,68,68,0.1)',
+            transition: 'all 0.2s',
+          }}
+          aria-label="Finalizar llamada"
         >
-          <PhoneOff className="h-7 w-7" />
+          <PhoneOff style={{ width: '26px', height: '26px' }} />
         </button>
 
         {/* Speaker indicator */}
         <div
-          className={cn(
-            'h-14 w-14 rounded-full flex items-center justify-center',
-            callState === 'speaking' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/10 text-white/70'
-          )}
+          style={{
+            width: '52px',
+            height: '52px',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: callState === 'speaking' ? `${cfg.listeningColor}15` : 'rgba(255,255,255,0.08)',
+            color: callState === 'speaking' ? cfg.listeningColor : 'rgba(255,255,255,0.5)',
+            border: `1px solid ${callState === 'speaking' ? `${cfg.listeningColor}25` : 'rgba(255,255,255,0.08)'}`,
+            transition: 'all 0.3s',
+          }}
         >
-          <Volume2 className={cn('h-6 w-6', callState === 'speaking' && 'animate-pulse')} />
+          <Volume2 style={{ width: '22px', height: '22px' }} />
         </div>
       </div>
+
+      {/* CSS keyframes for orbital animations */}
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.7; transform: scale(0.95); }
+        }
+      `}</style>
     </div>
   )
 }
