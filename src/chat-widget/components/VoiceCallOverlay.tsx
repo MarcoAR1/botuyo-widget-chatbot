@@ -13,7 +13,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { cn } from '@/lib/utils'
-import { PhoneOff, Mic, MicOff, Volume2 } from 'lucide-react'
+import { PhoneOff, Mic, MicOff, Volume2, Keyboard, Send } from 'lucide-react'
 import type { EmotionAvatarMap } from './Launcher'
 import { DEFAULT_AVATAR_URL } from '../utils/defaultAssets'
 
@@ -393,6 +393,8 @@ export function VoiceCallOverlay({
   const [audioLevel, setAudioLevel] = useState(0)
   const [currentEmotion, setCurrentEmotion] = useState<string | null>(null)
   const [conversation, setConversation] = useState<VoiceEntry[]>([])
+  const [showTextInput, setShowTextInput] = useState(false)
+  const [textInputValue, setTextInputValue] = useState('')
 
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const analyserRef = useRef<AnalyserNode | null>(null)
@@ -750,6 +752,18 @@ export function VoiceCallOverlay({
     setIsMuted(prev => !prev)
   }, [])
 
+  /** Send typed text to the voice session via socket */
+  const sendTextInput = useCallback(() => {
+    const text = textInputValue.trim()
+    if (!text) return
+    const socket = getSocket?.()
+    if (!socket?.connected) return
+
+    socket.emit('voice_text_input', { text })
+    setTextInputValue('')
+    setShowTextInput(false)
+  }, [textInputValue, getSocket])
+
   // Start call when overlay opens
   useEffect(() => {
     if (isOpen && callState === 'idle') {
@@ -1035,7 +1049,78 @@ export function VoiceCallOverlay({
         >
           <Volume2 style={{ width: '22px', height: '22px' }} />
         </div>
+
+        {/* Keyboard button */}
+        <button
+          onClick={() => setShowTextInput(prev => !prev)}
+          style={{
+            width: '52px',
+            height: '52px',
+            borderRadius: '50%',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.2s',
+            backgroundColor: showTextInput ? `${primaryColor}20` : 'rgba(255,255,255,0.08)',
+            color: showTextInput ? primaryColor : 'rgba(255,255,255,0.5)',
+            border: `1px solid ${showTextInput ? `${primaryColor}30` : 'rgba(255,255,255,0.08)'}`,
+          }}
+          aria-label="Escribir texto"
+        >
+          <Keyboard style={{ width: '20px', height: '20px' }} />
+        </button>
       </div>
+
+      {/* Text input fallback — for structured data */}
+      {showTextInput && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '8px 20px 20px',
+        }}>
+          <input
+            type="text"
+            value={textInputValue}
+            onChange={e => setTextInputValue(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && sendTextInput()}
+            placeholder="Escribí email, teléfono, etc."
+            autoFocus
+            style={{
+              flex: 1,
+              padding: '10px 14px',
+              borderRadius: '12px',
+              border: '1px solid rgba(255,255,255,0.12)',
+              background: 'rgba(255,255,255,0.06)',
+              color: 'white',
+              fontSize: '13px',
+              outline: 'none',
+              backdropFilter: 'blur(8px)',
+            }}
+          />
+          <button
+            onClick={sendTextInput}
+            disabled={!textInputValue.trim()}
+            style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              border: 'none',
+              cursor: textInputValue.trim() ? 'pointer' : 'default',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: textInputValue.trim() ? primaryColor : 'rgba(255,255,255,0.06)',
+              color: textInputValue.trim() ? 'white' : 'rgba(255,255,255,0.2)',
+              transition: 'all 0.2s',
+            }}
+            aria-label="Enviar texto"
+          >
+            <Send style={{ width: '16px', height: '16px' }} />
+          </button>
+        </div>
+      )}
 
       {/* CSS keyframes for orbital animations */}
       <style>{`
