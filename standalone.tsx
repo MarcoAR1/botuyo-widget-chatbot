@@ -16,8 +16,22 @@ import React, { lazy, Suspense } from 'react';
 import type { ChatWidgetProps } from './src/chat-widget/types';
 import { LanguageProvider } from './src/chat-widget/i18n/LanguageContext';
 
-// Import standalone styles
-import './styles.css';
+// CSS inlined as string — auto-injected at runtime
+// Consumers never need to import CSS manually
+import cssContent from './styles.css?inline';
+
+/** Inject widget CSS into <head> as a <style> tag. Idempotent. */
+function injectWidgetCSS(): void {
+  if (typeof document === 'undefined') return; // SSR guard
+  if (document.getElementById('botuyo-widget-styles')) return;
+  const style = document.createElement('style');
+  style.id = 'botuyo-widget-styles';
+  style.textContent = cssContent;
+  document.head.appendChild(style);
+}
+
+// Auto-inject on module load (ES import)
+injectWidgetCSS();
 
 // Lazy load ChatWidget - only loaded when user opens chat
 const ChatWidget = lazy(() => 
@@ -67,6 +81,7 @@ class BotUyoChatWidget {
    * @returns Widget instance for chaining
    */
   init(config: StandaloneConfig): this {
+    injectWidgetCSS(); // Ensure CSS is injected (safety net for CDN usage)
     this.config = config;
     this.render();
     return this;

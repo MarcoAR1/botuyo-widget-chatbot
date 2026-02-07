@@ -30,6 +30,7 @@ export default defineConfig({
       formats: ['umd'],
       fileName: () => 'botuyo-chat.umd.js',
     },
+    cssCodeSplit: false, // CSS inlined in JS via ?inline import
     rollupOptions: {
       external: [],
       output: {

@@ -13,7 +13,8 @@
   "include": [
     "standalone.tsx",
     "src/chat-widget/**/*",
-    "src/lib/**/*"
+    "src/lib/**/*",
+    "src/vite-env.d.ts"
   ],
   "exclude": [
     "**/*.test.ts",

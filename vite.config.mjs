@@ -30,6 +30,7 @@ export default defineConfig({
       formats: ['es'], // ES module format only
       fileName: () => 'botuyo-chat.es.js',
     },
+    cssCodeSplit: false, // CSS inlined in JS via ?inline import
     rollupOptions: {
       // Externalize React for npm package consumers (they provide their own React)
       external: ['react', 'react-dom', 'react/jsx-runtime'],
