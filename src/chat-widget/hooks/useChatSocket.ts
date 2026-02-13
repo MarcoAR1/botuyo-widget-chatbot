@@ -35,6 +35,7 @@ const BotMessageSchema = z.object({
 export interface UseChatSocketOptions {
   apiKey: string
   apiBaseUrl: string
+  agentId?: string
   pageContext?: PageContext
   userContext?: ChatWidgetProps['userContext']
   onMessage: (message: ChatMessage) => void
@@ -49,7 +50,7 @@ export interface UseChatSocketOptions {
 }
 
 export function useChatSocket(options: UseChatSocketOptions) {
-  const { apiKey, apiBaseUrl, pageContext, userContext } = options
+  const { apiKey, apiBaseUrl, agentId, pageContext, userContext } = options
 
   const handlersRef = useRef(options)
   useEffect(() => {
@@ -138,6 +139,7 @@ export function useChatSocket(options: UseChatSocketOptions) {
       auth: {
         apiKey,
         deviceId: deviceIdRef.current,
+        agentId,
         token: userContext?.token,
         metadata: userContext?.metadata,
       },

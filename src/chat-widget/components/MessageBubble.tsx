@@ -41,7 +41,7 @@ export const MessageBubble = memo(
     message,
     primaryColor,
     botAvatar,
-    botName = 'Mar',
+    botName = 'BotUyo',
     avatars,
     isFirst = true,
     isLast = true,

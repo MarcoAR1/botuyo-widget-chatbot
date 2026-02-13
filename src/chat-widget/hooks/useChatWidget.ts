@@ -31,6 +31,7 @@ const toBase64 = (file: File) =>
 interface UseChatWidgetOptions {
   apiKey: string
   apiBaseUrl: string
+  agentId?: string
   pageContext?: PageContext
   includeSEOMetadata?: boolean
   theme?: ChatWidgetProps['theme']
@@ -51,6 +52,7 @@ export function useChatWidget(options: UseChatWidgetOptions) {
   const {
     apiKey,
     apiBaseUrl,
+    agentId,
     pageContext,
     includeSEOMetadata = false,
     theme,
@@ -75,7 +77,7 @@ export function useChatWidget(options: UseChatWidgetOptions) {
     enabled: true,
     soundEnabled: true,
     desktopEnabled: true,
-    botName: theme?.botName || 'Asistente',
+    botName: theme?.botName || 'BotUyo',
     logoUrl: theme?.logoUrl,
   })
 
@@ -93,6 +95,7 @@ export function useChatWidget(options: UseChatWidgetOptions) {
   const socket = useChatSocket({
     apiKey,
     apiBaseUrl,
+    agentId,
     pageContext: enrichedPageContext,
     userContext,
     onMessage: useCallback(
@@ -121,9 +124,13 @@ export function useChatWidget(options: UseChatWidgetOptions) {
         actions.setConnected(true)
         actions.setSessionId(sessionId)
         analytics.trackConnectionStatus(true)
+        // Apply backend agent config as socket theme
+        if (config && onThemeUpdate) {
+          onThemeUpdate(config)
+        }
         if (config && onEvent) onEvent('backend_config', config)
       },
-      [actions, onEvent, analytics]
+      [actions, onEvent, onThemeUpdate, analytics]
     ),
     onDisconnected: useCallback(() => {
       actions.setConnected(false)

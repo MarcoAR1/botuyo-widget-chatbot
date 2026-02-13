@@ -30,7 +30,7 @@ export const MessageList = memo(
     welcomeMessage = '¡Hola! ¿En qué puedo ayudarte?',
     primaryColor,
     logoUrl,
-    botName = 'Mar',
+    botName = 'BotUyo',
     bubbleStyles,
     avatars,
   }: MessageListProps) {

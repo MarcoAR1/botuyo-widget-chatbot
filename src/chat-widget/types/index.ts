@@ -113,6 +113,9 @@ export interface ChatWidgetProps {
   /** URL base del backend (Gateway) */
   apiBaseUrl: string
 
+  /** Optional agent flow ID — connects to a specific agent for this tenant */
+  agentId?: string
+
   // ========== Contexto Vivo (Reactivo) ==========
   /**
    * Contexto de la página actual que se inyecta en cada mensaje

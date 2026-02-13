@@ -114,15 +114,16 @@ export const DEFAULT_THEME: Required<
     | 'bubbleStyles'
     | 'promptPersistence'
     | 'avatarScale'
+    | 'showPromptAvatar'
     | 'height'
     | 'bottom'
     | 'defaultLocale'
-    | 'animations' // Optional - defaults via AnimationContext
-    | 'effects'    // Optional - defaults via AnimationContext
+    | 'animations'
+    | 'effects'
   >
 > = {
   primaryColor: 'hsl(160, 84%, 39%)',
-  botName: 'Asistente',
+  botName: 'BotUyo',
   logoUrl: '',
   position: 'bottom-right',
   welcomeMessage: '¡Hola! ¿En qué puedo ayudarte?',
@@ -262,11 +263,12 @@ export function mergeThemeWithDefaults(
     | 'bubbleStyles'
     | 'promptPersistence'
     | 'avatarScale'
+    | 'showPromptAvatar'
     | 'height'
     | 'bottom'
     | 'defaultLocale'
-    | 'animations' // Optional - defaults via AnimationContext
-    | 'effects'    // Optional - defaults via AnimationContext
+    | 'animations'
+    | 'effects'
   >
 > {
   // Merge de cssVariables con prioridad: user > socket > default

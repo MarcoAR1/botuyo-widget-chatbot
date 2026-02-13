@@ -19,6 +19,7 @@ export function ChatWidget(props: ChatWidgetProps) {
   const {
     apiKey,
     apiBaseUrl,
+    agentId,
     pageContext,
     includeSEOMetadata = false,
     theme,
@@ -57,6 +58,7 @@ export function ChatWidget(props: ChatWidgetProps) {
   } = useChatWidget({
     apiKey,
     apiBaseUrl,
+    agentId,
     pageContext,
     includeSEOMetadata,
     theme,
@@ -168,11 +170,11 @@ export function ChatWidget(props: ChatWidgetProps) {
               onSendMessage={handleSendText}
               onSendAttachment={handleSendAttachment}
               onSendLocation={handleSendLocation}
-              botName={theme?.botName}
-              logoUrl={theme?.logoUrl}
-              welcomeMessage={theme?.welcomeMessage}
+              botName={mergedTheme.botName}
+              logoUrl={mergedTheme.logoUrl}
+              welcomeMessage={mergedTheme.welcomeMessage}
               inputPlaceholder={theme?.inputPlaceholder}
-              primaryColor={theme?.primaryColor}
+              primaryColor={mergedTheme.primaryColor}
               position={theme?.position}
               bubbleStyles={mergedStyles}
               avatars={theme?.avatars}

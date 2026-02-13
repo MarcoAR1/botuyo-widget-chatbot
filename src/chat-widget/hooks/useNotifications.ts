@@ -23,7 +23,7 @@ export function useNotifications({
   enabled = true,
   soundEnabled = true,
   desktopEnabled = true,
-  botName = 'Asistente',
+  botName = 'BotUyo',
   logoUrl,
   notificationSoundUrl,
 }: UseNotificationsOptions = {}) {

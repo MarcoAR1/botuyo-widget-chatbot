@@ -44,7 +44,7 @@ export function ChatWindow({
   isConnected,
   isTyping,
   messages,
-  botName = 'Mar',
+  botName = 'BotUyo',
   logoUrl,
   welcomeMessage,
   inputPlaceholder,

@@ -146,6 +146,7 @@ class BotUyoChatWidget {
     const widgetProps: ChatWidgetProps = {
       apiKey: this.config.apiKey,
       apiBaseUrl: this.config.apiBaseUrl,
+      agentId: this.config.agentId,
       theme: {
         // Defaults
         primaryColor: '#10b981',
@@ -167,7 +168,6 @@ class BotUyoChatWidget {
       onLogin: this.config.onLogin,
       onEvent: this.config.onEvent,
       onStateChange: this.config.onStateChange,
-      onVoiceCall: this.config.onVoiceCall, // Voice call callback
     };
 
     // Render React component with Suspense for code splitting

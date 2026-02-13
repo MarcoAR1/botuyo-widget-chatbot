@@ -119,6 +119,9 @@ export interface SocketAuthPayload {
   /** Device ID del guest (persistido en localStorage) */
   deviceId: string
 
+  /** Optional agent flow ID to connect to a specific agent */
+  agentId?: string
+
   /** Token JWT opcional si el usuario ya está autenticado */
   token?: string
 
