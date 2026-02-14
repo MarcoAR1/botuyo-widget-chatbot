@@ -33,7 +33,8 @@ export default defineConfig({
     cssCodeSplit: false, // CSS inlined in JS via ?inline import
     rollupOptions: {
       // Externalize React for npm package consumers (they provide their own React)
-      external: ['react', 'react-dom', 'react/jsx-runtime'],
+      // Use function to catch deep imports like react-dom/cjs/react-dom-client.production.js
+      external: (id) => /^react($|\/)/.test(id) || /^react-dom($|\/)/.test(id),
       output: {
         globals: {
           react: 'React',

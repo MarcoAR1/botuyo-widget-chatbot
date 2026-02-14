@@ -528,7 +528,10 @@ export function VoiceCallOverlay({
       setConversation(prev => {
         if (prev.length > 0 && prev[prev.length - 1].role === 'user') {
           const updated = [...prev]
-          updated[updated.length - 1] = { ...updated[updated.length - 1], text: updated[updated.length - 1].text + data.text }
+          const existing = updated[updated.length - 1].text
+          // Add space between fragments if neither ends/starts with one
+          const needsSpace = existing.length > 0 && !existing.endsWith(' ') && !data.text.startsWith(' ')
+          updated[updated.length - 1] = { ...updated[updated.length - 1], text: existing + (needsSpace ? ' ' : '') + data.text }
           return updated
         }
         return [...prev, { role: 'user', text: data.text }]
@@ -540,7 +543,10 @@ export function VoiceCallOverlay({
       setConversation(prev => {
         if (prev.length > 0 && prev[prev.length - 1].role === 'bot') {
           const updated = [...prev]
-          updated[updated.length - 1] = { ...updated[updated.length - 1], text: updated[updated.length - 1].text + data.text }
+          const existing = updated[updated.length - 1].text
+          // Add space between fragments if neither ends/starts with one
+          const needsSpace = existing.length > 0 && !existing.endsWith(' ') && !data.text.startsWith(' ')
+          updated[updated.length - 1] = { ...updated[updated.length - 1], text: existing + (needsSpace ? ' ' : '') + data.text }
           return updated
         }
         return [...prev, { role: 'bot', text: data.text }]
