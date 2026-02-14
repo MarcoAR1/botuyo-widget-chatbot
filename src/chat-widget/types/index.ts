@@ -193,6 +193,8 @@ export interface ChatTheme {
   logoUrl?: string
 
   avatars?: EmotionAvatarMap
+  /** URL to a .vrm/.glb 3D model for voice call avatar */
+  avatar3dUrl?: string
   /** Posición del launcher */
   position?: 'bottom-right' | 'bottom-left'
 

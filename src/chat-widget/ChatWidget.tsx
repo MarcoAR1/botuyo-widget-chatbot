@@ -180,6 +180,7 @@ export function ChatWidget(props: ChatWidgetProps) {
               avatars={theme?.avatars}
               mediaConfig={mediaConfig}
               theme={mergedTheme}
+              avatar3dUrl={theme?.avatar3dUrl}
               getSocket={getSocket}
               onAddVoiceMessage={handleAddVoiceMessage}
             />

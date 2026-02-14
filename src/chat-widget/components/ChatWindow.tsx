@@ -36,6 +36,8 @@ export interface ChatWindowProps {
   onSendLocation?: (location: { latitude: number; longitude: number }) => void
   getSocket?: () => any
   onAddVoiceMessage?: (message: { sender: 'user' | 'bot'; content: string }) => void
+  /** URL to a .vrm/.glb 3D model for voice call avatar */
+  avatar3dUrl?: string
   theme?: import('../types').ChatTheme
 }
 
@@ -58,6 +60,7 @@ export function ChatWindow({
   onSendLocation,
   getSocket,
   onAddVoiceMessage,
+  avatar3dUrl,
   theme,
 }: ChatWindowProps) {
   const [logoError, setLogoError] = useState(false)
@@ -297,6 +300,7 @@ export function ChatWindow({
           primaryColor={themePrimary}
           avatars={avatars}
           logoUrl={logoUrl}
+          avatar3dUrl={avatar3dUrl}
           getSocket={getSocket}
           onAddMessage={onAddVoiceMessage}
         />

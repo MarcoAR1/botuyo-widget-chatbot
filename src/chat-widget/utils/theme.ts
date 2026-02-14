@@ -120,6 +120,7 @@ export const DEFAULT_THEME: Required<
     | 'defaultLocale'
     | 'animations'
     | 'effects'
+    | 'avatar3dUrl'
   >
 > = {
   primaryColor: 'hsl(160, 84%, 39%)',
@@ -269,6 +270,7 @@ export function mergeThemeWithDefaults(
     | 'defaultLocale'
     | 'animations'
     | 'effects'
+    | 'avatar3dUrl'
   >
 > {
   // Merge de cssVariables con prioridad: user > socket > default
