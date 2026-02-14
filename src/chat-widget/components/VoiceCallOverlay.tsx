@@ -14,6 +14,9 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { cn } from '@/lib/utils'
 import { PhoneOff, Mic, MicOff, Volume2, Keyboard, Send } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import rehypeSanitize from 'rehype-sanitize'
 import type { EmotionAvatarMap } from './Launcher'
 import { DEFAULT_AVATAR_URL } from '../utils/defaultAssets'
 
@@ -83,14 +86,17 @@ const DEFAULT_STATUS_LABELS: Record<CallState, string> = {
   speaking: 'Hablando...',
 }
 
-/** Simple inline markdown renderer for voice transcripts */
-function renderMarkdown(text: string): string {
-  return text
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-    .replace(/`([^`]+)`/g, '<code style="background:rgba(255,255,255,0.1);padding:0 4px;border-radius:3px">$1</code>')
-    .replace(/\n/g, '<br>')
+/** Sanitize config for voice transcript markdown */
+const voiceSanitizeSchema = {
+  tagNames: ['p', 'a', 'strong', 'em', 'ul', 'ol', 'li', 'br', 'span', 'code'],
+  attributes: {
+    a: ['href', 'target', 'rel'],
+    span: ['className'],
+    code: ['className'],
+  },
+  protocols: {
+    a: { href: ['http', 'https', 'mailto', 'tel'] },
+  },
 }
 
 const INPUT_SAMPLE_RATE = 16000
@@ -947,9 +953,32 @@ export function VoiceCallOverlay({
                   border: entry.role === 'user'
                     ? '1px solid rgba(255,255,255,0.08)'
                     : `1px solid ${primaryColor}20`,
-                }}
-                dangerouslySetInnerHTML={{ __html: renderMarkdown(entry.text) }}
-              />
+              >
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[[rehypeSanitize, voiceSanitizeSchema]]}
+                  components={{
+                    p: ({ children }) => <p style={{ margin: 0 }}>{children}</p>,
+                    a: ({ href, children }) => (
+                      <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: primaryColor, textDecoration: 'underline' }}>
+                        {children}
+                      </a>
+                    ),
+                    strong: ({ children }) => <strong style={{ fontWeight: 600 }}>{children}</strong>,
+                    em: ({ children }) => <em>{children}</em>,
+                    ul: ({ children }) => <ul style={{ margin: '4px 0', paddingLeft: '18px' }}>{children}</ul>,
+                    ol: ({ children }) => <ol style={{ margin: '4px 0', paddingLeft: '18px' }}>{children}</ol>,
+                    li: ({ children }) => <li style={{ marginBottom: '2px' }}>{children}</li>,
+                    code: ({ children }) => (
+                      <code style={{ background: 'rgba(255,255,255,0.1)', padding: '0 4px', borderRadius: '3px', fontSize: '12px' }}>
+                        {children}
+                      </code>
+                    ),
+                  }}
+                >
+                  {entry.text}
+                </ReactMarkdown>
+              </div>
             ))}
             <div ref={conversationEndRef} />
           </div>
