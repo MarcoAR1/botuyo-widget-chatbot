@@ -953,6 +953,7 @@ export function VoiceCallOverlay({
                   border: entry.role === 'user'
                     ? '1px solid rgba(255,255,255,0.08)'
                     : `1px solid ${primaryColor}20`,
+                }}
               >
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
