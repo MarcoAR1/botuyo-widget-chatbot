@@ -11,7 +11,7 @@
 
 'use client'
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react'
 import { cn } from '@/lib/utils'
 import { PhoneOff, Mic, MicOff, Volume2, Keyboard, Send } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
@@ -19,6 +19,9 @@ import remarkGfm from 'remark-gfm'
 import rehypeSanitize from 'rehype-sanitize'
 import type { EmotionAvatarMap } from './Launcher'
 import { DEFAULT_AVATAR_URL } from '../utils/defaultAssets'
+
+// Lazy-loaded 3D avatar — separate chunk, 0KB impact on main bundle
+const Avatar3D = lazy(() => import('./Avatar3D'))
 
 /** Configurable voice call overlay options */
 export interface VoiceOverlayConfig {
@@ -50,6 +53,8 @@ export interface VoiceOverlayConfig {
   speakingScale?: number
   /** Scale factor when thinking. Default: 0.95 */
   thinkingScale?: number
+  /** URL to a .vrm/.glb 3D model. When set, replaces 2D avatar with 3D. */
+  avatar3dUrl?: string
 }
 
 interface VoiceCallOverlayProps {
@@ -59,6 +64,8 @@ interface VoiceCallOverlayProps {
   getSocket?: () => any
   avatars?: EmotionAvatarMap
   logoUrl?: string
+  /** URL to a .vrm/.glb 3D model for the avatar */
+  avatar3dUrl?: string
   /** Voice overlay configuration for full customizability */
   voiceConfig?: VoiceOverlayConfig
   /** Callback to persist voice transcripts to the main chat history */
@@ -162,6 +169,7 @@ function base64ToFloat32(base64: string): Float32Array {
 interface AvatarOrbProps {
   avatars?: EmotionAvatarMap
   logoUrl?: string
+  avatar3dUrl?: string
   emotion: string | null
   callState: CallState
   audioLevel: number
@@ -184,6 +192,7 @@ type Required_VoiceOverlayConfig = {
   orbSize: number
   speakingScale: number
   thinkingScale: number
+  avatar3dUrl?: string
 }
 
 function resolveVoiceConfig(cfg?: VoiceOverlayConfig, primaryColor = '#10b981'): Required_VoiceOverlayConfig {
@@ -202,12 +211,50 @@ function resolveVoiceConfig(cfg?: VoiceOverlayConfig, primaryColor = '#10b981'):
     orbSize: cfg?.orbSize ?? 128,
     speakingScale: cfg?.speakingScale ?? 1.08,
     thinkingScale: cfg?.thinkingScale ?? 0.95,
+    avatar3dUrl: cfg?.avatar3dUrl,
   }
 }
 
-function AvatarOrb({ avatars, logoUrl, emotion, callState, audioLevel, config }: AvatarOrbProps) {
+function AvatarOrb({ avatars, logoUrl, avatar3dUrl, emotion, callState, audioLevel, config }: AvatarOrbProps) {
   const hasAvatars = avatars && Object.keys(avatars).length > 0
   const hasLogo = !!logoUrl
+
+  // ── 3D AVATAR PATH (lazy loaded) ──
+  if (avatar3dUrl) {
+    return (
+      <div className="relative flex flex-col items-center gap-4">
+        <Suspense
+          fallback={
+            <div
+              className="rounded-full flex items-center justify-center animate-pulse"
+              style={{
+                width: `${config.orbSize}px`,
+                height: `${config.orbSize}px`,
+                background: `radial-gradient(circle at 35% 35%, ${config.speakingColor}40, ${config.speakingColor}10 60%, transparent 80%)`,
+                boxShadow: `0 0 30px ${config.speakingColor}15`,
+              }}
+            />
+          }
+        >
+          <Avatar3D
+            modelUrl={avatar3dUrl}
+            emotion={emotion}
+            callState={callState}
+            audioLevel={audioLevel}
+            primaryColor={config.speakingColor}
+            size={config.orbSize}
+          />
+        </Suspense>
+        {config.showWaveform && (
+          <WaveformBars
+            isActive={callState === 'listening' || callState === 'speaking'}
+            audioLevel={audioLevel}
+            color={callState === 'speaking' ? config.speakingColor : callState === 'thinking' ? config.thinkingColor : config.listeningColor}
+          />
+        )}
+      </div>
+    )
+  }
 
   // Resolve avatar URL from emotion — same logic as Launcher
   const avatarUrl = useMemo(() => {
@@ -387,6 +434,7 @@ export function VoiceCallOverlay({
   getSocket,
   avatars,
   logoUrl,
+  avatar3dUrl,
   voiceConfig,
   onAddMessage,
 }: VoiceCallOverlayProps) {
@@ -926,6 +974,7 @@ export function VoiceCallOverlay({
             <AvatarOrb
               avatars={avatars}
               logoUrl={logoUrl}
+              avatar3dUrl={avatar3dUrl || cfg.avatar3dUrl}
               emotion={currentEmotion}
               callState={callState}
               audioLevel={audioLevel}
