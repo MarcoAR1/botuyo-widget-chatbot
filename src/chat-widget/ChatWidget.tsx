@@ -6,6 +6,7 @@ import { Launcher } from './components/Launcher'
 import { ChatWindow } from './components/ChatWindow'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { PremiumConfigProvider } from './contexts/AnimationContext'
+import { LanguageProvider } from './i18n/LanguageContext'
 import { cn } from '@/lib/utils'
 import { useIsMobile } from './hooks/useIsMobile'
 import { useWidgetTheme } from './hooks/useWidgetTheme'
@@ -122,6 +123,7 @@ export function ChatWidget(props: ChatWidgetProps) {
   }, [mergedTheme.cssVariables])
 
   return (
+    <LanguageProvider defaultLocale={theme?.defaultLocale}>
     <PremiumConfigProvider
       animations={theme?.animations}
       effects={theme?.effects}
@@ -212,5 +214,6 @@ export function ChatWidget(props: ChatWidgetProps) {
         </div>
       </div>
     </PremiumConfigProvider>
+    </LanguageProvider>
   )
 }

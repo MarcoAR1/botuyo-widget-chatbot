@@ -90,6 +90,10 @@ interface VRMModelProps {
 
 function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
   const vrmRef = useRef<VRM | null>(null)
+  const glbSceneRef = useRef<THREE.Group | null>(null)
+  const mixerRef = useRef<THREE.AnimationMixer | null>(null)
+  const baseRotationY = useRef(0)
+  const baseScale = useRef(1)
   const blinkTimer = useRef(0)
   const nextBlinkAt = useRef(Math.random() * 3 + 2)
   const breathPhase = useRef(0)
@@ -97,9 +101,9 @@ function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
   const targetExpressions = useRef<Record<string, number>>({})
   const headTarget = useRef(new THREE.Euler(0, 0, 0))
   const baseY = useRef(0)
-  const { scene } = useThree()
+  const { scene, camera } = useThree()
 
-  // Load VRM model using Three.js GLTFLoader directly (avoids drei type conflicts)
+  // Load model using Three.js GLTFLoader (with VRM plugin for VRM models)
   useEffect(() => {
     const loader = new GLTFLoader()
     loader.register((parser) => new VRMLoaderPlugin(parser) as any)
@@ -108,27 +112,63 @@ function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
       url,
       (gltf) => {
         const vrm = (gltf as any).userData?.vrm as VRM | undefined
-        if (!vrm) {
-          console.warn('[Avatar3D] No VRM data found in model')
-          return
+        if (vrm) {
+          // ── VRM MODEL PATH ──
+          vrmRef.current = vrm
+          vrm.scene.rotation.y = Math.PI
+          const box = new THREE.Box3().setFromObject(vrm.scene)
+          const center = box.getCenter(new THREE.Vector3())
+          const height = box.getSize(new THREE.Vector3()).y
+          vrm.scene.position.y = -center.y - height * 0.05
+          baseY.current = vrm.scene.position.y
+          scene.add(vrm.scene)
+        } else {
+          // ── PLAIN GLB FALLBACK ──
+          console.info('[Avatar3D] Plain GLB model detected, using fallback animations')
+          const model = gltf.scene
+
+          // Force world matrix update so bbox is accurate
+          model.updateMatrixWorld(true)
+          const box = new THREE.Box3().setFromObject(model)
+          const center = box.getCenter(new THREE.Vector3())
+          const size = box.getSize(new THREE.Vector3())
+
+          // Create pivot wrapper for proper rotation around geometric center
+          const pivot = new THREE.Group()
+
+          // Center model geometry at pivot origin
+          model.position.sub(center)
+          pivot.add(model)
+
+          // Don't rotate the model — move the CAMERA to the front instead
+          baseRotationY.current = 0
+
+          glbSceneRef.current = pivot
+          baseY.current = 0
+          baseScale.current = 1
+          scene.add(pivot)
+
+          // Frame the HEAD: camera at -Z (model faces -Z based on tests)
+          const fov = (camera as THREE.PerspectiveCamera).fov * (Math.PI / 180)
+          const headY = size.y * 0.35
+          const cameraZ = (size.y * 0.5) / Math.tan(fov / 2)
+          // Camera on the -Z side to see the model's FRONT
+          camera.position.set(0, headY, -cameraZ)
+          camera.lookAt(0, headY, 0)
+
+          // Play embedded animations if available
+          if (gltf.animations.length > 0) {
+            const mixer = new THREE.AnimationMixer(model)
+            mixerRef.current = mixer
+            gltf.animations.forEach((clip) => {
+              mixer.clipAction(clip).play()
+            })
+          }
         }
-        vrmRef.current = vrm
-
-        // VRM models face +Z by default — rotate to face camera
-        vrm.scene.rotation.y = Math.PI
-
-        // Center vertically for head/bust view
-        const box = new THREE.Box3().setFromObject(vrm.scene)
-        const center = box.getCenter(new THREE.Vector3())
-        const height = box.getSize(new THREE.Vector3()).y
-        vrm.scene.position.y = -center.y - height * 0.05
-        baseY.current = vrm.scene.position.y
-
-        scene.add(vrm.scene)
       },
       undefined,
       (error) => {
-        console.error('[Avatar3D] Failed to load VRM model:', error)
+        console.error('[Avatar3D] Failed to load model:', error)
       },
     )
 
@@ -137,10 +177,18 @@ function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
         scene.remove(vrmRef.current.scene)
         vrmRef.current = null
       }
+      if (glbSceneRef.current) {
+        scene.remove(glbSceneRef.current)
+        glbSceneRef.current = null
+      }
+      if (mixerRef.current) {
+        mixerRef.current.stopAllAction()
+        mixerRef.current = null
+      }
     }
   }, [url, scene])
 
-  // Update target expressions when emotion changes
+  // Update target expressions when emotion changes (VRM only)
   useEffect(() => {
     const config = EMOTION_MAP[emotion || 'default'] || EMOTION_MAP.default
     targetExpressions.current = config.expressions
@@ -153,13 +201,47 @@ function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
 
   // Animation loop
   useFrame((_, delta) => {
+    const dt = Math.min(delta, 0.1) // Cap delta to avoid jumps
+    breathPhase.current += dt * 1.2
+
+    // ── GLB FALLBACK ANIMATION ──
+    const glb = glbSceneRef.current
+    if (glb) {
+      // Update animation mixer if present
+      if (mixerRef.current) {
+        mixerRef.current.update(dt)
+      }
+
+      // Gentle breathing bob
+      const breathOffset = Math.sin(breathPhase.current) * 0.003
+      glb.position.y = baseY.current + breathOffset
+
+      // Subtle idle rotation (relative to base facing direction)
+      const idleSway = Math.sin(breathPhase.current * 0.3) * 0.02
+      glb.rotation.y = baseRotationY.current + idleSway
+
+      // Audio-reactive scale pulse when speaking
+      if (callState === 'speaking' && audioLevel > 0.01) {
+        const pulse = 1 + audioLevel * 0.03
+        const targetScale = baseScale.current * pulse
+        const currentScale = glb.scale.x
+        glb.scale.setScalar(THREE.MathUtils.lerp(currentScale, targetScale, 0.1))
+      } else {
+        // Return to base scale smoothly
+        const currentScale = glb.scale.x
+        if (Math.abs(currentScale - baseScale.current) > 0.001) {
+          glb.scale.setScalar(THREE.MathUtils.lerp(currentScale, baseScale.current, 0.05))
+        }
+      }
+
+      return // Skip VRM-specific code
+    }
+
+    // ── VRM ANIMATION (original code) ──
     const vrm = vrmRef.current
     if (!vrm) return
 
-    const dt = Math.min(delta, 0.1) // Cap delta to avoid jumps
-
     // ── BREATHING ──
-    breathPhase.current += dt * 1.2
     const breathOffset = Math.sin(breathPhase.current) * 0.003
     vrm.scene.position.y = baseY.current + breathOffset
 
@@ -249,6 +331,8 @@ function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
 function CameraSetup() {
   const { camera } = useThree()
   useEffect(() => {
+    // Default camera position — will be overridden by model loader for GLB
+    // For VRM: fixed head-level framing
     camera.position.set(0, 0.1, 0.6)
     camera.lookAt(0, 0.1, 0)
   }, [camera])

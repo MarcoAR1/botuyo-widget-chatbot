@@ -32,9 +32,17 @@ export default defineConfig({
     },
     cssCodeSplit: false, // CSS inlined in JS via ?inline import
     rollupOptions: {
-      // Externalize React for npm package consumers (they provide their own React)
-      // Use function to catch deep imports like react-dom/cjs/react-dom-client.production.js
-      external: (id) => /^react($|\/)/.test(id) || /^react-dom($|\/)/.test(id),
+      // Externalize React + Three.js for npm consumers (they provide their own)
+      // Use function to catch deep imports like react-dom/cjs/... or three/examples/jsm/...
+      external: (id) => {
+        // React family
+        if (/^react($|\/)/.test(id) || /^react-dom($|\/)/.test(id)) return true
+        // Three.js family — externalize to avoid 1MB+ Avatar3D chunk duplication issues
+        if (/^three($|\/)/.test(id)) return true
+        if (id.startsWith('@react-three/')) return true
+        if (id.startsWith('@pixiv/three-vrm')) return true
+        return false
+      },
       output: {
         globals: {
           react: 'React',

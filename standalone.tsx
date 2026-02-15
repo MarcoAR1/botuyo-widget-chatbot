@@ -14,7 +14,7 @@
 import { createRoot, Root } from 'react-dom/client';
 import React, { lazy, Suspense } from 'react';
 import type { ChatWidgetProps } from './src/chat-widget/types';
-import { LanguageProvider } from './src/chat-widget/i18n/LanguageContext';
+import { LanguageProvider as _LanguageProvider } from './src/chat-widget/i18n/LanguageContext';
 
 // CSS inlined as string — auto-injected at runtime
 // Consumers never need to import CSS manually
@@ -212,7 +212,7 @@ class BotUyoChatWidget {
 
     this.root.render(
       React.createElement(
-        LanguageProvider,
+        _LanguageProvider,
         { 
           defaultLocale: this.config.theme?.defaultLocale,
           children: suspenseElement

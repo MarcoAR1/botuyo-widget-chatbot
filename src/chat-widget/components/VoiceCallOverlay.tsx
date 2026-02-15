@@ -11,7 +11,7 @@
 
 'use client'
 
-import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense, Component, type ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 import { PhoneOff, Mic, MicOff, Volume2, Keyboard, Send } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
@@ -215,47 +215,34 @@ function resolveVoiceConfig(cfg?: VoiceOverlayConfig, primaryColor = '#10b981'):
   }
 }
 
+/** Error boundary for Avatar3D — falls back silently when Three.js fails */
+class Avatar3DErrorBoundary extends Component<
+  { children: ReactNode; onError: () => void },
+  { hasError: boolean }
+> {
+  constructor(props: { children: ReactNode; onError: () => void }) {
+    super(props)
+    this.state = { hasError: false }
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+  componentDidCatch(error: Error) {
+    console.warn('[Avatar3D] Three.js failed, falling back to 2D orb:', error.message)
+    this.props.onError()
+  }
+  render() {
+    if (this.state.hasError) return null
+    return this.props.children
+  }
+}
+
 function AvatarOrb({ avatars, logoUrl, avatar3dUrl, emotion, callState, audioLevel, config }: AvatarOrbProps) {
   const hasAvatars = avatars && Object.keys(avatars).length > 0
   const hasLogo = !!logoUrl
+  const [avatar3dFailed, setAvatar3dFailed] = useState(false)
 
-  // ── 3D AVATAR PATH (lazy loaded) ──
-  if (avatar3dUrl) {
-    return (
-      <div className="relative flex flex-col items-center gap-4">
-        <Suspense
-          fallback={
-            <div
-              className="rounded-full flex items-center justify-center animate-pulse"
-              style={{
-                width: `${config.orbSize}px`,
-                height: `${config.orbSize}px`,
-                background: `radial-gradient(circle at 35% 35%, ${config.speakingColor}40, ${config.speakingColor}10 60%, transparent 80%)`,
-                boxShadow: `0 0 30px ${config.speakingColor}15`,
-              }}
-            />
-          }
-        >
-          <Avatar3D
-            modelUrl={avatar3dUrl}
-            emotion={emotion}
-            callState={callState}
-            audioLevel={audioLevel}
-            primaryColor={config.speakingColor}
-            size={config.orbSize}
-          />
-        </Suspense>
-        {config.showWaveform && (
-          <WaveformBars
-            isActive={callState === 'listening' || callState === 'speaking'}
-            audioLevel={audioLevel}
-            color={callState === 'speaking' ? config.speakingColor : callState === 'thinking' ? config.thinkingColor : config.listeningColor}
-          />
-        )}
-      </div>
-    )
-  }
-
+  // ── ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS ──
   // Resolve avatar URL from emotion — same logic as Launcher
   const avatarUrl = useMemo(() => {
     if (!hasAvatars && !hasLogo) return null
@@ -277,6 +264,45 @@ function AvatarOrb({ avatars, logoUrl, avatar3dUrl, emotion, callState, audioLev
     : 1
 
   const orbPx = config.orbSize
+
+  // ── 3D AVATAR PATH (lazy loaded, with graceful fallback) ──
+  if (avatar3dUrl && !avatar3dFailed) {
+    return (
+      <div className="relative flex flex-col items-center gap-4">
+        <Avatar3DErrorBoundary onError={() => setAvatar3dFailed(true)}>
+          <Suspense
+            fallback={
+              <div
+                className="rounded-full flex items-center justify-center animate-pulse"
+                style={{
+                  width: `${config.orbSize}px`,
+                  height: `${config.orbSize}px`,
+                  background: `radial-gradient(circle at 35% 35%, ${config.speakingColor}40, ${config.speakingColor}10 60%, transparent 80%)`,
+                  boxShadow: `0 0 30px ${config.speakingColor}15`,
+                }}
+              />
+            }
+          >
+            <Avatar3D
+              modelUrl={avatar3dUrl}
+              emotion={emotion}
+              callState={callState}
+              audioLevel={audioLevel}
+              primaryColor={config.speakingColor}
+              size={config.orbSize}
+            />
+          </Suspense>
+        </Avatar3DErrorBoundary>
+        {config.showWaveform && (
+          <WaveformBars
+            isActive={callState === 'listening' || callState === 'speaking'}
+            audioLevel={audioLevel}
+            color={callState === 'speaking' ? config.speakingColor : callState === 'thinking' ? config.thinkingColor : config.listeningColor}
+          />
+        )}
+      </div>
+    )
+  }
 
   // If no avatar configured, show premium animated orb
   if (!avatarUrl) {
@@ -966,73 +992,74 @@ export function VoiceCallOverlay({
         </div>
       )}
 
-      {/* Main content — Orb or Conversation */}
+      {/* Main content — Avatar always on top + last 2 messages below */}
       <div className="relative flex-1 overflow-y-auto px-5 py-4" style={{ scrollbarWidth: 'none' }}>
-        {conversation.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-4">
-            {/* Avatar Center */}
-            <AvatarOrb
-              avatars={avatars}
-              logoUrl={logoUrl}
-              avatar3dUrl={avatar3dUrl || cfg.avatar3dUrl}
-              emotion={currentEmotion}
-              callState={callState}
-              audioLevel={audioLevel}
-              config={cfg}
-            />
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {conversation.map((entry, i) => (
-              <div
-                key={i}
-                style={{
-                  maxWidth: '85%',
-                  padding: '10px 14px',
-                  borderRadius: entry.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                  fontSize: '13.5px',
-                  lineHeight: 1.5,
-                  color: 'white',
-                  marginLeft: entry.role === 'user' ? 'auto' : '0',
-                  marginRight: entry.role === 'user' ? '0' : 'auto',
-                  backgroundColor: entry.role === 'user'
-                    ? 'rgba(255,255,255,0.08)'
-                    : `${primaryColor}25`,
-                  backdropFilter: 'blur(8px)',
-                  border: entry.role === 'user'
-                    ? '1px solid rgba(255,255,255,0.08)'
-                    : `1px solid ${primaryColor}20`,
-                }}
-              >
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  rehypePlugins={[[rehypeSanitize, voiceSanitizeSchema]]}
-                  components={{
-                    p: ({ children }) => <p style={{ margin: 0 }}>{children}</p>,
-                    a: ({ href, children }) => (
-                      <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: primaryColor, textDecoration: 'underline' }}>
-                        {children}
-                      </a>
-                    ),
-                    strong: ({ children }) => <strong style={{ fontWeight: 600 }}>{children}</strong>,
-                    em: ({ children }) => <em>{children}</em>,
-                    ul: ({ children }) => <ul style={{ margin: '4px 0', paddingLeft: '18px' }}>{children}</ul>,
-                    ol: ({ children }) => <ol style={{ margin: '4px 0', paddingLeft: '18px' }}>{children}</ol>,
-                    li: ({ children }) => <li style={{ marginBottom: '2px' }}>{children}</li>,
-                    code: ({ children }) => (
-                      <code style={{ background: 'rgba(255,255,255,0.1)', padding: '0 4px', borderRadius: '3px', fontSize: '12px' }}>
-                        {children}
-                      </code>
-                    ),
+        <div className="flex flex-col items-center justify-start h-full gap-4">
+          {/* Avatar — always visible */}
+          <AvatarOrb
+            avatars={avatars}
+            logoUrl={logoUrl}
+            avatar3dUrl={avatar3dUrl || cfg.avatar3dUrl}
+            emotion={currentEmotion}
+            callState={callState}
+            audioLevel={audioLevel}
+            config={cfg}
+          />
+
+          {/* Last 2 conversation entries */}
+          {conversation.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+              {conversation.slice(-2).map((entry, i) => (
+                <div
+                  key={i}
+                  style={{
+                    maxWidth: '85%',
+                    padding: '10px 14px',
+                    borderRadius: entry.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                    fontSize: '13.5px',
+                    lineHeight: 1.5,
+                    color: 'white',
+                    marginLeft: entry.role === 'user' ? 'auto' : '0',
+                    marginRight: entry.role === 'user' ? '0' : 'auto',
+                    backgroundColor: entry.role === 'user'
+                      ? 'rgba(255,255,255,0.08)'
+                      : `${primaryColor}25`,
+                    backdropFilter: 'blur(8px)',
+                    border: entry.role === 'user'
+                      ? '1px solid rgba(255,255,255,0.08)'
+                      : `1px solid ${primaryColor}20`,
                   }}
                 >
-                  {entry.text}
-                </ReactMarkdown>
-              </div>
-            ))}
-            <div ref={conversationEndRef} />
-          </div>
-        )}
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[[rehypeSanitize, voiceSanitizeSchema]]}
+                    components={{
+                      p: ({ children }) => <p style={{ margin: 0 }}>{children}</p>,
+                      a: ({ href, children }) => (
+                        <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: primaryColor, textDecoration: 'underline' }}>
+                          {children}
+                        </a>
+                      ),
+                      strong: ({ children }) => <strong style={{ fontWeight: 600 }}>{children}</strong>,
+                      em: ({ children }) => <em>{children}</em>,
+                      ul: ({ children }) => <ul style={{ margin: '4px 0', paddingLeft: '18px' }}>{children}</ul>,
+                      ol: ({ children }) => <ol style={{ margin: '4px 0', paddingLeft: '18px' }}>{children}</ol>,
+                      li: ({ children }) => <li style={{ marginBottom: '2px' }}>{children}</li>,
+                      code: ({ children }) => (
+                        <code style={{ background: 'rgba(255,255,255,0.1)', padding: '0 4px', borderRadius: '3px', fontSize: '12px' }}>
+                          {children}
+                        </code>
+                      ),
+                    }}
+                  >
+                    {entry.text}
+                  </ReactMarkdown>
+                </div>
+              ))}
+              <div ref={conversationEndRef} />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Status pill */}

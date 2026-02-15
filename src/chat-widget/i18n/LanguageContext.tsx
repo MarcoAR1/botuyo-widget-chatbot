@@ -11,7 +11,12 @@ interface LanguageContextType {
   setLocale: (locale: SupportedLocale) => void
 }
 
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
+const defaultContext: LanguageContextType = {
+  locale: detectLanguage(),
+  setLocale: () => {},
+}
+
+const LanguageContext = createContext<LanguageContextType>(defaultContext)
 
 const LOCALE_STORAGE_KEY = 'botuyo-chat-locale'
 
@@ -87,8 +92,6 @@ export function LanguageProvider({ children, defaultLocale }: LanguageProviderPr
  */
 export function useLanguage() {
   const context = useContext(LanguageContext)
-  if (context === undefined) {
-    throw new Error('useLanguage debe usarse dentro de un LanguageProvider')
-  }
-  return context
+  // Return safe defaults if no provider (e.g. duplicate context from code-split chunks)
+  return context ?? defaultContext
 }
