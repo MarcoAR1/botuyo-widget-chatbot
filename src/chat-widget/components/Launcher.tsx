@@ -297,7 +297,7 @@ export function Launcher({
             getGlowClass()
           )}
           style={{
-            backgroundColor: themeColor || 'hsl(160, 84%, 39%)',
+            backgroundColor: customLauncherStyle ? (themeColor || 'hsl(160, 84%, 39%)') : 'transparent',
             '--primary-glow': `${themeColor}66`,
           } as React.CSSProperties}
           aria-label={isOpen ? 'Cerrar chat' : 'Abrir chat'}

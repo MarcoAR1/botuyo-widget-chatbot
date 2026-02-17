@@ -20,18 +20,7 @@ import { LanguageProvider as _LanguageProvider } from './src/chat-widget/i18n/La
 // Consumers never need to import CSS manually
 import cssContent from './styles.css?inline';
 
-/** Inject widget CSS into <head> as a <style> tag. Idempotent. */
-function injectWidgetCSS(): void {
-  if (typeof document === 'undefined') return; // SSR guard
-  if (document.getElementById('botuyo-widget-styles')) return;
-  const style = document.createElement('style');
-  style.id = 'botuyo-widget-styles';
-  style.textContent = cssContent;
-  document.head.appendChild(style);
-}
-
-// Auto-inject on module load (ES import)
-injectWidgetCSS();
+// CSS is injected into Shadow DOM (not <head>) — see render() below
 
 // Lazy load ChatWidget - only loaded when user opens chat
 const ChatWidget = lazy(() => 
@@ -73,6 +62,8 @@ interface StandaloneConfig extends Partial<ChatWidgetProps> {
 class BotUyoChatWidget {
   private root: Root | null = null;
   private container: HTMLElement | null = null;
+  private shadowRoot: ShadowRoot | null = null;
+  private mountPoint: HTMLElement | null = null;
   private config: StandaloneConfig | null = null;
 
   /**
@@ -81,7 +72,6 @@ class BotUyoChatWidget {
    * @returns Widget instance for chaining
    */
   init(config: StandaloneConfig): this {
-    injectWidgetCSS(); // Ensure CSS is injected (safety net for CDN usage)
     this.config = config;
     this.render();
     return this;
@@ -96,17 +86,34 @@ class BotUyoChatWidget {
       return;
     }
 
-    // Create container if it doesn't exist
+    // Create container with Shadow DOM for CSS isolation
     if (!this.container) {
       this.container = document.createElement('div');
       this.container.id = 'botuyo-chat-widget-root';
-      this.container.style.position = 'fixed';
-      this.container.style.zIndex = '999999';
+      // Outer container is just an anchor — no position/sizing
+      // so it doesn't create a containing block that breaks
+      // position:fixed on child elements (launcher, chat window)
       document.body.appendChild(this.container);
+
+      // Shadow DOM: CSS inside here can't leak out, host CSS can't leak in
+      this.shadowRoot = this.container.attachShadow({ mode: 'open' });
+
+      // Inject CSS into shadow root (not <head>)
+      const style = document.createElement('style');
+      // CRITICAL: In Shadow DOM, :root targets <html> (outside shadow boundary),
+      // so Tailwind theme variables set on :root are undefined inside the shadow.
+      // Replace :root with :host (shadow host) so variables inherit into the tree.
+      style.textContent = cssContent.replace(/:root/g, ':host');
+      this.shadowRoot.appendChild(style);
+
+      // Create mount point for React inside shadow root
+      this.mountPoint = document.createElement('div');
+      this.mountPoint.id = 'botuyo-chat-widget-root';
+      this.shadowRoot.appendChild(this.mountPoint);
     }
 
-    // Apply CSS variables to container if provided
-    if (this.config.theme?.cssVariables) {
+    // Apply CSS variables to mount point if provided
+    if (this.config.theme?.cssVariables && this.mountPoint) {
       const vars = this.config.theme.cssVariables;
       const varMap: Record<string, string | undefined> = {
         background: vars.background,
@@ -120,7 +127,7 @@ class BotUyoChatWidget {
         border: vars.border,
         destructive: vars.destructive,
         radius: vars.radius,
-        // Design System - Spacing (no spacing7 - no existe en CSSVariables)
+        // Design System - Spacing
         spacing1: vars.spacing1,
         spacing2: vars.spacing2,
         spacing3: vars.spacing3,
@@ -132,14 +139,14 @@ class BotUyoChatWidget {
 
       Object.entries(varMap).forEach(([key, value]) => {
         if (value !== undefined) {
-          this.container!.style.setProperty(`--${key}`, value);
+          this.mountPoint!.style.setProperty(`--${key}`, value);
         }
       });
     }
 
-    // Create React root
-    if (!this.root) {
-      this.root = createRoot(this.container);
+    // Create React root on the mount point inside shadow root
+    if (!this.root && this.mountPoint) {
+      this.root = createRoot(this.mountPoint);
     }
 
     // Merge config with defaults (user config takes precedence)
@@ -210,7 +217,7 @@ class BotUyoChatWidget {
       React.createElement(ChatWidget, widgetProps)
     );
 
-    this.root.render(
+    this.root!.render(
       React.createElement(
         _LanguageProvider,
         { 
@@ -257,6 +264,8 @@ class BotUyoChatWidget {
     if (this.container && this.container.parentNode) {
       this.container.parentNode.removeChild(this.container);
       this.container = null;
+      this.shadowRoot = null;
+      this.mountPoint = null;
     }
 
     this.config = null;
@@ -318,7 +327,9 @@ export { BotUyoChatWidget };
 export type { StandaloneConfig };
 
 // Re-export React components for npm package usage
-export { ChatWidget } from './src/chat-widget/ChatWidget';
+// ShadowChatWidget wraps ChatWidget in Shadow DOM for CSS isolation
+export { ShadowChatWidget as ChatWidget } from './ShadowChatWidget';
+export { ChatWidget as ChatWidgetUnstyled } from './src/chat-widget/ChatWidget';
 export { ChatWidgetProvider, useChatWidget } from './src/chat-widget/ChatWidgetProvider';
 export type { ChatWidgetContextValue, ChatWidgetProviderProps } from './src/chat-widget/ChatWidgetProvider';
 export type { 

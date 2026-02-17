@@ -26,6 +26,11 @@ export function useDarkMode(containerRef: React.RefObject<HTMLDivElement>) {
       const hasDocElementDark = document.documentElement.classList.contains('dark')
       const hasBodyDark = document.body.classList.contains('dark')
 
+      // Detectar data-theme="dark" (usado por el dashboard de botuyo-landing)
+      const hasDataThemeDark = document.documentElement.getAttribute('data-theme') === 'dark'
+      const hasBodyDataThemeDark = document.body.getAttribute('data-theme') === 'dark'
+      const hasClosestDataThemeDark = !!containerRef.current.parentElement?.closest('[data-theme="dark"]')
+
       // Detectar prefers-color-scheme: dark
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
 
@@ -35,6 +40,9 @@ export function useDarkMode(containerRef: React.RefObject<HTMLDivElement>) {
         hasRootParentDark ||
         hasDocElementDark ||
         hasBodyDark ||
+        hasDataThemeDark ||
+        hasBodyDataThemeDark ||
+        hasClosestDataThemeDark ||
         prefersDark
 
       // Aplicar directamente al DOM (más confiable que React state)
@@ -82,14 +90,14 @@ export function useDarkMode(containerRef: React.RefObject<HTMLDivElement>) {
       }
     }
 
-    // Observar document.documentElement y body
+    // Observar document.documentElement y body (class + data-theme)
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['class'],
+      attributeFilter: ['class', 'data-theme'],
     })
     observer.observe(document.body, {
       attributes: true,
-      attributeFilter: ['class'],
+      attributeFilter: ['class', 'data-theme'],
     })
 
     // Observar todos los contenedores padre actuales
@@ -97,7 +105,7 @@ export function useDarkMode(containerRef: React.RefObject<HTMLDivElement>) {
     while (parent) {
       observer.observe(parent, {
         attributes: true,
-        attributeFilter: ['class'],
+        attributeFilter: ['class', 'data-theme'],
       })
       parent = parent.parentElement
     }

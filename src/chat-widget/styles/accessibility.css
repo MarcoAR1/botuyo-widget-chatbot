@@ -1,6 +1,9 @@
 /**
  * 🎯 ESTILOS DE ACCESIBILIDAD (A11y)
  * 
+ * All selectors scoped to #botuyo-chat-widget-root to prevent
+ * leaking into host pages when the widget is embedded.
+ *
  * Mejoras para:
  * - Alto contraste
  * - Reducción de movimiento
@@ -9,7 +12,7 @@
  */
 
 /* --- UTILIDAD PARA SCREEN READERS --- */
-.sr-only {
+#botuyo-chat-widget-root .sr-only {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -23,53 +26,53 @@
 
 /* --- ALTO CONTRASTE --- */
 @media (prefers-contrast: high) {
-  :root {
+  #botuyo-chat-widget-root {
     --border-width: 2px;
     --focus-ring-width: 3px;
     --focus-ring-color: hsl(var(--primary));
   }
 
   /* Bordes más gruesos */
-  [role='dialog'],
-  button,
-  input,
-  textarea,
-  [role='button'] {
+  #botuyo-chat-widget-root [role='dialog'],
+  #botuyo-chat-widget-root button,
+  #botuyo-chat-widget-root input,
+  #botuyo-chat-widget-root textarea,
+  #botuyo-chat-widget-root [role='button'] {
     border-width: var(--border-width) !important;
   }
 
   /* Focus más visible */
-  *:focus-visible {
+  #botuyo-chat-widget-root *:focus-visible {
     outline: var(--focus-ring-width) solid var(--focus-ring-color) !important;
     outline-offset: 2px !important;
   }
 
   /* Mayor contraste en texto */
-  body {
+  #botuyo-chat-widget-root {
     --foreground: 0 0% 0%;
     --background: 0 0% 100%;
     --muted-foreground: 0 0% 20%;
   }
 
   /* Dark mode con alto contraste */
-  .dark {
+  #botuyo-chat-widget-root.dark {
     --foreground: 0 0% 100%;
     --background: 0 0% 0%;
     --muted-foreground: 0 0% 80%;
   }
 
   /* Eliminar transparencias */
-  [style*='opacity'],
-  [class*='opacity-'] {
+  #botuyo-chat-widget-root [style*='opacity'],
+  #botuyo-chat-widget-root [class*='opacity-'] {
     opacity: 1 !important;
   }
 }
 
 /* --- REDUCCIÓN DE MOVIMIENTO --- */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  #botuyo-chat-widget-root *,
+  #botuyo-chat-widget-root *::before,
+  #botuyo-chat-widget-root *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -77,54 +80,48 @@
   }
 
   /* Eliminar animaciones de entrada */
-  [data-state='open'],
-  [data-state='closed'] {
+  #botuyo-chat-widget-root [data-state='open'],
+  #botuyo-chat-widget-root [data-state='closed'] {
     animation: none !important;
   }
 
   /* Eliminar pulsos */
-  .animate-pulse {
+  #botuyo-chat-widget-root .animate-pulse {
     animation: none !important;
   }
 
   /* Scroll suave deshabilitado */
-  .scroll-smooth {
+  #botuyo-chat-widget-root .scroll-smooth {
     scroll-behavior: auto !important;
   }
 }
 
 /* --- FOCUS VISIBLE MEJORADO --- */
-*:focus-visible {
+#botuyo-chat-widget-root *:focus-visible {
   outline: 2px solid hsl(var(--primary));
   outline-offset: 2px;
   border-radius: var(--radius, 0.5rem);
 }
 
 /* Focus en botones */
-button:focus-visible,
-[role='button']:focus-visible {
+#botuyo-chat-widget-root button:focus-visible,
+#botuyo-chat-widget-root [role='button']:focus-visible {
   outline: 2px solid hsl(var(--primary));
   outline-offset: 2px;
   box-shadow: 0 0 0 4px hsl(var(--primary) / 0.1);
 }
 
 /* Focus en inputs */
-input:focus-visible,
-textarea:focus-visible {
+#botuyo-chat-widget-root input:focus-visible,
+#botuyo-chat-widget-root textarea:focus-visible {
   outline: 2px solid hsl(var(--primary));
   outline-offset: 0;
   border-color: hsl(var(--primary));
   box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);
 }
 
-/* --- NAVEGACIÓN POR TECLADO --- */
-/* Indicador visual para navegación por tab */
-body:has(:focus-visible) [tabindex]:not([tabindex='-1']) {
-  position: relative;
-}
-
-/* Skip links (para saltar al contenido principal) */
-.skip-link {
+/* --- SKIP LINKS --- */
+#botuyo-chat-widget-root .skip-link {
   position: absolute;
   top: -40px;
   left: 0;
@@ -136,13 +133,13 @@ body:has(:focus-visible) [tabindex]:not([tabindex='-1']) {
   z-index: 100000;
 }
 
-.skip-link:focus {
+#botuyo-chat-widget-root .skip-link:focus {
   top: 0;
 }
 
 /* --- MODO OSCURO FORZADO (para daltonismo) --- */
 @media (prefers-color-scheme: dark) and (prefers-contrast: high) {
-  :root {
+  #botuyo-chat-widget-root {
     --primary: 48 96% 89%; /* Amarillo más visible */
     --destructive: 0 84% 60%; /* Rojo más visible */
     --success: 142 76% 36%; /* Verde más visible */
@@ -150,8 +147,7 @@ body:has(:focus-visible) [tabindex]:not([tabindex='-1']) {
 }
 
 /* --- INDICADORES DE ESTADO ACCESIBLES --- */
-/* Añadir texto para estados solo visuales */
-[data-state]::after {
+#botuyo-chat-widget-root [data-state]::after {
   content: attr(data-state);
   position: absolute;
   width: 1px;
@@ -166,7 +162,7 @@ body:has(:focus-visible) [tabindex]:not([tabindex='-1']) {
 
 /* --- MEJORA DE LEGIBILIDAD --- */
 @media (min-resolution: 192dpi) {
-  body {
+  #botuyo-chat-widget-root {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -174,8 +170,8 @@ body:has(:focus-visible) [tabindex]:not([tabindex='-1']) {
 }
 
 /* --- TOOLTIPS ACCESIBLES --- */
-[data-tooltip]:hover::after,
-[data-tooltip]:focus::after {
+#botuyo-chat-widget-root [data-tooltip]:hover::after,
+#botuyo-chat-widget-root [data-tooltip]:focus::after {
   content: attr(data-tooltip);
   position: absolute;
   bottom: 100%;
@@ -192,8 +188,8 @@ body:has(:focus-visible) [tabindex]:not([tabindex='-1']) {
 }
 
 /* --- LIVE REGIONS --- */
-[aria-live='polite'],
-[aria-live='assertive'] {
+#botuyo-chat-widget-root [aria-live='polite'],
+#botuyo-chat-widget-root [aria-live='assertive'] {
   position: relative;
 }
 
@@ -207,42 +203,42 @@ body:has(:focus-visible) [tabindex]:not([tabindex='-1']) {
   }
 }
 
-[aria-live]:not([aria-atomic='false']):has(:new) {
+#botuyo-chat-widget-root [aria-live]:not([aria-atomic='false']):has(:new) {
   animation: live-region-update 0.2s ease-in-out;
 }
 
 /* --- SCROLLBAR UTILITIES --- */
 /* Hide scrollbar completely */
-.scrollbar-none {
+#botuyo-chat-widget-root .scrollbar-none {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE/Edge */
 }
 
-.scrollbar-none::-webkit-scrollbar {
+#botuyo-chat-widget-root .scrollbar-none::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
   width: 0;
   height: 0;
 }
 
 /* Thin scrollbar */
-.scrollbar-thin {
+#botuyo-chat-widget-root .scrollbar-thin {
   scrollbar-width: thin;
 }
 
-.scrollbar-thin::-webkit-scrollbar {
+#botuyo-chat-widget-root .scrollbar-thin::-webkit-scrollbar {
   width: 4px;
   height: 4px;
 }
 
-.scrollbar-thin::-webkit-scrollbar-track {
+#botuyo-chat-widget-root .scrollbar-thin::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.scrollbar-thin::-webkit-scrollbar-thumb {
+#botuyo-chat-widget-root .scrollbar-thin::-webkit-scrollbar-thumb {
   background: hsl(var(--border));
   border-radius: 2px;
 }
 
-.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+#botuyo-chat-widget-root .scrollbar-thin::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.5);
 }
