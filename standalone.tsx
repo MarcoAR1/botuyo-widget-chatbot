@@ -5,6 +5,9 @@
  * This file creates a global `BotUyoChat` object that can be used
  * to initialize the chat widget on any website without React/Next.js
  * 
+ * Self-contained: includes built-in error boundary, auto dark mode
+ * detection, and Shadow DOM CSS isolation. Only requires an API key.
+ *
  * OPTIMIZATION: Code splitting enabled
  * - Core bundle loads only Launcher (~80KB)
  * - ChatWidget lazy loads on user interaction (~200KB)
@@ -12,7 +15,7 @@
  */
 
 import { createRoot, Root } from 'react-dom/client';
-import React, { lazy, Suspense } from 'react';
+import React, { Component, lazy, Suspense, type ReactNode } from 'react';
 import type { ChatWidgetProps } from './src/chat-widget/types';
 import { LanguageProvider as _LanguageProvider } from './src/chat-widget/i18n/LanguageContext';
 
@@ -21,6 +24,53 @@ import { LanguageProvider as _LanguageProvider } from './src/chat-widget/i18n/La
 import cssContent from './styles.css?inline';
 
 // CSS is injected into Shadow DOM (not <head>) — see render() below
+
+// Default API base URL — consumers only need to pass apiKey
+const DEFAULT_API_BASE_URL = 'https://api.botuyo.com';
+
+// ── Built-in Error Boundary ─────────────────────────────
+class WidgetErrorBoundary extends Component<
+  { children: ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('[BotUyoChat] Widget error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) return null; // Silently fail
+    return this.props.children;
+  }
+}
+
+// ── Dark Mode Auto-Detection ────────────────────────────
+const DARK_CSS_VARS: Record<string, string> = {
+  '--background': '240 10% 3.9%',
+  '--foreground': '0 0% 98%',
+  '--card': '240 10% 3.9%',
+  '--cardForeground': '0 0% 98%',
+  '--primary': '160 84% 39%',
+  '--primaryForeground': '0 0% 100%',
+  '--muted': '240 3.7% 15.9%',
+  '--mutedForeground': '240 5% 64.9%',
+  '--border': '240 3.7% 15.9%',
+};
+
+function detectDarkMode(): boolean {
+  const attr = document.documentElement.getAttribute('data-theme');
+  if (attr === 'dark') return true;
+  if (attr === 'light') return false;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
 
 // Lazy load ChatWidget - only loaded when user opens chat
 const ChatWidget = lazy(() => 
@@ -51,9 +101,9 @@ interface CSSVariables {
 }
 
 interface StandaloneConfig extends Partial<ChatWidgetProps> {
-  // Override required fields to make them optional for standalone
+  // Only apiKey is required — apiBaseUrl defaults to production
   apiKey: string;
-  apiBaseUrl: string;
+  apiBaseUrl?: string;
   theme?: ChatWidgetProps['theme'] & {
     cssVariables?: CSSVariables;
   };
@@ -64,6 +114,8 @@ class BotUyoChatWidget {
   private container: HTMLElement | null = null;
   private shadowRoot: ShadowRoot | null = null;
   private mountPoint: HTMLElement | null = null;
+  private darkModeObserver: MutationObserver | null = null;
+  private darkModeMediaQuery: MediaQueryList | null = null;
   private config: StandaloneConfig | null = null;
 
   /**
@@ -72,8 +124,12 @@ class BotUyoChatWidget {
    * @returns Widget instance for chaining
    */
   init(config: StandaloneConfig): this {
-    this.config = config;
+    this.config = {
+      ...config,
+      apiBaseUrl: config.apiBaseUrl || DEFAULT_API_BASE_URL,
+    };
     this.render();
+    this.setupDarkModeDetection();
     return this;
   }
 
@@ -144,6 +200,20 @@ class BotUyoChatWidget {
       });
     }
 
+    // Apply auto dark mode if no explicit cssVariables provided
+    if (this.mountPoint && !this.config.theme?.cssVariables) {
+      const dark = detectDarkMode();
+      if (dark) {
+        Object.entries(DARK_CSS_VARS).forEach(([key, value]) => {
+          this.mountPoint!.style.setProperty(key, value);
+        });
+      } else {
+        Object.keys(DARK_CSS_VARS).forEach(key => {
+          this.mountPoint!.style.removeProperty(key);
+        });
+      }
+    }
+
     // Create React root on the mount point inside shadow root
     if (!this.root && this.mountPoint) {
       this.root = createRoot(this.mountPoint);
@@ -152,7 +222,7 @@ class BotUyoChatWidget {
     // Merge config with defaults (user config takes precedence)
     const widgetProps: ChatWidgetProps = {
       apiKey: this.config.apiKey,
-      apiBaseUrl: this.config.apiBaseUrl,
+      apiBaseUrl: this.config.apiBaseUrl || DEFAULT_API_BASE_URL,
       agentId: this.config.agentId,
       theme: {
         // Defaults
@@ -177,7 +247,7 @@ class BotUyoChatWidget {
       onStateChange: this.config.onStateChange,
     };
 
-    // Render React component with Suspense for code splitting
+    // Render React component with Error Boundary + Suspense for code splitting
     const suspenseElement = React.createElement(
       Suspense,
       {
@@ -217,13 +287,18 @@ class BotUyoChatWidget {
       React.createElement(ChatWidget, widgetProps)
     );
 
+    // Wrap in ErrorBoundary + LanguageProvider
     this.root!.render(
       React.createElement(
-        _LanguageProvider,
-        { 
-          defaultLocale: this.config.theme?.defaultLocale,
-          children: suspenseElement
-        }
+        WidgetErrorBoundary,
+        null,
+        React.createElement(
+          _LanguageProvider,
+          { 
+            defaultLocale: this.config.theme?.defaultLocale,
+            children: suspenseElement
+          }
+        )
       )
     );
 
@@ -256,6 +331,16 @@ class BotUyoChatWidget {
    * Destroy the widget and clean up
    */
   destroy(): void {
+    // Clean up dark mode observers
+    if (this.darkModeObserver) {
+      this.darkModeObserver.disconnect();
+      this.darkModeObserver = null;
+    }
+    if (this.darkModeMediaQuery) {
+      this.darkModeMediaQuery.removeEventListener('change', this.handleDarkModeChange);
+      this.darkModeMediaQuery = null;
+    }
+
     if (this.root) {
       this.root.unmount();
       this.root = null;
@@ -271,6 +356,30 @@ class BotUyoChatWidget {
     this.config = null;
     console.log('[BotUyoChat] Widget destroyed');
   }
+
+  /**
+   * Set up dark mode auto-detection.
+   * Observes data-theme on <html> and prefers-color-scheme media query.
+   */
+  private setupDarkModeDetection(): void {
+    // Skip if consumer explicitly provides cssVariables
+    if (this.config?.theme?.cssVariables) return;
+
+    this.handleDarkModeChange = () => this.render();
+
+    // Observe data-theme attribute changes
+    this.darkModeObserver = new MutationObserver(this.handleDarkModeChange);
+    this.darkModeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    });
+
+    // Listen to prefers-color-scheme
+    this.darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    this.darkModeMediaQuery.addEventListener('change', this.handleDarkModeChange);
+  }
+
+  private handleDarkModeChange: () => void = () => {};
 
   /**
    * Open the chat window programmatically

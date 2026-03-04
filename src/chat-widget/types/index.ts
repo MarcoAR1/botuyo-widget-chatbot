@@ -110,8 +110,8 @@ export interface ChatWidgetProps {
   /** Public API Key del tenant/cliente */
   apiKey: string
 
-  /** URL base del backend (Gateway) */
-  apiBaseUrl: string
+  /** URL base del backend (Gateway). Defaults to 'https://api.botuyo.com' */
+  apiBaseUrl?: string
 
   /** Optional agent flow ID — connects to a specific agent for this tenant */
   agentId?: string

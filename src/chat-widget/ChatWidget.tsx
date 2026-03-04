@@ -19,7 +19,7 @@ import './styles/premium-animations.css'
 export function ChatWidget(props: ChatWidgetProps) {
   const {
     apiKey,
-    apiBaseUrl,
+    apiBaseUrl = 'https://api.botuyo.com',
     agentId,
     pageContext,
     includeSEOMetadata = false,
