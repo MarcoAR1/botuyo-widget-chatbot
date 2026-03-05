@@ -8,13 +8,13 @@ import type { ChatMessage } from '../../chat-widget/types'
 
 // Mock del storage
 vi.mock('../../chat-widget/utils/storage', () => ({
-  chatStorage: {
+  getChatStorage: vi.fn(() => ({
     getMessages: vi.fn(() => Promise.resolve([])),
     getMetadata: vi.fn(() => Promise.resolve(null)),
     saveMessages: vi.fn(() => Promise.resolve()),
     setMetadata: vi.fn(() => Promise.resolve()),
     migrateFromLocalStorage: vi.fn(() => Promise.resolve()),
-  },
+  })),
 }))
 
 // Mock del logger

@@ -3,12 +3,14 @@
  * Hook de estado global con persistencia de historial y fix de renderizado inmediato.
  */
 
-import { useReducer, useCallback, useEffect, useState } from 'react'
+import React, { useReducer, useCallback, useEffect, useState } from 'react'
 import type { ChatState, ChatAction, ChatMessage } from '../types'
 import { logger } from '../utils/logger'
-import { chatStorage } from '../utils/storage'
+import { getChatStorage } from '../utils/storage'
 
-const STORAGE_KEY = 'botuyo_chat_v1'
+function getStorageKey(agentId: string = 'default') {
+  return `botuyo_chat_v1_${agentId}`
+}
 
 const initialState: ChatState = {
   isOpen: false,
@@ -84,9 +86,11 @@ function chatReducer(
   }
 }
 
-export function useChatState() {
+export function useChatState(agentId: string = 'default') {
   const [state, dispatch] = useReducer(chatReducer, initialState)
   const [isHydrated, setIsHydrated] = useState(false)
+  const STORAGE_KEY = React.useMemo(() => getStorageKey(agentId), [agentId])
+  const chatStorage = React.useMemo(() => getChatStorage(agentId), [agentId])
 
   // 1. HIDRATACIÓN (Carga inicial)
   useEffect(() => {
@@ -95,7 +99,7 @@ export function useChatState() {
     const hydrateFromStorage = async () => {
       try {
         // Migrar desde localStorage si existe
-        await chatStorage.migrateFromLocalStorage()
+        await chatStorage.migrateFromLocalStorage(agentId)
 
         // Cargar mensajes desde IndexedDB
         const messages = await chatStorage.getMessages(100)

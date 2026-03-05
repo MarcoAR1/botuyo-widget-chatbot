@@ -8,7 +8,8 @@
     "skipLibCheck": true,
     "noEmit": false,
     "jsx": "react-jsx",
-    "moduleResolution": "bundler"
+    "moduleResolution": "bundler",
+    "types": ["@react-three/fiber"]
   },
   "include": [
     "standalone.tsx",
@@ -17,9 +18,10 @@
     "src/vite-env.d.ts"
   ],
   "exclude": [
+    "src/test",
+    "src/chat-widget/**/__tests__",
     "**/*.test.ts",
     "**/*.test.tsx",
-    "src/test",
     "node_modules",
     "dist"
   ]

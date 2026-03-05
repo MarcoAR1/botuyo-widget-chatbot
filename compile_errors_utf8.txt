@@ -1,0 +1,11 @@
+﻿src/chat-widget/components/Avatar3D.tsx(388,11): error TS2339: Property 'ambientLight' does not exist on type 'JSX.IntrinsicElements'.
+src/chat-widget/components/Avatar3D.tsx(389,11): error TS2339: Property 'directionalLight' does not exist on type 'JSX.IntrinsicElements'.
+src/chat-widget/components/Avatar3D.tsx(390,11): error TS2339: Property 'directionalLight' does not exist on type 'JSX.IntrinsicElements'.
+src/chat-widget/components/Avatar3D.tsx(393,11): error TS2339: Property 'pointLight' does not exist on type 'JSX.IntrinsicElements'.
+src/chat-widget/voice/__tests__/components.test.tsx(7,18): error TS2305: Module '"@testing-library/react"' has no exported member 'screen'.
+src/chat-widget/voice/__tests__/components.test.tsx(7,26): error TS2305: Module '"@testing-library/react"' has no exported member 'fireEvent'.
+src/chat-widget/voice/__tests__/components.test.tsx(164,18): error TS7006: Parameter 'bar' implicitly has an 'any' type.
+src/chat-widget/voice/__tests__/components.test.tsx(176,18): error TS7006: Parameter 'bar' implicitly has an 'any' type.
+src/chat-widget/voice/__tests__/liveCallComponents.test.tsx(8,18): error TS2305: Module '"@testing-library/react"' has no exported member 'screen'.
+src/chat-widget/voice/__tests__/liveCallComponents.test.tsx(8,26): error TS2305: Module '"@testing-library/react"' has no exported member 'fireEvent'.
+src/chat-widget/voice/__tests__/useVoiceChat.test.ts(7,27): error TS2305: Module '"@testing-library/react"' has no exported member 'waitFor'.

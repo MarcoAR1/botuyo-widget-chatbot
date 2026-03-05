@@ -2,7 +2,7 @@
  * @vitest-environment happy-dom
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { chatStorage } from '../../chat-widget/utils/storage'
+import { getChatStorage } from '../../chat-widget/utils/storage'
 import type { ChatMessage } from '../../chat-widget/types'
 
 // Mock IDB
@@ -35,6 +35,8 @@ vi.mock('idb', () => ({
 }))
 
 describe('ChatStorage', () => {
+  const chatStorage = getChatStorage('test-agent')
+
   beforeEach(() => {
     vi.clearAllMocks()
     localStorage.clear()

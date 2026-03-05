@@ -10,6 +10,7 @@
  * has avatar3dUrl configured.
  */
 
+/// <reference types="@react-three/fiber" />
 'use client'
 
 import { useRef, useEffect, useMemo } from 'react'
@@ -385,11 +386,15 @@ export default function Avatar3D({
           <CameraSetup />
 
           {/* Lighting — soft studio setup */}
+          {/* @ts-ignore R3F IntrinsicElements conflict */}
           <ambientLight intensity={0.6} />
+          {/* @ts-ignore */}
           <directionalLight position={[1, 2, 3]} intensity={0.8} color="#ffffff" />
+          {/* @ts-ignore */}
           <directionalLight position={[-1, 1, -1]} intensity={0.3} color="#b4c6e7" />
 
           {/* Rim light for depth — matches primary color */}
+          {/* @ts-ignore */}
           <pointLight
             position={[0, 0.5, -0.5]}
             intensity={glowIntensity * 2}

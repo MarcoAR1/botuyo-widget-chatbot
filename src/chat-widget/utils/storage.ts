@@ -21,8 +21,12 @@ interface ChatDB extends DBSchema {
 
 class ChatStorage {
   private db: IDBPDatabase<ChatDB> | null = null
-  private readonly DB_NAME = 'botuyo-chat'
+  private DB_NAME: string
   private readonly DB_VERSION = 1
+
+  constructor(agentId: string = 'default') {
+    this.DB_NAME = `botuyo-chat-${agentId}`
+  }
 
   async init() {
     try {
@@ -136,9 +140,9 @@ class ChatStorage {
   }
 
   // Método para migrar desde localStorage (compatibilidad)
-  async migrateFromLocalStorage() {
+  async migrateFromLocalStorage(agentId: string = 'default') {
     try {
-      const STORAGE_KEY = 'botuyo_chat_v1'
+      const STORAGE_KEY = `botuyo_chat_v1_${agentId}`
       const saved = localStorage.getItem(STORAGE_KEY)
 
       if (!saved) return
@@ -169,5 +173,12 @@ class ChatStorage {
   }
 }
 
-// Singleton instance
-export const chatStorage = new ChatStorage()
+// Singleton Factory per agent
+const storageInstances = new Map<string, ChatStorage>()
+export const getChatStorage = (agentId: string = 'default'): ChatStorage => {
+  if (!storageInstances.has(agentId)) {
+    storageInstances.set(agentId, new ChatStorage(agentId))
+  }
+  return storageInstances.get(agentId)!
+}
+
