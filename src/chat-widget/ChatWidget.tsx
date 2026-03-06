@@ -16,7 +16,7 @@ import { useDarkMode } from './hooks/useDarkMode'
 // Premium animations
 import './styles/premium-animations.css'
 
-export function ChatWidget(props: ChatWidgetProps) {
+export function ChatWidgetInner(props: ChatWidgetProps) {
   const {
     apiKey,
     apiBaseUrl = 'https://api.botuyo.com',
@@ -132,12 +132,9 @@ export function ChatWidget(props: ChatWidgetProps) {
     return vars
   }, [mergedTheme.cssVariables])
 
+  if (mergedTheme.isHidden) return null
+
   return (
-    <LanguageProvider defaultLocale={theme?.defaultLocale}>
-    <PremiumConfigProvider
-      animations={theme?.animations}
-      effects={theme?.effects}
-    >
       <div
         ref={containerRef}
         id="botuyo-chat-widget"
@@ -223,7 +220,18 @@ export function ChatWidget(props: ChatWidgetProps) {
           />
         </div>
       </div>
-    </PremiumConfigProvider>
+  )
+}
+
+export function ChatWidget(props: ChatWidgetProps) {
+  return (
+    <LanguageProvider defaultLocale={props.theme?.defaultLocale}>
+      <PremiumConfigProvider
+        animations={props.theme?.animations}
+        effects={props.theme?.effects}
+      >
+        <ChatWidgetInner {...props} />
+      </PremiumConfigProvider>
     </LanguageProvider>
   )
 }
