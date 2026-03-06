@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ChatWidgetProps } from './types'
 import { Launcher } from './components/Launcher'
 import { ChatWindow } from './components/ChatWindow'
@@ -44,6 +44,16 @@ export function ChatWidget(props: ChatWidgetProps) {
 
   // Merge de temas: proyecto (theme) > socket (socketTheme) > default
   const { mergedTheme, mergedStyles, getContainerStyle } = useWidgetTheme(theme, socketTheme)
+
+  // Emite un solo console log si el agente esta en estado borrador (isHidden provisto por config web socket)
+  useEffect(() => {
+    if (mergedTheme.isHidden) {
+      console.warn(
+        '[BotUyo] ⚠️ El agente (o Flow) de IA asociado a esta API Key se encuentra pausado o en estado "boceto" (draft). ' +
+        'El widget no se mostrará hasta que lo publiques dentro de la plataforma BotUyo.'
+      )
+    }
+  }, [mergedTheme.isHidden])
 
   // Si el backend dictamina que el widget debe ocultarse (ej: agente pausado y no es un preview)
   if (mergedTheme.isHidden) {
