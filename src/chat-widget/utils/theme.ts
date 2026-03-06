@@ -130,6 +130,7 @@ export const DEFAULT_THEME: Required<
   welcomeMessage: '¡Hola! ¿En qué puedo ayudarte?',
   inputPlaceholder: 'Escribe un mensaje...',
   cssVariables: DEFAULT_CSS_VARIABLES,
+  isHidden: false,
 }
 
 /**
@@ -293,6 +294,7 @@ export function mergeThemeWithDefaults(
       socketTheme?.inputPlaceholder ||
       DEFAULT_THEME.inputPlaceholder,
     cssVariables: mergedCssVariables,
+    isHidden: userTheme?.isHidden ?? socketTheme?.isHidden ?? false,
   }
 }
 

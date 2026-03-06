@@ -55,11 +55,6 @@ export function ChatWidget(props: ChatWidgetProps) {
     }
   }, [mergedTheme.isHidden])
 
-  // Si el backend dictamina que el widget debe ocultarse (ej: agente pausado y no es un preview)
-  if (mergedTheme.isHidden) {
-    return null
-  }
-
   const {
     state,
     actions,
