@@ -231,6 +231,9 @@ export interface ChatTheme {
   /** Idioma por defecto del widget */
   defaultLocale?: 'es' | 'en' | 'pt' | 'fr'
 
+  /** Oculta el widget completamente (usado para agentes en modo borrador) */
+  isHidden?: boolean
+
   /** Variables CSS personalizadas para design system */
   cssVariables?: {
     /** Color de fondo principal (formato HSL sin hsl(), ej: "0 0% 100%") */

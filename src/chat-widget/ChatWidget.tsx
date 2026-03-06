@@ -45,6 +45,11 @@ export function ChatWidget(props: ChatWidgetProps) {
   // Merge de temas: proyecto (theme) > socket (socketTheme) > default
   const { mergedTheme, mergedStyles, getContainerStyle } = useWidgetTheme(theme, socketTheme)
 
+  // Si el backend dictamina que el widget debe ocultarse (ej: agente pausado y no es un preview)
+  if (mergedTheme.isHidden) {
+    return null
+  }
+
   const {
     state,
     actions,
