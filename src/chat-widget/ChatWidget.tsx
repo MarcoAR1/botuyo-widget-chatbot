@@ -96,6 +96,17 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
     [actions]
   )
 
+  // Voice: merge socketTheme.voiceEnabled into mediaConfig so backend controls the voice toggle
+  const effectiveMediaConfig = useMemo(() => {
+    const base = { ...(mediaConfig || {}) }
+    // Backend sends voiceEnabled via connection_ack → socketTheme (dynamic obj, not typed)
+    const socketConfig = socketTheme as any
+    if (socketConfig?.voiceEnabled != null) {
+      base.enableVoice = socketConfig.voiceEnabled
+    }
+    return base
+  }, [mediaConfig, socketTheme])
+
   // Helpers
   const stopPropagation = useCallback((e: React.SyntheticEvent) => {
     e.stopPropagation()
@@ -187,7 +198,7 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
               position={theme?.position}
               bubbleStyles={mergedStyles}
               avatars={theme?.avatars}
-              mediaConfig={mediaConfig}
+              mediaConfig={effectiveMediaConfig}
               theme={mergedTheme}
               avatar3dUrl={theme?.avatar3dUrl}
               getSocket={getSocket}
