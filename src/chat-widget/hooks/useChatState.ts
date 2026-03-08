@@ -49,6 +49,24 @@ function chatReducer(
         return state
       }
 
+      // Content-based dedup fallback: si el ID es random (msg-*), verificar
+      // que no haya un mensaje reciente idéntico (mismo content + sender en últimos 30s)
+      if (action.payload.id.startsWith('msg-') && action.payload.type === 'text') {
+        const now = new Date().getTime()
+        const recentDuplicateExists = state.messages
+          .slice(-10)
+          .some(m =>
+            m.type === 'text' &&
+            m.sender === action.payload.sender &&
+            'content' in m && 'content' in action.payload &&
+            m.content === (action.payload as any).content &&
+            Math.abs(now - new Date(m.timestamp).getTime()) < 30000
+          )
+        if (recentDuplicateExists) {
+          return state
+        }
+      }
+
       const newMessages = [...state.messages, action.payload]
       const isBot = action.payload.sender === 'bot'
 

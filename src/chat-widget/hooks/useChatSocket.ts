@@ -39,6 +39,7 @@ export interface UseChatSocketOptions {
   pageContext?: PageContext
   userContext?: ChatWidgetProps['userContext']
   onMessage: (message: ChatMessage) => void
+  onHistoryLoaded?: (messages: ChatMessage[]) => void
   onConnected: (sessionId: string, config?: any) => void
   onDisconnected: () => void
   onTyping: (isTyping: boolean) => void
@@ -186,13 +187,28 @@ export function useChatSocket(options: UseChatSocketOptions) {
 
     socket.on('chat_history', data => {
       if (data.messages && Array.isArray(data.messages)) {
-        data.messages.forEach(msg => {
-          try {
-            handlersRef.current.onMessage(sanitizeIncomingMessage(msg))
-          } catch (e) {
-            logger.debug('Error processing history message:', e)
-          }
-        })
+        // Use batch handler if available, otherwise fallback to individual messages
+        if (handlersRef.current.onHistoryLoaded) {
+          const sanitizedMessages = data.messages
+            .map(msg => {
+              try {
+                return sanitizeIncomingMessage(msg)
+              } catch (e) {
+                logger.debug('Error processing history message:', e)
+                return null
+              }
+            })
+            .filter((m): m is ChatMessage => m !== null)
+          handlersRef.current.onHistoryLoaded(sanitizedMessages)
+        } else {
+          data.messages.forEach(msg => {
+            try {
+              handlersRef.current.onMessage(sanitizeIncomingMessage(msg))
+            } catch (e) {
+              logger.debug('Error processing history message:', e)
+            }
+          })
+        }
       }
       if (handlersRef.current.onEvent) handlersRef.current.onEvent('history_loaded', data)
     })

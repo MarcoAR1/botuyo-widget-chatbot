@@ -148,6 +148,23 @@ export function useChatWidget(options: UseChatWidgetOptions) {
     onNavigate,
     onEvent,
     onThemeUpdate, // Pasar callback de tema al socket
+    onHistoryLoaded: useCallback(
+      (historyMessages: ChatMessage[]) => {
+        // Merge server history with existing local messages, deduplicating by ID
+        const existingIds = new Set(state.messages.map(m => m.id))
+        const newMessages = historyMessages.filter(m => !existingIds.has(m.id))
+        if (newMessages.length > 0) {
+          // If we have no local messages, replace entirely; otherwise append only new ones
+          if (state.messages.length === 0) {
+            actions.setMessages(historyMessages)
+          } else {
+            // Append only genuinely new messages from history
+            newMessages.forEach(m => actions.addMessage(m))
+          }
+        }
+      },
+      [state.messages, actions]
+    ),
   })
 
   const handleToggle = useCallback(() => {

@@ -78,15 +78,18 @@ describe('useChatSocket', () => {
         })
       )
 
-      expect(io).toHaveBeenCalledWith('http://localhost:3000', {
+      expect(io).toHaveBeenCalledWith('http://localhost:3000/webchat', {
         auth: {
           apiKey: 'test-api-key',
           deviceId: 'test-device-id',
+          agentId: undefined,
           token: undefined,
           metadata: undefined,
         },
-        transports: ['websocket'],
+        transports: ['websocket', 'polling'],
         reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
         extraHeaders: {
           'bypass-tunnel-reminder': 'true',
           'X-Tunnel-Skip-Anti-Phishing-Page': 'true',
@@ -108,7 +111,7 @@ describe('useChatSocket', () => {
       )
 
       expect(io).toHaveBeenCalledWith(
-        'http://localhost:3000',
+        'http://localhost:3000/webchat',
         expect.objectContaining({
           auth: expect.objectContaining({
             token: 'user-token',
