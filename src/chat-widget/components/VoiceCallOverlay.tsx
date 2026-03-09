@@ -108,8 +108,8 @@ const voiceSanitizeSchema = {
 
 const INPUT_SAMPLE_RATE = 16000
 const OUTPUT_SAMPLE_RATE = 24000
-const MAX_CALL_DURATION_SECONDS = 300 // 5 minutes
-const WARNING_THRESHOLD_SECONDS = 240 // Warn at 4 minutes
+const INACTIVITY_TIMEOUT_SECONDS = 120 // 2 minutes of silence → auto-end
+const INACTIVITY_WARNING_SECONDS = 90  // Warn at 1:30 of silence
 
 // Inline AudioWorklet processor for PCM capture at 16kHz
 const AUDIO_PROCESSOR_CODE = `
@@ -489,6 +489,8 @@ export function VoiceCallOverlay({
   const processorUrlRef = useRef<string | null>(null)
   const conversationEndRef = useRef<HTMLDivElement>(null)
   const endCallRef = useRef<() => void>(() => {})
+  const inactivityRef = useRef<NodeJS.Timeout | null>(null)
+  const inactivitySecondsRef = useRef(0)
 
   // Audio playback — gapless scheduling
   const playbackCtxRef = useRef<AudioContext | null>(null)
@@ -580,6 +582,8 @@ export function VoiceCallOverlay({
       audioQueueRef.current.push(pcmFloat32)
       // Schedule immediately — gapless scheduling handles timing
       scheduleChunks()
+      // Reset inactivity — agent is speaking
+      resetInactivityTimer()
     }
 
     const onVoiceInterrupted = () => {
@@ -614,6 +618,7 @@ export function VoiceCallOverlay({
 
     const onVoiceUserTranscript = (data: { text: string }) => {
       if (!data?.text) return
+      resetInactivityTimer() // User is speaking
       setConversation(prev => {
         if (prev.length > 0 && prev[prev.length - 1].role === 'user') {
           const updated = [...prev]
@@ -629,6 +634,7 @@ export function VoiceCallOverlay({
 
     const onVoiceModelTranscript = (data: { text: string }) => {
       if (!data?.text) return
+      resetInactivityTimer() // Agent is responding
       setConversation(prev => {
         if (prev.length > 0 && prev[prev.length - 1].role === 'bot') {
           const updated = [...prev]
@@ -644,6 +650,7 @@ export function VoiceCallOverlay({
 
     const onVoiceModelThinking = () => {
       setCallState('thinking')
+      resetInactivityTimer() // Agent is processing
     }
 
     voiceListenersRef.current = {
@@ -795,21 +802,13 @@ export function VoiceCallOverlay({
     // Tell backend to create Gemini Live session
     socket.emit('voice_start', { language: 'es-AR', voice: 'Kore' })
 
-    // Timer with auto-timeout
+    // Duration counter (display only)
     timerRef.current = setInterval(() => {
-      setDuration(prev => {
-        const next = prev + 1
-        if (next >= WARNING_THRESHOLD_SECONDS && next < MAX_CALL_DURATION_SECONDS) {
-          setTimeoutWarning(true)
-        }
-        if (next >= MAX_CALL_DURATION_SECONDS) {
-          // Auto-end call at max duration
-          endCallRef.current()
-          return prev
-        }
-        return next
-      })
+      setDuration(prev => prev + 1)
     }, 1000)
+
+    // Start inactivity timeout
+    startInactivityTimer()
   }, [getSocket, setupSocketListeners, startMicCapture])
 
   const endCall = useCallback(() => {
@@ -829,6 +828,11 @@ export function VoiceCallOverlay({
     if (timerRef.current) {
       clearInterval(timerRef.current)
       timerRef.current = null
+    }
+    // Clear inactivity timeout
+    if (inactivityRef.current) {
+      clearInterval(inactivityRef.current)
+      inactivityRef.current = null
     }
 
     // Notify backend
@@ -857,10 +861,33 @@ export function VoiceCallOverlay({
     onClose()
   }, [getSocket, stopMicCapture, removeSocketListeners, onClose, onAddMessage, conversation])
 
-  // Keep endCallRef synced so the timer doesn't capture stale closure
+  // Keep endCallRef synced so the inactivity timer doesn't capture stale closure
   useEffect(() => {
     endCallRef.current = endCall
   }, [endCall])
+
+  // ═══════════════════════════════════════
+  // INACTIVITY TIMEOUT — reset on any voice activity
+  // ═══════════════════════════════════════
+  const resetInactivityTimer = useCallback(() => {
+    inactivitySecondsRef.current = 0
+    setTimeoutWarning(false)
+  }, [])
+
+  const startInactivityTimer = useCallback(() => {
+    inactivitySecondsRef.current = 0
+    if (inactivityRef.current) clearInterval(inactivityRef.current)
+    inactivityRef.current = setInterval(() => {
+      inactivitySecondsRef.current += 1
+      const idle = inactivitySecondsRef.current
+      if (idle >= INACTIVITY_WARNING_SECONDS && idle < INACTIVITY_TIMEOUT_SECONDS) {
+        setTimeoutWarning(true)
+      }
+      if (idle >= INACTIVITY_TIMEOUT_SECONDS) {
+        endCallRef.current()
+      }
+    }, 1000)
+  }, [])
 
   const toggleMute = useCallback(() => {
     setIsMuted(prev => !prev)
@@ -1001,20 +1028,24 @@ export function VoiceCallOverlay({
           }}>
             {formatDuration(duration)}
           </span>
-          {timeoutWarning && (
-            <span style={{
-              fontSize: '10px',
-              padding: '2px 8px',
-              borderRadius: '12px',
-              backgroundColor: duration >= MAX_CALL_DURATION_SECONDS - 30 ? 'rgba(239,68,68,0.2)' : 'rgba(245,158,11,0.15)',
-              color: duration >= MAX_CALL_DURATION_SECONDS - 30 ? '#ef4444' : '#f59e0b',
-              fontWeight: 700,
-              fontVariantNumeric: 'tabular-nums',
-              animation: duration >= MAX_CALL_DURATION_SECONDS - 30 ? 'pulse 1s ease-in-out infinite' : 'none',
-            }}>
-              {formatDuration(MAX_CALL_DURATION_SECONDS - duration)} restante
-            </span>
-          )}
+          {timeoutWarning && (() => {
+            const remaining = INACTIVITY_TIMEOUT_SECONDS - inactivitySecondsRef.current
+            const isUrgent = remaining <= 15
+            return (
+              <span style={{
+                fontSize: '10px',
+                padding: '2px 8px',
+                borderRadius: '12px',
+                backgroundColor: isUrgent ? 'rgba(239,68,68,0.2)' : 'rgba(245,158,11,0.15)',
+                color: isUrgent ? '#ef4444' : '#f59e0b',
+                fontWeight: 700,
+                fontVariantNumeric: 'tabular-nums',
+                animation: isUrgent ? 'pulse 1s ease-in-out infinite' : 'none',
+              }}>
+                ⏸ Inactivo — {remaining > 0 ? remaining : 0}s
+              </span>
+            )
+          })()}
         </div>
       </div>
 
