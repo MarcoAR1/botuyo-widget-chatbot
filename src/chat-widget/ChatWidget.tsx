@@ -219,10 +219,10 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
             onClick={handleToggle}
             unreadCount={unreadCount}
             position={theme?.position || 'bottom-right'}
-            primaryColor={theme?.primaryColor}
-            logoUrl={theme?.logoUrl}
-            starterPrompt={theme?.starterPrompt}
-            avatars={theme?.avatars}
+            primaryColor={mergedTheme.primaryColor}
+            logoUrl={mergedTheme.logoUrl}
+            starterPrompt={(mergedTheme as any).starterPrompt || theme?.starterPrompt}
+            avatars={theme?.avatars || (socketTheme as any)?.avatarAnimations || {}}
             emotion={currentBotEmotion}
             styles={mergedStyles}
             promptPersistence={theme?.promptPersistence}

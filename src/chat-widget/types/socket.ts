@@ -76,6 +76,10 @@ export interface ConnectionAckPayload {
     logoUrl?: string
     primaryColor?: string
     welcomeMessage?: string
+    avatar3dUrl?: string
+    avatarAnimations?: Record<string, string>
+    voiceEnabled?: boolean
+    isHidden?: boolean
   }
 
   /** Si el usuario ya tenía sesión previa */
