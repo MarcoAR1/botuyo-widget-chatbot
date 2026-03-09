@@ -108,6 +108,8 @@ const voiceSanitizeSchema = {
 
 const INPUT_SAMPLE_RATE = 16000
 const OUTPUT_SAMPLE_RATE = 24000
+const MAX_CALL_DURATION_SECONDS = 300 // 5 minutes
+const WARNING_THRESHOLD_SECONDS = 240 // Warn at 4 minutes
 
 // Inline AudioWorklet processor for PCM capture at 16kHz
 const AUDIO_PROCESSOR_CODE = `
@@ -475,6 +477,7 @@ export function VoiceCallOverlay({
   const [conversation, setConversation] = useState<VoiceEntry[]>([])
   const [showTextInput, setShowTextInput] = useState(false)
   const [textInputValue, setTextInputValue] = useState('')
+  const [timeoutWarning, setTimeoutWarning] = useState(false)
 
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const analyserRef = useRef<AnalyserNode | null>(null)
@@ -485,6 +488,7 @@ export function VoiceCallOverlay({
   const socketListenersRef = useRef(false)
   const processorUrlRef = useRef<string | null>(null)
   const conversationEndRef = useRef<HTMLDivElement>(null)
+  const endCallRef = useRef<() => void>(() => {})
 
   // Audio playback — gapless scheduling
   const playbackCtxRef = useRef<AudioContext | null>(null)
@@ -596,6 +600,11 @@ export function VoiceCallOverlay({
       console.error('[VoiceCall] Voice error:', data)
     }
 
+    const onVoiceTimeout = () => {
+      // Server forced the session to end
+      endCallRef.current()
+    }
+
     const onVoiceEmotion = (data: { emotion: string }) => {
       if (data?.emotion) {
         setCurrentEmotion(data.emotion)
@@ -658,6 +667,7 @@ export function VoiceCallOverlay({
     socket.on('voice_user_transcript', onVoiceUserTranscript)
     socket.on('voice_model_transcript', onVoiceModelTranscript)
     socket.on('voice_model_thinking', onVoiceModelThinking)
+    socket.on('voice_timeout', onVoiceTimeout)
 
     socketListenersRef.current = true
   }, [getSocket, scheduleChunks])
@@ -676,6 +686,7 @@ export function VoiceCallOverlay({
     if (l.voiceUserTranscript) socket.off('voice_user_transcript', l.voiceUserTranscript)
     if (l.voiceModelTranscript) socket.off('voice_model_transcript', l.voiceModelTranscript)
     if (l.voiceModelThinking) socket.off('voice_model_thinking', l.voiceModelThinking)
+    socket.off('voice_timeout')
 
     voiceListenersRef.current = {}
     socketListenersRef.current = false
@@ -784,9 +795,20 @@ export function VoiceCallOverlay({
     // Tell backend to create Gemini Live session
     socket.emit('voice_start', { language: 'es-AR', voice: 'Kore' })
 
-    // Timer
+    // Timer with auto-timeout
     timerRef.current = setInterval(() => {
-      setDuration(prev => prev + 1)
+      setDuration(prev => {
+        const next = prev + 1
+        if (next >= WARNING_THRESHOLD_SECONDS && next < MAX_CALL_DURATION_SECONDS) {
+          setTimeoutWarning(true)
+        }
+        if (next >= MAX_CALL_DURATION_SECONDS) {
+          // Auto-end call at max duration
+          endCallRef.current()
+          return prev
+        }
+        return next
+      })
     }, 1000)
   }, [getSocket, setupSocketListeners, startMicCapture])
 
@@ -830,9 +852,15 @@ export function VoiceCallOverlay({
     setDuration(0)
     setIsMuted(false)
     setConversation([])
+    setTimeoutWarning(false)
 
     onClose()
   }, [getSocket, stopMicCapture, removeSocketListeners, onClose, onAddMessage, conversation])
+
+  // Keep endCallRef synced so the timer doesn't capture stale closure
+  useEffect(() => {
+    endCallRef.current = endCall
+  }, [endCall])
 
   const toggleMute = useCallback(() => {
     setIsMuted(prev => !prev)
@@ -973,6 +1001,20 @@ export function VoiceCallOverlay({
           }}>
             {formatDuration(duration)}
           </span>
+          {timeoutWarning && (
+            <span style={{
+              fontSize: '10px',
+              padding: '2px 8px',
+              borderRadius: '12px',
+              backgroundColor: duration >= MAX_CALL_DURATION_SECONDS - 30 ? 'rgba(239,68,68,0.2)' : 'rgba(245,158,11,0.15)',
+              color: duration >= MAX_CALL_DURATION_SECONDS - 30 ? '#ef4444' : '#f59e0b',
+              fontWeight: 700,
+              fontVariantNumeric: 'tabular-nums',
+              animation: duration >= MAX_CALL_DURATION_SECONDS - 30 ? 'pulse 1s ease-in-out infinite' : 'none',
+            }}>
+              {formatDuration(MAX_CALL_DURATION_SECONDS - duration)} restante
+            </span>
+          )}
         </div>
       </div>
 
