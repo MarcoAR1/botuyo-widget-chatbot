@@ -65,6 +65,7 @@ export function ChatWindow({
 }: ChatWindowProps) {
   const [logoError, setLogoError] = useState(false)
   const [showVoiceOverlay, setShowVoiceOverlay] = useState(false)
+  const [showCallConfirm, setShowCallConfirm] = useState(false)
   const { t } = useTranslations()
   const isMobile = useIsMobile()
   const themePrimary = getPrimaryColor({ primaryColor })
@@ -209,14 +210,62 @@ export function ChatWindow({
             <div className="flex items-center gap-2">
               {/* Voice Call Button - shows only when enableVoice is true in mediaConfig (premium) */}
               {mediaConfig?.enableVoice && (
-                <button
-                  onClick={() => setShowVoiceOverlay(true)}
-                  aria-label="Iniciar llamada de voz"
-                  title="Llamar"
-                  className="h-8 w-8 flex items-center justify-center rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 transition-all active:scale-90 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
-                >
-                  <Phone className="h-4 w-4" aria-hidden="true" />
-                </button>
+                <div className="relative">
+                  <button
+                    onClick={() => setShowCallConfirm(!showCallConfirm)}
+                    aria-label="Iniciar llamada de voz"
+                    title="Llamar"
+                    className="h-8 w-8 flex items-center justify-center rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 transition-all active:scale-90 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                  >
+                    <Phone className="h-4 w-4" aria-hidden="true" />
+                  </button>
+
+                  {/* Mini confirmation modal */}
+                  {showCallConfirm && (
+                    <div
+                      className="absolute top-full right-0 mt-2 rounded-2xl border shadow-soft-2xl animate-in fade-in zoom-in-95 duration-200 z-50"
+                      style={{
+                        backgroundColor: 'hsl(var(--card))',
+                        borderColor: 'hsl(var(--border))',
+                        padding: 'var(--spacing-4)',
+                        minWidth: '180px',
+                      }}
+                    >
+                      <p
+                        className="text-xs font-bold text-center"
+                        style={{ color: 'hsl(var(--foreground))', marginBottom: 'var(--spacing-3)' }}
+                      >
+                        {t('call_confirm') || '¿Iniciar llamada de voz?'}
+                      </p>
+                      <div className="flex items-center justify-center" style={{ gap: 'var(--spacing-2)' }}>
+                        <button
+                          onClick={() => setShowCallConfirm(false)}
+                          className="h-8 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all active:scale-95"
+                          style={{
+                            padding: '0 var(--spacing-4)',
+                            backgroundColor: 'hsl(var(--muted))',
+                            color: 'hsl(var(--muted-foreground))',
+                          }}
+                        >
+                          {t('cancel') || 'Cancelar'}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowCallConfirm(false)
+                            setShowVoiceOverlay(true)
+                          }}
+                          className="h-8 rounded-xl text-[10px] font-black uppercase tracking-wider text-white transition-all active:scale-95 shadow-md"
+                          style={{
+                            padding: '0 var(--spacing-4)',
+                            backgroundColor: '#10b981',
+                          }}
+                        >
+                          {t('call') || 'Llamar'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
 
               <button

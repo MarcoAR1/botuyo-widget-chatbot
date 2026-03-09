@@ -88,9 +88,11 @@ export function InputArea({
       setInputValue('')
     }
 
-    // Resetear altura del textarea
+    // Resetear altura del textarea y refocus
     if (textareaRef.current) {
       textareaRef.current.style.height = '40px'
+      // Always refocus the textarea after sending so focus doesn't jump to call button
+      requestAnimationFrame(() => textareaRef.current?.focus())
     }
   }
 
