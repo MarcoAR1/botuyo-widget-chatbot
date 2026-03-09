@@ -52,7 +52,7 @@ export function Launcher({
   styles,
   promptPersistence = 'session',
   avatarScale = 1.0,
-  showPromptAvatar = false,
+  showPromptAvatar: _showPromptAvatar = false,
 }: LauncherProps) {
   const { t } = useTranslations('extracted')
   const themeColor = getPrimaryColor({ primaryColor })
@@ -145,125 +145,104 @@ export function Launcher({
         isRight ? 'flex-row ml-auto' : 'flex-row-reverse mr-auto'
       )}
     >
-      {/* --- PROMPT BUBBLE (Intercom-style chat message) --- */}
+      {/* --- PROMPT BUBBLE (Premium Intercom-style) --- */}
       <div
         className={cn(
-          'transition-all duration-700 ease-in-out flex items-end',
+          'transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] flex items-end',
           isPromptVisible
-            ? cn('opacity-100 translate-x-0 w-auto max-w-[350px]', isRight ? 'mr-5' : 'ml-5')
-            : cn('opacity-0 w-0 max-w-0 overflow-hidden pointer-events-none', isRight ? 'translate-x-4' : '-translate-x-4')
+            ? cn('opacity-100 translate-x-0 translate-y-0 w-auto max-w-[320px]', isRight ? 'mr-3' : 'ml-3')
+            : cn('opacity-0 w-0 max-w-0 overflow-hidden pointer-events-none', isRight ? 'translate-x-6 translate-y-2' : '-translate-x-6 translate-y-2')
         )}
       >
         <div
           className={cn(
-            'relative flex items-center gap-2.5 cursor-pointer',
-            isFadingOut && 'opacity-0 scale-95 transition-all duration-300',
+            'relative cursor-pointer group',
+            isFadingOut && 'opacity-0 scale-90 transition-all duration-400',
             !isPromptVisible && 'hidden'
           )}
           onClick={handleMainAction}
-          style={{ width: 'max-content' }}
         >
-          {/* Mini avatar (optional — hidden by default) */}
-          {showPromptAvatar && (
-            <div
-              className="shrink-0 overflow-hidden"
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '50%',
-                backgroundColor: themeColor || 'hsl(160,84%,39%)',
-                boxShadow: `0 2px 8px ${themeColor || 'hsl(160,84%,39%)'}44`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              {currentImageSrc && !imageError ? (
-                <img
-                  src={currentImageSrc}
-                  alt=""
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    borderRadius: '50%',
-                  }}
-                  onError={() => setImageError(true)}
-                />
-              ) : (
-                <MessageCircle
-                  style={{
-                    width: '18px',
-                    height: '18px',
-                    color: 'white',
-                    fill: 'white',
-                  }}
-                />
-              )}
-            </div>
-          )}
-
-          {/* Message bubble — transparent background */}
+          {/* Message bubble */}
           <div
             style={{
               position: 'relative',
-              maxWidth: '280px',
-              padding: '10px 16px',
-              borderRadius: '18px',
-              backgroundColor: 'hsl(var(--background) / 0.92)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
+              maxWidth: '290px',
+              padding: '14px 40px 14px 18px',
+              borderRadius: isRight ? '20px 20px 8px 20px' : '20px 20px 20px 8px',
+              backgroundColor: 'hsl(var(--background) / 0.95)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
               color: 'hsl(var(--foreground))',
-              boxShadow: '0 4px 20px -4px rgba(0,0,0,0.12), 0 0 0 1px hsl(var(--border) / 0.6)',
+              boxShadow: `0 8px 32px -8px rgba(0,0,0,0.15), 0 4px 12px -4px rgba(0,0,0,0.08), 0 0 0 1px hsl(var(--border) / 0.4), inset 0 1px 0 hsl(var(--background) / 0.8)`,
+              borderLeft: isRight ? `3px solid ${themeColor || 'hsl(160,84%,39%)'}` : 'none',
+              borderRight: !isRight ? `3px solid ${themeColor || 'hsl(160,84%,39%)'}` : 'none',
             }}
           >
+            {/* Speech tail — points toward the launcher */}
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '12px',
+                [isRight ? 'right' : 'left']: '-7px',
+                width: '14px',
+                height: '14px',
+                backgroundColor: 'hsl(var(--background) / 0.95)',
+                transform: 'rotate(45deg)',
+                borderRadius: '2px',
+                boxShadow: isRight
+                  ? '4px 4px 8px -4px rgba(0,0,0,0.08), 1px 0 0 hsl(var(--border) / 0.4)'
+                  : '-4px 4px 8px -4px rgba(0,0,0,0.08), 0 1px 0 hsl(var(--border) / 0.4)',
+              }}
+            />
+
+            {/* Prompt text */}
             <span
               style={{
                 display: 'block',
-                fontSize: '13.5px',
-                fontWeight: 600,
-                lineHeight: 1.4,
+                fontSize: '14px',
+                fontWeight: 500,
+                lineHeight: 1.5,
                 letterSpacing: '-0.01em',
-                whiteSpace: 'nowrap',
+                whiteSpace: 'normal',
+                wordBreak: 'break-word',
               }}
             >
               {starterPrompt}
             </span>
           </div>
 
-          {/* Close button — floating top-right */}
+          {/* Close button — inside top-right of bubble */}
           <button
             onClick={e => {
               e.stopPropagation()
               handleClosePrompt()
             }}
+            className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
             style={{
               position: 'absolute',
-              top: '-6px',
-              right: '-6px',
-              width: '20px',
-              height: '20px',
+              top: '6px',
+              right: '8px',
+              width: '22px',
+              height: '22px',
               borderRadius: '50%',
-              backgroundColor: 'hsl(var(--background))',
-              border: '1px solid hsl(var(--border))',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
+              backgroundColor: 'transparent',
+              border: 'none',
+              boxShadow: 'none',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
               color: 'hsl(var(--muted-foreground))',
               padding: 0,
-              transition: 'all 0.2s',
+              transition: 'all 0.15s',
             }}
             onMouseEnter={e => {
-              e.currentTarget.style.backgroundColor = 'hsl(var(--destructive))'
-              e.currentTarget.style.color = 'white'
-              e.currentTarget.style.borderColor = 'hsl(var(--destructive))'
+              e.currentTarget.style.backgroundColor = 'hsl(var(--muted) / 0.5)'
+              e.currentTarget.style.color = 'hsl(var(--foreground))'
             }}
             onMouseLeave={e => {
-              e.currentTarget.style.backgroundColor = 'hsl(var(--background))'
+              e.currentTarget.style.backgroundColor = 'transparent'
               e.currentTarget.style.color = 'hsl(var(--muted-foreground))'
-              e.currentTarget.style.borderColor = 'hsl(var(--border))'
             }}
             aria-label="Cerrar"
           >
