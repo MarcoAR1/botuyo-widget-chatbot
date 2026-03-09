@@ -89,7 +89,7 @@ export const MessageBubble = memo(
         textContent.includes('reservar') ||
         textContent.includes('ver') ||
         textContent.includes('pagar')
-      const isGoogleMaps = href.includes('maps.google') || href.includes('goo.gl')
+      const isGoogleMaps = href.includes('maps.google') || href.includes('goo.gl') || href.includes('google.com/maps')
 
       if (isGoogleMaps) {
         return (
@@ -264,43 +264,78 @@ export const MessageBubble = memo(
           )
         }
 
-        default:
+        default: {
+          const textContent = (message as TextMessage).content || ''
+
+          // Extract consecutive image blocks (---\n![Foto](url)\n![Foto](url)\n---) 
+          // and standalone consecutive ![...](url) lines into a Gallery batch
+          const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g
+          const allImages: Array<{ src: string; alt: string }> = []
+          let match: RegExpExecArray | null
+          while ((match = imageRegex.exec(textContent)) !== null) {
+            allImages.push({ src: match[2], alt: match[1] || 'Foto' })
+          }
+
+          // Remove image markdown from text to avoid double-rendering
+          const textWithoutImages = allImages.length > 1
+            ? textContent.replace(/!\[[^\]]*\]\([^)]+\)/g, '').replace(/---\s*\n?\s*---/g, '').trim()
+            : textContent
+
           return (
-            <div
-              className={cn(
-                'prose prose-sm max-w-none break-words leading-relaxed dark:prose-invert',
-                isUser ? 'text-primary-foreground prose-p:text-white' : 'text-foreground'
+            <>
+              {/* Grouped gallery for multiple images */}
+              {allImages.length > 1 && (
+                <Suspense
+                  fallback={
+                    <div className="my-3 animate-pulse">
+                      <div className="w-full h-48 bg-muted rounded-xl" />
+                    </div>
+                  }
+                >
+                  <Gallery images={allImages} radius="rounded-xl" />
+                </Suspense>
               )}
-            >
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                rehypePlugins={[
-                  [
-                    rehypeSanitize,
-                    {
-                      tagNames: ['p', 'a', 'img', 'strong', 'em', 'ul', 'ol', 'li', 'br', 'span'],
-                      attributes: {
-                        a: ['href', 'target', 'rel'],
-                        img: ['src', 'alt'],
-                        span: ['className'],
-                      },
-                      protocols: {
-                        a: { href: ['http', 'https', 'mailto', 'tel'] },
-                        img: { src: ['http', 'https', 'data'] },
-                      },
-                    },
-                  ],
-                ]}
-                components={{
-                  a: RenderLink,
-                  img: RenderImage,
-                  p: ({ children }) => <p className="mb-0 last:mb-0">{children}</p>,
-                }}
-              >
-                {(message as TextMessage).content || ''}
-              </ReactMarkdown>
-            </div>
+
+              {/* Remaining text content */}
+              {textWithoutImages && (
+                <div
+                  className={cn(
+                    'prose prose-sm max-w-none break-words leading-relaxed dark:prose-invert',
+                    isUser ? 'text-primary-foreground prose-p:text-white' : 'text-foreground'
+                  )}
+                >
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[
+                      [
+                        rehypeSanitize,
+                        {
+                          tagNames: ['p', 'a', 'img', 'strong', 'em', 'ul', 'ol', 'li', 'br', 'span'],
+                          attributes: {
+                            a: ['href', 'target', 'rel'],
+                            img: ['src', 'alt'],
+                            span: ['className'],
+                          },
+                          protocols: {
+                            a: { href: ['http', 'https', 'mailto', 'tel'] },
+                            img: { src: ['http', 'https', 'data'] },
+                          },
+                        },
+                      ],
+                    ]}
+                    components={{
+                      a: RenderLink,
+                      img: RenderImage,
+                      p: ({ children }) => <p className="mb-0 last:mb-0">{children}</p>,
+                    }}
+                  >
+                    {textWithoutImages}
+                  </ReactMarkdown>
+                </div>
+              )}
+            </>
           )
+        }
       }
     }
 
