@@ -145,6 +145,9 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
 
   if (mergedTheme.isHidden) return null
 
+  // Don't render until socket has delivered the agent config (prevents flash)
+  if (!socketTheme) return null
+
   return (
       <div
         ref={containerRef}
