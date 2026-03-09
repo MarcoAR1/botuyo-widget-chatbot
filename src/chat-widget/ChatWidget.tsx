@@ -193,11 +193,11 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
               botName={mergedTheme.botName}
               logoUrl={mergedTheme.logoUrl}
               welcomeMessage={mergedTheme.welcomeMessage}
-              inputPlaceholder={theme?.inputPlaceholder}
+              inputPlaceholder={theme?.inputPlaceholder || (socketTheme as any)?.inputPlaceholder}
               primaryColor={mergedTheme.primaryColor}
               position={theme?.position}
               bubbleStyles={mergedStyles}
-              avatars={theme?.avatars}
+              avatars={theme?.avatars || (socketTheme as any)?.avatars || (socketTheme as any)?.avatarAnimations || {}}
               mediaConfig={effectiveMediaConfig}
               theme={mergedTheme}
               avatar3dUrl={theme?.avatar3dUrl}
@@ -221,13 +221,13 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
             position={theme?.position || 'bottom-right'}
             primaryColor={mergedTheme.primaryColor}
             logoUrl={mergedTheme.logoUrl}
-            starterPrompt={(mergedTheme as any).starterPrompt || theme?.starterPrompt}
-            avatars={theme?.avatars || (socketTheme as any)?.avatarAnimations || {}}
+            starterPrompt={theme?.starterPrompt || (socketTheme as any)?.starterPrompt}
+            avatars={theme?.avatars || (socketTheme as any)?.avatars || (socketTheme as any)?.avatarAnimations || {}}
             emotion={currentBotEmotion}
             styles={mergedStyles}
             promptPersistence={theme?.promptPersistence}
-            avatarScale={theme?.avatarScale}
-            showPromptAvatar={theme?.showPromptAvatar}
+            avatarScale={theme?.avatarScale ?? (socketTheme as any)?.avatarScale}
+            showPromptAvatar={theme?.showPromptAvatar ?? (socketTheme as any)?.showPromptAvatar}
           />
         </div>
       </div>
