@@ -569,6 +569,7 @@ export function VoiceCallOverlay({
     voiceError?: (d: any) => void
     voiceEmotion?: (d: any) => void
     voiceUserTranscript?: (d: any) => void
+    voiceUserTranscriptFinal?: (d: any) => void
     voiceModelTranscript?: (d: any) => void
     voiceModelThinking?: () => void
   }>({})
@@ -637,6 +638,22 @@ export function VoiceCallOverlay({
       })
     }
 
+    // Final consolidated user transcript — replaces the streaming fragments with clean text
+    const onVoiceUserTranscriptFinal = (data: { text: string }) => {
+      if (!data?.text) return
+      setConversation(prev => {
+        // Find the last user entry and replace its text with the clean version
+        const lastUserIdx = prev.map(e => e.role).lastIndexOf('user')
+        if (lastUserIdx >= 0) {
+          const updated = [...prev]
+          updated[lastUserIdx] = { ...updated[lastUserIdx], text: data.text }
+          return updated
+        }
+        // If no user entry exists (edge case), add one
+        return [...prev, { role: 'user', text: data.text }]
+      })
+    }
+
     const onVoiceModelTranscript = (data: { text: string }) => {
       if (!data?.text) return
       resetInactivityTimer() // Agent is responding
@@ -666,6 +683,7 @@ export function VoiceCallOverlay({
       voiceError: onVoiceError,
       voiceEmotion: onVoiceEmotion,
       voiceUserTranscript: onVoiceUserTranscript,
+      voiceUserTranscriptFinal: onVoiceUserTranscriptFinal,
       voiceModelTranscript: onVoiceModelTranscript,
       voiceModelThinking: onVoiceModelThinking,
     }
@@ -677,6 +695,7 @@ export function VoiceCallOverlay({
     socket.on('voice_error', onVoiceError)
     socket.on('voice_emotion', onVoiceEmotion)
     socket.on('voice_user_transcript', onVoiceUserTranscript)
+    socket.on('voice_user_transcript_final', onVoiceUserTranscriptFinal)
     socket.on('voice_model_transcript', onVoiceModelTranscript)
     socket.on('voice_model_thinking', onVoiceModelThinking)
     socket.on('voice_timeout', onVoiceTimeout)
@@ -696,6 +715,7 @@ export function VoiceCallOverlay({
     if (l.voiceError) socket.off('voice_error', l.voiceError)
     if (l.voiceEmotion) socket.off('voice_emotion', l.voiceEmotion)
     if (l.voiceUserTranscript) socket.off('voice_user_transcript', l.voiceUserTranscript)
+    if (l.voiceUserTranscriptFinal) socket.off('voice_user_transcript_final', l.voiceUserTranscriptFinal)
     if (l.voiceModelTranscript) socket.off('voice_model_transcript', l.voiceModelTranscript)
     if (l.voiceModelThinking) socket.off('voice_model_thinking', l.voiceModelThinking)
     socket.off('voice_timeout')
