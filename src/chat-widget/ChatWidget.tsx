@@ -85,12 +85,12 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
 
   // Voice transcript persistence — creates ChatMessage objects from voice entries
   const handleAddVoiceMessage = useCallback(
-    (msg: { sender: 'user' | 'bot'; content: string }) => {
+    (msg: { sender: 'user' | 'bot'; content: string; timestamp?: Date }) => {
       actions.addMessage({
         id: `voice-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         type: 'text',
         sender: msg.sender,
-        timestamp: new Date(),
+        timestamp: msg.timestamp || new Date(),
         content: msg.content,
       })
     },

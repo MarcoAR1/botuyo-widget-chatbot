@@ -69,7 +69,7 @@ interface VoiceCallOverlayProps {
   /** Voice overlay configuration for full customizability */
   voiceConfig?: VoiceOverlayConfig
   /** Callback to persist voice transcripts to the main chat history */
-  onAddMessage?: (message: { sender: 'user' | 'bot'; content: string }) => void
+  onAddMessage?: (message: { sender: 'user' | 'bot'; content: string; timestamp?: Date }) => void
 }
 
 type CallState = 'idle' | 'connecting' | 'listening' | 'speaking' | 'thinking'
@@ -875,11 +875,15 @@ export function VoiceCallOverlay({
     if (socket?.connected) socket.emit('voice_stop')
 
     // Persist voice transcripts to main chat history
+    // Assign incremental timestamps (1s apart) so the MessageList grouping logic
+    // correctly separates user↔bot turns instead of collapsing them (overlap fix)
     if (onAddMessage && conversation.length > 0) {
-      conversation.forEach(entry => {
+      const baseTime = Date.now() - conversation.length * 1000
+      conversation.forEach((entry, i) => {
         onAddMessage({
           sender: entry.role === 'user' ? 'user' : 'bot',
           content: entry.text,
+          timestamp: new Date(baseTime + i * 1000),
         })
       })
     }
