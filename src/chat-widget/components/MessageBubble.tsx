@@ -142,7 +142,7 @@ export const MessageBubble = memo(
             target={linkTarget}
             rel={linkRel}
             onClick={handleClick}
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 mt-2 text-[11px] font-black w-full sm:w-auto rounded-xl shadow-md uppercase tracking-widest transition-transform active:scale-95 text-white"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 mt-2 mx-1 text-[11px] font-black w-[calc(100%-0.5rem)] sm:w-auto rounded-xl shadow-md uppercase tracking-widest transition-transform active:scale-95 text-white"
             style={{ backgroundColor: brandColor }}
           >
             {children} <ArrowRight size={14} />
