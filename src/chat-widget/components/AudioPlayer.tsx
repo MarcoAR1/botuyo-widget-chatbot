@@ -21,8 +21,10 @@ export const AudioPlayer = memo(function AudioPlayer({
   const [isPlaying, setIsPlaying] = useState(false)
   const [duration, setDuration] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  // Detect expired blob URLs immediately — they become invalid after page reload
+  const isBlobUrl = url?.startsWith('blob:')
+  const [isLoading, setIsLoading] = useState(!isBlobUrl)
+  const [error, setError] = useState<string | null>(isBlobUrl ? 'Audio no disponible' : null)
   const audioRef = useRef<HTMLAudioElement>(null)
 
   const brandColor = useMemo(() => getPrimaryColor({ primaryColor }), [primaryColor])
@@ -67,16 +69,19 @@ export const AudioPlayer = memo(function AudioPlayer({
         isBot ? 'text-foreground' : 'text-primary-foreground'
       )}
     >
-      <audio
-        ref={audioRef}
-        src={url}
-        preload="metadata"
-        onLoadedMetadata={handleLoadedMetadata}
-        onCanPlayThrough={handleCanPlayThrough}
-        onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime || 0)}
-        onEnded={() => setIsPlaying(false)}
-        onError={handleError}
-      />
+      {/* Don't attempt to load expired blob: URLs */}
+      {!isBlobUrl && (
+        <audio
+          ref={audioRef}
+          src={url}
+          preload="metadata"
+          onLoadedMetadata={handleLoadedMetadata}
+          onCanPlayThrough={handleCanPlayThrough}
+          onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime || 0)}
+          onEnded={() => setIsPlaying(false)}
+          onError={handleError}
+        />
+      )}
       
       {error ? (
         // Error state - show retry button

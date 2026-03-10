@@ -516,6 +516,11 @@ export function VoiceCallOverlay({
       playbackCtxRef.current = new AudioContext({ sampleRate: OUTPUT_SAMPLE_RATE })
     }
 
+    // Resume if suspended (browsers suspend AudioContexts not created during user gesture)
+    if (playbackCtxRef.current.state === 'suspended') {
+      playbackCtxRef.current.resume().catch(() => {})
+    }
+
     const ctx = playbackCtxRef.current
     isPlayingRef.current = true
     setCallState('speaking')
@@ -719,6 +724,8 @@ export function VoiceCallOverlay({
 
     const ctx = new AudioContext({ sampleRate: INPUT_SAMPLE_RATE })
     audioCtxRef.current = ctx
+    // Resume mic AudioContext — required by some browsers
+    if (ctx.state === 'suspended') await ctx.resume()
     const source = ctx.createMediaStreamSource(stream)
 
     // Analyser for visualization
@@ -789,6 +796,14 @@ export function VoiceCallOverlay({
 
     // Setup listeners first
     setupSocketListeners()
+
+    // Pre-create playback AudioContext during user gesture (click)
+    // This prevents the browser from suspending it when audio arrives via socket
+    if (!playbackCtxRef.current || playbackCtxRef.current.state === 'closed') {
+      playbackCtxRef.current = new AudioContext({ sampleRate: OUTPUT_SAMPLE_RATE })
+    }
+    // Explicitly resume — some browsers need this even on user gesture
+    playbackCtxRef.current.resume().catch(() => {})
 
     // Start mic capture
     try {

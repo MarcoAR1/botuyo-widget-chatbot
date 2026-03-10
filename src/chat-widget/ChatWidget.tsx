@@ -12,6 +12,7 @@ import { useIsMobile } from './hooks/useIsMobile'
 import { useWidgetTheme } from './hooks/useWidgetTheme'
 import { useChatWidget } from './hooks/useChatWidget'
 import { useDarkMode } from './hooks/useDarkMode'
+import { DARK_CSS_VARIABLES } from './utils/theme'
 
 // Premium animations
 import './styles/premium-animations.css'
@@ -37,7 +38,7 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
   const isMobile = useIsMobile()
 
   // Dark mode detection - auto-applies 'dark' class to widget
-  useDarkMode(containerRef)
+  const isDarkMode = useDarkMode(containerRef)
 
   // Estado para tema recibido del socket
   const [socketTheme, setSocketTheme] = useState<ChatWidgetProps['theme'] | undefined>()
@@ -114,12 +115,25 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
 
   const containerStyle = getContainerStyle(state.isOpen, isMobile, theme?.position)
 
-  // Aplicar CSS variables al widget
+  // Aplicar CSS variables al widget — swap to dark values when isDarkMode
   const cssVariablesStyle = useMemo(() => {
     if (!mergedTheme.cssVariables) return {}
 
+    // Start with the merged light theme
+    let cssVars = { ...mergedTheme.cssVariables }
+
+    // Overlay dark CSS variables when dark mode is active
+    if (isDarkMode) {
+      // Priority: socketTheme.darkCssVariables > DARK_CSS_VARIABLES (defaults)
+      const socketDarkVars = (socketTheme as any)?.darkCssVariables || {}
+      cssVars = {
+        ...cssVars,
+        ...DARK_CSS_VARIABLES,
+        ...socketDarkVars,
+      }
+    }
+
     const vars: Record<string, string> = {}
-    const cssVars = mergedTheme.cssVariables
 
     if (cssVars.background) vars['--background'] = cssVars.background
     if (cssVars.foreground) vars['--foreground'] = cssVars.foreground
@@ -141,7 +155,7 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
     if (cssVars.spacing8) vars['--spacing-8'] = cssVars.spacing8
 
     return vars
-  }, [mergedTheme.cssVariables])
+  }, [mergedTheme.cssVariables, isDarkMode, socketTheme])
 
   if (mergedTheme.isHidden) return null
 
