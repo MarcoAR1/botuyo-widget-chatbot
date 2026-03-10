@@ -91,6 +91,20 @@ export const MessageBubble = memo(
         textContent.includes('pagar')
       const isGoogleMaps = href.includes('maps.google') || href.includes('goo.gl') || href.includes('google.com/maps')
 
+      // Detect if link is same-domain (internal navigation)
+      let isSameDomain = false
+      try {
+        const linkUrl = new URL(href, window.location.origin)
+        isSameDomain = linkUrl.hostname === window.location.hostname
+      } catch { /* invalid URL, treat as external */ }
+
+      const handleClick = isSameDomain
+        ? (e: React.MouseEvent) => { e.preventDefault(); window.location.href = href }
+        : undefined
+
+      const linkTarget = isSameDomain ? undefined : '_blank'
+      const linkRel = isSameDomain ? undefined : 'noopener noreferrer'
+
       if (isGoogleMaps) {
         return (
           <a
@@ -125,8 +139,9 @@ export const MessageBubble = memo(
         return (
           <a
             href={href}
-            target="_blank"
-            rel="noopener noreferrer"
+            target={linkTarget}
+            rel={linkRel}
+            onClick={handleClick}
             className="inline-flex items-center justify-center gap-2 px-5 py-2.5 mt-2 text-[11px] font-black w-full sm:w-auto rounded-xl shadow-md uppercase tracking-widest transition-transform active:scale-95 text-white"
             style={{ backgroundColor: brandColor }}
           >
@@ -138,8 +153,9 @@ export const MessageBubble = memo(
       return (
         <a
           href={href}
-          target="_blank"
-          rel="noopener noreferrer"
+          target={linkTarget}
+          rel={linkRel}
+          onClick={handleClick}
           className="font-bold underline decoration-primary/30 hover:decoration-primary transition-all"
           style={{ color: isUser ? 'inherit' : brandColor }}
         >
