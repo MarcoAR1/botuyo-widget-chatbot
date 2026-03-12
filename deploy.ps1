@@ -86,9 +86,9 @@ if (-not $SkipCdn) {
     Write-Host "[4/5] Deploying to Cloudflare R2..." -ForegroundColor Yellow
 
     # Check wrangler auth
-    $wranglerCheck = npx wrangler whoami 2>&1
+    $wranglerCheck = npx -y wrangler whoami 2>&1
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "  ERROR: Wrangler not authenticated. Run: npx wrangler login" -ForegroundColor Red
+        Write-Host "  ERROR: Wrangler not authenticated. Run: npx -y wrangler login" -ForegroundColor Red
         exit 1
     }
 
@@ -100,7 +100,7 @@ if (-not $SkipCdn) {
     Get-ChildItem "$distDir\*.js" | ForEach-Object {
         $fname = $_.Name
         Write-Host "    $fname" -ForegroundColor DarkGray
-        npx wrangler r2 object put "$R2Bucket/v$NewVersion/$fname" `
+        npx -y wrangler r2 object put "$R2Bucket/v$NewVersion/$fname" `
             --file $_.FullName `
             --content-type "application/javascript" `
             --cache-control "public, max-age=31536000, immutable" 2>&1 | Out-Null
@@ -109,7 +109,7 @@ if (-not $SkipCdn) {
     Get-ChildItem "$distDir\*.css" | ForEach-Object {
         $fname = $_.Name
         Write-Host "    $fname" -ForegroundColor DarkGray
-        npx wrangler r2 object put "$R2Bucket/v$NewVersion/$fname" `
+        npx -y wrangler r2 object put "$R2Bucket/v$NewVersion/$fname" `
             --file $_.FullName `
             --content-type "text/css" `
             --cache-control "public, max-age=31536000, immutable" 2>&1 | Out-Null
@@ -122,7 +122,7 @@ if (-not $SkipCdn) {
 
     Get-ChildItem "$distDir\*.js" | ForEach-Object {
         $fname = $_.Name
-        npx wrangler r2 object put "$R2Bucket/latest/$fname" `
+        npx -y wrangler r2 object put "$R2Bucket/latest/$fname" `
             --file $_.FullName `
             --content-type "application/javascript" `
             --cache-control "public, max-age=3600" 2>&1 | Out-Null
@@ -130,7 +130,7 @@ if (-not $SkipCdn) {
 
     Get-ChildItem "$distDir\*.css" | ForEach-Object {
         $fname = $_.Name
-        npx wrangler r2 object put "$R2Bucket/latest/$fname" `
+        npx -y wrangler r2 object put "$R2Bucket/latest/$fname" `
             --file $_.FullName `
             --content-type "text/css" `
             --cache-control "public, max-age=3600" 2>&1 | Out-Null
@@ -140,14 +140,14 @@ if (-not $SkipCdn) {
     $umdJs = Join-Path $distDir "botuyo-chat.umd.js"
     if (Test-Path $umdJs) {
         Write-Host "  Uploading widget.js alias..." -ForegroundColor Cyan
-        npx wrangler r2 object put "$R2Bucket/widget.js" `
+        npx -y wrangler r2 object put "$R2Bucket/widget.js" `
             --file $umdJs `
             --content-type "application/javascript" `
             --cache-control "public, max-age=3600" 2>&1 | Out-Null
         
         $umdCss = Join-Path $distDir "botuyo-chat.umd.css"
         if (Test-Path $umdCss) {
-            npx wrangler r2 object put "$R2Bucket/widget.css" `
+            npx -y wrangler r2 object put "$R2Bucket/widget.css" `
                 --file $umdCss `
                 --content-type "text/css" `
                 --cache-control "public, max-age=3600" 2>&1 | Out-Null
