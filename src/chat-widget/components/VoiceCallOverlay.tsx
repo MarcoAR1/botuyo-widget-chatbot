@@ -95,14 +95,16 @@ const DEFAULT_STATUS_LABELS: Record<CallState, string> = {
 
 /** Sanitize config for voice transcript markdown */
 const voiceSanitizeSchema = {
-  tagNames: ['p', 'a', 'strong', 'em', 'ul', 'ol', 'li', 'br', 'span', 'code'],
+  tagNames: ['p', 'a', 'img', 'strong', 'em', 'ul', 'ol', 'li', 'br', 'span', 'code', 'hr'],
   attributes: {
     a: ['href', 'target', 'rel'],
+    img: ['src', 'alt'],
     span: ['className'],
     code: ['className'],
   },
   protocols: {
     a: { href: ['http', 'https', 'mailto', 'tel'] },
+    img: { src: ['http', 'https', 'data'] },
   },
 }
 
@@ -952,6 +954,11 @@ export function VoiceCallOverlay({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen])
 
+  // Auto-scroll conversation to bottom
+  useEffect(() => {
+    conversationEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [conversation])
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -1118,10 +1125,10 @@ export function VoiceCallOverlay({
             config={cfg}
           />
 
-          {/* Last 2 conversation entries */}
+          {/* Full scrollable conversation */}
           {conversation.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
-              {conversation.slice(-2).map((entry, i) => (
+              {conversation.map((entry, i) => (
                 <div
                   key={i}
                   style={{
@@ -1142,30 +1149,59 @@ export function VoiceCallOverlay({
                       : `1px solid ${primaryColor}20`,
                   }}
                 >
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    rehypePlugins={[[rehypeSanitize, voiceSanitizeSchema]]}
-                    components={{
-                      p: ({ children }) => <p style={{ margin: 0 }}>{children}</p>,
-                      a: ({ href, children }) => (
-                        <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: primaryColor, textDecoration: 'underline' }}>
-                          {children}
-                        </a>
-                      ),
-                      strong: ({ children }) => <strong style={{ fontWeight: 600 }}>{children}</strong>,
-                      em: ({ children }) => <em>{children}</em>,
-                      ul: ({ children }) => <ul style={{ margin: '4px 0', paddingLeft: '18px' }}>{children}</ul>,
-                      ol: ({ children }) => <ol style={{ margin: '4px 0', paddingLeft: '18px' }}>{children}</ol>,
-                      li: ({ children }) => <li style={{ marginBottom: '2px' }}>{children}</li>,
-                      code: ({ children }) => (
-                        <code style={{ background: 'rgba(255,255,255,0.1)', padding: '0 4px', borderRadius: '3px', fontSize: '12px' }}>
-                          {children}
-                        </code>
-                      ),
-                    }}
-                  >
-                    {entry.text}
-                  </ReactMarkdown>
+                  <div className="prose prose-sm prose-invert max-w-none break-words leading-relaxed" style={{ fontSize: '13.5px' }}>
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[[rehypeSanitize, voiceSanitizeSchema]]}
+                      components={{
+                        p: ({ children }) => <p style={{ margin: '0 0 4px' }}>{children}</p>,
+                        a: ({ href, children }) => {
+                          if (!href) return null
+                          const textContent = String(children).toLowerCase()
+                          const isCTA = textContent.includes('reservar') || textContent.includes('ver') || textContent.includes('pagar')
+                          const isGoogleMaps = href.includes('maps.google') || href.includes('goo.gl') || href.includes('google.com/maps')
+
+                          if (isGoogleMaps) {
+                            return (
+                              <a href={href} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', margin: '6px 0', borderRadius: '10px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: primaryColor, textDecoration: 'none', fontSize: '12px', fontWeight: 700 }}>
+                                📍 Ver ubicación
+                              </a>
+                            )
+                          }
+
+                          if (isCTA) {
+                            return (
+                              <a href={href} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '8px 16px', margin: '6px 0', borderRadius: '10px', background: primaryColor, color: 'white', textDecoration: 'none', fontSize: '11px', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' as const, width: '100%', textAlign: 'center' as const }}>
+                                {children} →
+                              </a>
+                            )
+                          }
+
+                          return (
+                            <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: primaryColor, textDecoration: 'underline', fontWeight: 600 }}>
+                              {children}
+                            </a>
+                          )
+                        },
+                        strong: ({ children }) => <strong style={{ fontWeight: 700, color: 'rgba(255,255,255,0.95)' }}>{children}</strong>,
+                        em: ({ children }) => <em style={{ color: 'rgba(255,255,255,0.8)' }}>{children}</em>,
+                        ul: ({ children }) => <ul style={{ margin: '4px 0', paddingLeft: '18px' }}>{children}</ul>,
+                        ol: ({ children }) => <ol style={{ margin: '4px 0', paddingLeft: '18px' }}>{children}</ol>,
+                        li: ({ children }) => <li style={{ marginBottom: '2px' }}>{children}</li>,
+                        hr: () => <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.1)', margin: '8px 0' }} />,
+                        img: ({ src, alt }) => (
+                          <img src={src} alt={alt || ''} style={{ maxWidth: '100%', borderRadius: '8px', margin: '6px 0' }} />
+                        ),
+                        code: ({ children }) => (
+                          <code style={{ background: 'rgba(255,255,255,0.1)', padding: '1px 5px', borderRadius: '4px', fontSize: '12px' }}>
+                            {children}
+                          </code>
+                        ),
+                      }}
+                    >
+                      {entry.text}
+                    </ReactMarkdown>
+                  </div>
                 </div>
               ))}
               <div ref={conversationEndRef} />
