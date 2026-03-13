@@ -716,7 +716,12 @@ export function VoiceCallOverlay({
           return `${cover}\n**${item.index}. ${item.title}**\n📍 ${item.location} ${item.rating ? `⭐ ${item.rating}` : ''}\n💰 ${price}\n${features}\n${link}`
         }
         if (data.tool === 'get_accommodation_details') {
-          return `**${item.title || item.name}**\n📍 ${item.location}\n${item.description || ''}`
+          const images = (item.images || []).slice(0, 4).map((url: string) => `![](${url})`).join('\n')
+          const specs = item.specs ? Object.entries(item.specs).map(([k, v]) => `${k}: ${v}`).join(' • ') : ''
+          const rooms = (item.rooms || []).map((r: any) => `• ${r.name}: ${r.price}`).join('\n')
+          const rules = item.rules ? `🕐 Check-in: ${item.rules.checkIn || '-'} | Check-out: ${item.rules.checkOut || '-'} | Mascotas: ${item.rules.pets || '-'}` : ''
+          const link = item.seeMoreLink ? `[Ver más detalles](${item.seeMoreLink})` : ''
+          return `${images}\n**${item.title || item.name}**\n${item.description || ''}\n${specs}\n${rooms}\n${rules}\n${link}`
         }
         return JSON.stringify(item)
       }).join('\n\n---\n\n')
