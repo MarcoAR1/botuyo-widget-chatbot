@@ -572,6 +572,7 @@ export function VoiceCallOverlay({
     voiceEmotion?: (d: any) => void
     voiceUserTranscript?: (d: any) => void
     voiceUserTranscriptFinal?: (d: any) => void
+    voiceUserTranscriptCorrected?: (d: any) => void
     voiceModelTranscript?: (d: any) => void
     voiceModelThinking?: () => void
     voiceToolVisual?: (d: any) => void
@@ -657,6 +658,28 @@ export function VoiceCallOverlay({
       })
     }
 
+    // Async correction from Gemini Flash — swaps dirty transcript with cleaned version
+    const onVoiceUserTranscriptCorrected = (data: { text: string; original: string }) => {
+      if (!data?.text) return
+      setConversation(prev => {
+        const updated = [...prev]
+        // Find the entry matching the original dirty text and replace it
+        for (let i = updated.length - 1; i >= 0; i--) {
+          if (updated[i].role === 'user' && updated[i].text === data.original) {
+            updated[i] = { ...updated[i], text: data.text }
+            return updated
+          }
+        }
+        // Fallback: replace last user message if no exact match
+        const lastUserIdx = updated.map(e => e.role).lastIndexOf('user')
+        if (lastUserIdx >= 0) {
+          updated[lastUserIdx] = { ...updated[lastUserIdx], text: data.text }
+          return updated
+        }
+        return prev
+      })
+    }
+
     const onVoiceModelTranscript = (data: { text: string }) => {
       if (!data?.text) return
       resetInactivityTimer() // Agent is responding
@@ -710,6 +733,7 @@ export function VoiceCallOverlay({
       voiceEmotion: onVoiceEmotion,
       voiceUserTranscript: onVoiceUserTranscript,
       voiceUserTranscriptFinal: onVoiceUserTranscriptFinal,
+      voiceUserTranscriptCorrected: onVoiceUserTranscriptCorrected,
       voiceModelTranscript: onVoiceModelTranscript,
       voiceModelThinking: onVoiceModelThinking,
       voiceToolVisual: onVoiceToolVisual,
@@ -723,6 +747,7 @@ export function VoiceCallOverlay({
     socket.on('voice_emotion', onVoiceEmotion)
     socket.on('voice_user_transcript', onVoiceUserTranscript)
     socket.on('voice_user_transcript_final', onVoiceUserTranscriptFinal)
+    socket.on('voice_user_transcript_corrected', onVoiceUserTranscriptCorrected)
     socket.on('voice_model_transcript', onVoiceModelTranscript)
     socket.on('voice_model_thinking', onVoiceModelThinking)
     socket.on('voice_tool_visual', onVoiceToolVisual)
@@ -744,6 +769,7 @@ export function VoiceCallOverlay({
     if (l.voiceEmotion) socket.off('voice_emotion', l.voiceEmotion)
     if (l.voiceUserTranscript) socket.off('voice_user_transcript', l.voiceUserTranscript)
     if (l.voiceUserTranscriptFinal) socket.off('voice_user_transcript_final', l.voiceUserTranscriptFinal)
+    if (l.voiceUserTranscriptCorrected) socket.off('voice_user_transcript_corrected', l.voiceUserTranscriptCorrected)
     if (l.voiceModelTranscript) socket.off('voice_model_transcript', l.voiceModelTranscript)
     if (l.voiceModelThinking) socket.off('voice_model_thinking', l.voiceModelThinking)
     if (l.voiceToolVisual) socket.off('voice_tool_visual', l.voiceToolVisual)
