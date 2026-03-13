@@ -576,6 +576,7 @@ export function VoiceCallOverlay({
     voiceModelTranscript?: (d: any) => void
     voiceModelThinking?: () => void
     voiceToolVisual?: (d: any) => void
+    voiceCallEnded?: (d: any) => void
   }>({})
 
   const setupSocketListeners = useCallback(() => {
@@ -758,6 +759,15 @@ export function VoiceCallOverlay({
     socket.on('voice_tool_visual', onVoiceToolVisual)
     socket.on('voice_timeout', onVoiceTimeout)
 
+    // Server-initiated call end (e.g., farewell detection auto-hangup)
+    const onVoiceCallEnded = (_data: { reason?: string }) => {
+      setConversation(prev => [...prev, { role: 'bot', text: '📞 Llamada finalizada.' }])
+      // Auto-close overlay after a brief delay
+      setTimeout(() => { onClose() }, 2500)
+    }
+    socket.on('voice_call_ended', onVoiceCallEnded)
+    voiceListenersRef.current.voiceCallEnded = onVoiceCallEnded
+
     socketListenersRef.current = true
   }, [getSocket, scheduleChunks])
 
@@ -778,6 +788,7 @@ export function VoiceCallOverlay({
     if (l.voiceModelTranscript) socket.off('voice_model_transcript', l.voiceModelTranscript)
     if (l.voiceModelThinking) socket.off('voice_model_thinking', l.voiceModelThinking)
     if (l.voiceToolVisual) socket.off('voice_tool_visual', l.voiceToolVisual)
+    if (l.voiceCallEnded) socket.off('voice_call_ended', l.voiceCallEnded)
     socket.off('voice_timeout')
 
     voiceListenersRef.current = {}
