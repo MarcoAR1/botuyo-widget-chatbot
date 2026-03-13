@@ -574,6 +574,7 @@ export function VoiceCallOverlay({
     voiceUserTranscriptFinal?: (d: any) => void
     voiceModelTranscript?: (d: any) => void
     voiceModelThinking?: () => void
+    voiceToolVisual?: (d: any) => void
   }>({})
 
   const setupSocketListeners = useCallback(() => {
@@ -677,6 +678,29 @@ export function VoiceCallOverlay({
       resetInactivityTimer() // Agent is processing
     }
 
+    // Handle visual tool results — render accommodation cards in the conversation
+    const onVoiceToolVisual = (data: { tool: string; items: any[] }) => {
+      if (!data?.items?.length) return
+      resetInactivityTimer()
+      // Add a visual card entry to the conversation
+      const cardText = data.items.map((item: any) => {
+        if (data.tool === 'search_accommodations') {
+          const opt = item.options?.[0]
+          const price = opt ? `${opt.totalPrice} ${opt.currency}` : ''
+          const features = (item.features || []).slice(0, 3).join(' • ')
+          const cover = item.cover ? `![${item.title}](${item.cover})` : ''
+          const link = opt?.link ? `[Ver detalles](${opt.link})` : ''
+          return `${cover}\n**${item.index}. ${item.title}**\n📍 ${item.location} ${item.rating ? `⭐ ${item.rating}` : ''}\n💰 ${price}\n${features}\n${link}`
+        }
+        if (data.tool === 'get_accommodation_details') {
+          return `**${item.title || item.name}**\n📍 ${item.location}\n${item.description || ''}`
+        }
+        return JSON.stringify(item)
+      }).join('\n\n---\n\n')
+
+      setConversation(prev => [...prev, { role: 'bot', text: cardText }])
+    }
+
     voiceListenersRef.current = {
       voiceReady: onVoiceReady,
       voiceAudioChunk: onVoiceAudioChunk,
@@ -688,6 +712,7 @@ export function VoiceCallOverlay({
       voiceUserTranscriptFinal: onVoiceUserTranscriptFinal,
       voiceModelTranscript: onVoiceModelTranscript,
       voiceModelThinking: onVoiceModelThinking,
+      voiceToolVisual: onVoiceToolVisual,
     }
 
     socket.on('voice_ready', onVoiceReady)
@@ -700,6 +725,7 @@ export function VoiceCallOverlay({
     socket.on('voice_user_transcript_final', onVoiceUserTranscriptFinal)
     socket.on('voice_model_transcript', onVoiceModelTranscript)
     socket.on('voice_model_thinking', onVoiceModelThinking)
+    socket.on('voice_tool_visual', onVoiceToolVisual)
     socket.on('voice_timeout', onVoiceTimeout)
 
     socketListenersRef.current = true
@@ -720,6 +746,7 @@ export function VoiceCallOverlay({
     if (l.voiceUserTranscriptFinal) socket.off('voice_user_transcript_final', l.voiceUserTranscriptFinal)
     if (l.voiceModelTranscript) socket.off('voice_model_transcript', l.voiceModelTranscript)
     if (l.voiceModelThinking) socket.off('voice_model_thinking', l.voiceModelThinking)
+    if (l.voiceToolVisual) socket.off('voice_tool_visual', l.voiceToolVisual)
     socket.off('voice_timeout')
 
     voiceListenersRef.current = {}
@@ -1111,21 +1138,23 @@ export function VoiceCallOverlay({
         </div>
       )}
 
-      {/* Main content — Avatar always on top + last 2 messages below */}
-      <div className="relative flex-1 overflow-y-auto px-5 py-4" style={{ scrollbarWidth: 'none' }}>
-        <div className="flex flex-col items-center justify-start h-full gap-4">
-          {/* Avatar — always visible */}
-          <AvatarOrb
-            avatars={avatars}
-            logoUrl={logoUrl}
-            avatar3dUrl={avatar3dUrl || cfg.avatar3dUrl}
-            emotion={currentEmotion}
-            callState={callState}
-            audioLevel={audioLevel}
-            config={cfg}
-          />
+      {/* Main content — Avatar STICKY on top + scrollable conversation below */}
+      {/* Avatar — fixed/sticky, always visible above scroll */}
+      <div className="relative shrink-0 flex justify-center" style={{ padding: '16px 20px 8px' }}>
+        <AvatarOrb
+          avatars={avatars}
+          logoUrl={logoUrl}
+          avatar3dUrl={avatar3dUrl || cfg.avatar3dUrl}
+          emotion={currentEmotion}
+          callState={callState}
+          audioLevel={audioLevel}
+          config={cfg}
+        />
+      </div>
 
-          {/* Full scrollable conversation */}
+      {/* Scrollable conversation area */}
+      <div className="relative flex-1 overflow-y-auto px-5 pb-4" style={{ scrollbarWidth: 'none' }}>
+        <div className="flex flex-col gap-4 w-full">
           {conversation.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
               {conversation.map((entry, i) => (

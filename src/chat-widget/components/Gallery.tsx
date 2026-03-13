@@ -5,7 +5,7 @@
 
 'use client'
 
-import { useState, memo } from 'react'
+import { useState, memo, useRef, useEffect } from 'react'
 import { useTranslations } from '@/chat-widget/i18n'
 import { ChevronLeft, ChevronRight, X, ZoomIn } from './Icons'
 import { cn } from '@/lib/utils'
@@ -317,10 +317,36 @@ interface LightboxProps {
 
 function Lightbox({ images, currentIndex, onClose, onNext, onPrev }: LightboxProps) {
   const { t } = useTranslations('extracted')
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+      if (e.key === 'ArrowLeft') onPrev()
+      if (e.key === 'ArrowRight') onNext()
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [onClose, onPrev, onNext])
+
+  // Touch swipe support
+  const touchStartX = useRef(0)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+  }
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const dx = e.changedTouches[0].clientX - touchStartX.current
+    if (Math.abs(dx) > 50) {
+      dx > 0 ? onPrev() : onNext()
+    }
+  }
+
   return (
     <div
-      className="fixed inset-0 z-[100000] bg-black/95 backdrop-blur-sm flex items-center justify-center animate-in fade-in duration-200"
+      className="absolute inset-0 z-[100000] bg-black/95 backdrop-blur-sm flex items-center justify-center animate-in fade-in duration-200"
       onClick={onClose}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
       {/* Botón Cerrar */}
       <button
@@ -368,9 +394,32 @@ function Lightbox({ images, currentIndex, onClose, onNext, onPrev }: LightboxPro
       <img
         src={images[currentIndex].src}
         alt={images[currentIndex].alt || `Imagen ${currentIndex + 1}`}
-        className="max-w-[90%] max-h-[90vh] object-contain"
+        className="max-w-[90%] max-h-[85%] object-contain"
         onClick={e => e.stopPropagation()}
       />
+
+      {/* Thumbnails strip */}
+      {images.length > 1 && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-black/50 backdrop-blur-sm px-3 py-2 rounded-full z-10">
+          {images.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={e => {
+                e.stopPropagation()
+                // Navigate to this index — use repeated prev/next to reach
+                const diff = idx - currentIndex
+                if (diff > 0) for (let i = 0; i < diff; i++) onNext()
+                if (diff < 0) for (let i = 0; i < Math.abs(diff); i++) onPrev()
+              }}
+              className={cn(
+                'w-2 h-2 rounded-full transition-all',
+                idx === currentIndex ? 'bg-white scale-125' : 'bg-white/40 hover:bg-white/60'
+              )}
+              aria-label={`Imagen ${idx + 1}`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
