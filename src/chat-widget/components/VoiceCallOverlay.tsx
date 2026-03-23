@@ -368,7 +368,7 @@ function AvatarOrb({ avatars, logoUrl, avatar3dUrl, emotion, callState, audioLev
                 opacity: 0.6,
                 top: '50%',
                 left: '50%',
-                transform: `rotate(${i * 120 + (Date.now() / 20) % 360}deg) translateX(${(orbPx + 48) / 2}px)`,
+                transform: `rotate(${i * 120}deg) translateX(${(orbPx + 48) / 2}px)`,
                 animation: `spin ${6 + i * 2}s linear infinite`,
                 boxShadow: `0 0 6px ${glowColor}`,
               }}
@@ -441,7 +441,7 @@ function WaveformBars({ isActive, audioLevel, color }: { isActive: boolean; audi
         const center = 5.5
         const dist = Math.abs(i - center) / center
         const h = isActive
-          ? Math.max(4, audioLevel * 40 * (1 - dist * 0.5) * (0.5 + Math.sin(Date.now() / 100 + i * 0.8) * 0.5))
+          ? Math.max(4, audioLevel * 40 * (1 - dist * 0.5) * (0.5 + Math.sin(i * 0.8) * 0.5))
           : 4
         return (
           <div key={i} className="rounded-full transition-all duration-100"
@@ -599,7 +599,7 @@ export function VoiceCallOverlay({
 
     const onVoiceInterrupted = () => {
       // Barge-in: stop all scheduled sources + clear queue
-      activeSourcesRef.current.forEach(s => { try { s.stop() } catch {} })
+      activeSourcesRef.current.forEach(s => { try { s.stop() } catch { /* already stopped */ } })
       activeSourcesRef.current = []
       audioQueueRef.current.length = 0
       nextPlayTimeRef.current = 0
@@ -922,7 +922,7 @@ export function VoiceCallOverlay({
     stopMicCapture()
 
     // Stop all scheduled audio sources
-    activeSourcesRef.current.forEach(s => { try { s.stop() } catch {} })
+    activeSourcesRef.current.forEach(s => { try { s.stop() } catch { /* already stopped */ } })
     activeSourcesRef.current = []
     audioQueueRef.current = []
     nextPlayTimeRef.current = 0

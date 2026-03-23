@@ -10,7 +10,7 @@
  * has avatar3dUrl configured.
  */
 
-/// <reference types="@react-three/fiber" />
+// React Three Fiber types are resolved via tsconfig
 'use client'
 
 import { useRef, useEffect, useMemo } from 'react'
@@ -96,7 +96,7 @@ function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
   const baseRotationY = useRef(0)
   const baseScale = useRef(1)
   const blinkTimer = useRef(0)
-  const nextBlinkAt = useRef(Math.random() * 3 + 2)
+  const nextBlinkAt = useRef(3.5) // Initial value, randomized in useFrame
   const breathPhase = useRef(0)
   const currentExpressions = useRef<Record<string, number>>({})
   const targetExpressions = useRef<Record<string, number>>({})

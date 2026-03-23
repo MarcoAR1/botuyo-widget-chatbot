@@ -337,7 +337,7 @@ function Lightbox({ images, currentIndex, onClose, onNext, onPrev }: LightboxPro
   const handleTouchEnd = (e: React.TouchEvent) => {
     const dx = e.changedTouches[0].clientX - touchStartX.current
     if (Math.abs(dx) > 50) {
-      dx > 0 ? onPrev() : onNext()
+      if (dx > 0) { onPrev() } else { onNext() }
     }
   }
 
