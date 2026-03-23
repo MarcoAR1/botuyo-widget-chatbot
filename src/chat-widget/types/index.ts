@@ -183,9 +183,6 @@ export interface BubbleStyles {
 }
 
 export interface ChatTheme {
-  /** Color primario (botón, burbujas del usuario) */
-  primaryColor?: string
-
   /** Nombre del bot que aparece en el header */
   botName?: string
 
@@ -203,18 +200,6 @@ export interface ChatTheme {
 
   /** Placeholder del input */
   inputPlaceholder?: string
-
-  /** Border radius del chat window (CSS value, ej: '24px', '1.5rem') */
-  borderRadius?: string
-
-  /** Border radius del launcher button (CSS value, ej: '50%', '24px') */
-  launcherBorderRadius?: string
-
-  /** Altura del chat window en desktop (CSS value, ej: '600px', '80vh') */
-  height?: string
-
-  /** Distancia desde el bottom en desktop (CSS value, ej: '24px', '1.5rem') */
-  bottom?: string
 
   /* Aparece fuera del chat cuando está cerrado. Ej: "¿Necesitas ayuda?" */
   starterPrompt?: string
@@ -256,8 +241,24 @@ export interface ChatTheme {
     border?: string
     /** Color destructivo/error (formato HSL sin hsl(), ej: "0 84.2% 60.2%") */
     destructive?: string
-    /** Border radius base (ej: "0.5rem") */
+    /** Border radius base para componentes internos (ej: "0.5rem") */
     radius?: string
+
+    // ── Layout del widget (reemplaza los campos top-level) ──────────────────
+    /** Border radius de la ventana del chat (ej: "24px", "1.5rem") */
+    windowBorderRadius?: string
+    /** Border radius del botón launcher (ej: "50%", "24px") */
+    launcherBorderRadius?: string
+    /** Altura de la ventana en desktop (ej: "700px", "80vh") */
+    windowHeight?: string
+    /** Distancia desde el borde inferior (ej: "24px") */
+    windowBottom?: string
+
+    // ── Color primario (reemplaza primaryColor top-level) ───────────────────
+    /** Color primario en formato HSL sin hsl() (ej: "210 100% 50%") */
+    primary?: string
+    /** Color de texto sobre fondo primario (ej: "0 0% 100%") */
+    primaryForeground?: string
 
     // Design System - Spacing
     /** Spacing 1 - Extra small (ej: "0.25rem") */

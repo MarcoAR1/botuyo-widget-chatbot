@@ -15,26 +15,32 @@ import { ChatTheme } from '../types'
  */
 
 export interface CSSVariables {
-  background: string // Fondo principal
-  foreground: string // Texto principal
-  card: string // Fondo de tarjetas
-  cardForeground: string // Texto en tarjetas
-  primary: string // Color primario
-  primaryForeground: string // Texto sobre primario
-  muted: string // Fondos atenuados
-  mutedForeground: string // Texto atenuado
-  border: string // Bordes
-  destructive: string // Color de error
-  radius: string // Radio de bordes
+  background: string
+  foreground: string
+  card: string
+  cardForeground: string
+  primary: string      // HSL sin hsl(), ej: "210 100% 50%" (reemplaza primaryColor)
+  primaryForeground: string
+  muted: string
+  mutedForeground: string
+  border: string
+  destructive: string
+  radius: string       // Border radius de componentes internos
 
-  // Design System - Spacing
-  spacing1?: string // 0.25rem (4px) - Extra small
-  spacing2?: string // 0.5rem (8px) - Small
-  spacing3?: string // 0.75rem (12px) - Medium small
-  spacing4?: string // 1rem (16px) - Medium (default)
-  spacing5?: string // 1.25rem (20px) - Medium large
-  spacing6?: string // 1.5rem (24px) - Large
-  spacing8?: string // 2rem (32px) - Extra large
+  // ── Layout del widget (reemplaza top-level borderRadius / height / bottom) ───
+  windowBorderRadius?: string  // ej: "24px"
+  launcherBorderRadius?: string // ej: "50%"
+  windowHeight?: string        // ej: "700px"
+  windowBottom?: string        // ej: "24px"
+
+  // ── Design System - Spacing ─────────────────────────────────
+  spacing1?: string
+  spacing2?: string
+  spacing3?: string
+  spacing4?: string
+  spacing5?: string
+  spacing6?: string
+  spacing8?: string
 }
 
 /**
@@ -109,21 +115,16 @@ export const DEFAULT_THEME: Required<
     | 'avatars'
     | 'emotion'
     | 'starterPrompt'
-    | 'launcherBorderRadius'
-    | 'borderRadius'
     | 'bubbleStyles'
     | 'promptPersistence'
     | 'avatarScale'
     | 'showPromptAvatar'
-    | 'height'
-    | 'bottom'
     | 'defaultLocale'
     | 'animations'
     | 'effects'
     | 'avatar3dUrl'
   >
 > = {
-  primaryColor: 'hsl(160, 84%, 39%)',
   botName: 'BotUyo',
   logoUrl: '',
   position: 'bottom-right',
@@ -138,7 +139,6 @@ export const DEFAULT_THEME: Required<
  * Diseño profesional y corporativo con tonos azules
  */
 export const OCEAN_THEME: ChatTheme = {
-  primaryColor: 'hsl(211, 100%, 50%)',
   botName: 'Ocean Assistant',
   welcomeMessage: 'Bienvenido, ¿cómo puedo ayudarte?',
   cssVariables: {
@@ -153,7 +153,7 @@ export const OCEAN_THEME: ChatTheme = {
     border: '210 20% 88%',
     destructive: '0 84% 60%',
     radius: '0.75rem',
-    spacing5: '1rem', // 16px - más espacioso
+    spacing5: '1rem',
   },
 }
 
@@ -162,7 +162,6 @@ export const OCEAN_THEME: ChatTheme = {
  * Diseño energético y amigable con tonos cálidos
  */
 export const SUNSET_THEME: ChatTheme = {
-  primaryColor: 'hsl(24, 95%, 53%)',
   botName: 'Sunset Helper',
   welcomeMessage: '👋 ¡Hola! Estoy aquí para ayudarte',
   inputPlaceholder: '¿Qué necesitas?',
@@ -177,9 +176,9 @@ export const SUNSET_THEME: ChatTheme = {
     mutedForeground: '20 15% 35%',
     border: '30 20% 85%',
     destructive: '0 84% 60%',
-    radius: '1.25rem', // Bordes muy redondeados
-    spacing3: '1rem', // 16px - gaps más amplios
-    spacing5: '1.25rem', // 20px - padding generoso
+    radius: '1.25rem',
+    spacing3: '1rem',
+    spacing5: '1.25rem',
   },
 }
 
@@ -188,7 +187,6 @@ export const SUNSET_THEME: ChatTheme = {
  * Diseño oscuro y minimalista de alto contraste
  */
 export const MIDNIGHT_THEME: ChatTheme = {
-  primaryColor: 'hsl(0, 0%, 100%)',
   botName: 'Midnight AI',
   welcomeMessage: 'Hello.',
   inputPlaceholder: 'Type a message...',
@@ -203,11 +201,11 @@ export const MIDNIGHT_THEME: ChatTheme = {
     mutedForeground: '0 0% 70%',
     border: '0 0% 20%',
     destructive: '0 84% 60%',
-    radius: '0.25rem', // Bordes cuadrados
-    spacing1: '0.125rem', // 2px - muy compacto
-    spacing2: '0.25rem', // 4px
-    spacing3: '0.5rem', // 8px
-    spacing5: '0.625rem', // 10px - muy compacto
+    radius: '0.25rem',
+    spacing1: '0.125rem',
+    spacing2: '0.25rem',
+    spacing3: '0.5rem',
+    spacing5: '0.625rem',
   },
 }
 
@@ -216,7 +214,6 @@ export const MIDNIGHT_THEME: ChatTheme = {
  * Diseño natural y relajante
  */
 export const NATURE_THEME: ChatTheme = {
-  primaryColor: 'hsl(142, 71%, 45%)',
   botName: 'Nature Guide',
   welcomeMessage: '🌿 ¡Hola! ¿En qué puedo asistirte?',
   cssVariables: {
@@ -260,21 +257,16 @@ export function mergeThemeWithDefaults(
     | 'avatars'
     | 'emotion'
     | 'starterPrompt'
-    | 'launcherBorderRadius'
-    | 'borderRadius'
     | 'bubbleStyles'
     | 'promptPersistence'
     | 'avatarScale'
     | 'showPromptAvatar'
-    | 'height'
-    | 'bottom'
     | 'defaultLocale'
     | 'animations'
     | 'effects'
     | 'avatar3dUrl'
   >
 > {
-  // Merge de cssVariables con prioridad: user > socket > default
   const mergedCssVariables: CSSVariables = {
     ...DEFAULT_CSS_VARIABLES,
     ...(socketTheme?.cssVariables || {}),
@@ -282,8 +274,6 @@ export function mergeThemeWithDefaults(
   }
 
   return {
-    primaryColor:
-      userTheme?.primaryColor || socketTheme?.primaryColor || DEFAULT_THEME.primaryColor,
     botName: userTheme?.botName || socketTheme?.botName || DEFAULT_THEME.botName,
     logoUrl: userTheme?.logoUrl || socketTheme?.logoUrl || DEFAULT_THEME.logoUrl,
     position: userTheme?.position || socketTheme?.position || DEFAULT_THEME.position,
@@ -299,10 +289,13 @@ export function mergeThemeWithDefaults(
 }
 
 /**
- * Obtiene el color primario con fallback
+ * Obtiene el color primario en formato hsl(...) desde cssVariables.primary
+ * Ejemplo: "210 100% 50%" -> "hsl(210 100% 50%)"
  */
-export function getPrimaryColor(options: { primaryColor?: string }): string {
-  return options.primaryColor || DEFAULT_THEME.primaryColor
+export function getPrimaryColor(options: { cssVariables?: Partial<CSSVariables>; primaryColor?: string }): string {
+  if (options.cssVariables?.primary) return `hsl(${options.cssVariables.primary})`
+  if (options.primaryColor) return options.primaryColor
+  return `hsl(${DEFAULT_CSS_VARIABLES.primary})`
 }
 
 /**
@@ -312,7 +305,7 @@ export function cssVariablesToInlineStyles(
   variables: Partial<CSSVariables>
 ): Record<string, string> {
   const merged = { ...DEFAULT_CSS_VARIABLES, ...variables }
-  return {
+  const styles: Record<string, string> = {
     '--background': merged.background,
     '--foreground': merged.foreground,
     '--card': merged.card,
@@ -325,6 +318,12 @@ export function cssVariablesToInlineStyles(
     '--destructive': merged.destructive,
     '--radius': merged.radius,
   }
+  // Layout vars (only emit if defined)
+  if (merged.windowBorderRadius) styles['--window-border-radius'] = merged.windowBorderRadius
+  if (merged.launcherBorderRadius) styles['--launcher-border-radius'] = merged.launcherBorderRadius
+  if (merged.windowHeight) styles['--window-height'] = merged.windowHeight
+  if (merged.windowBottom) styles['--window-bottom'] = merged.windowBottom
+  return styles
 }
 
 /**

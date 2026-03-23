@@ -24,8 +24,6 @@ export interface ChatWindowProps {
   logoUrl?: string
   welcomeMessage?: string
   inputPlaceholder?: string
-  primaryColor?: string
-  borderRadius?: string
   mediaConfig?: MediaConfig
   onClose: () => void
   onSendMessage: (message: string) => void
@@ -50,7 +48,6 @@ export function ChatWindow({
   logoUrl,
   welcomeMessage,
   inputPlaceholder,
-  primaryColor,
   mediaConfig,
   onClose,
   onSendMessage,
@@ -68,11 +65,11 @@ export function ChatWindow({
   const [showCallConfirm, setShowCallConfirm] = useState(false)
   const { t } = useTranslations()
   const isMobile = useIsMobile()
-  const themePrimary = getPrimaryColor({ primaryColor })
+  const themePrimary = getPrimaryColor({ cssVariables: theme?.cssVariables })
   const dynamicHeightStyles = useDynamicHeight({
     isOpen,
-    height: theme?.height,
-    bottom: theme?.bottom,
+    height: theme?.cssVariables?.windowHeight,
+    bottom: theme?.cssVariables?.windowBottom,
   })
 
   // Focus trap para accesibilidad
@@ -294,7 +291,7 @@ export function ChatWindow({
             messages={messages}
             isTyping={isTyping}
             welcomeMessage={welcomeMessage}
-            primaryColor={primaryColor}
+            primaryColor={themePrimary}
             logoUrl={logoUrl}
             botName={botName}
             bubbleStyles={bubbleStyles}

@@ -36,18 +36,17 @@ export function useWidgetTheme(projectTheme?: ChatTheme, socketTheme?: ChatTheme
     if (isHighContrast) {
       return {
         ...baseTheme,
-        primaryColor: '#000000',
         cssVariables: {
           ...baseTheme.cssVariables,
-          background: '#FFFFFF',
-          foreground: '#000000',
-          card: '#FFFFFF',
-          cardForeground: '#000000',
-          primary: '#000000',
-          primaryForeground: '#FFFFFF',
-          muted: '#F5F5F5',
-          mutedForeground: '#000000',
-          border: '#000000',
+          primary: '0 0% 0%',
+          primaryForeground: '0 0% 100%',
+          background: '0 0% 100%',
+          foreground: '0 0% 0%',
+          card: '0 0% 100%',
+          cardForeground: '0 0% 0%',
+          muted: '0 0% 96%',
+          mutedForeground: '0 0% 0%',
+          border: '0 0% 0%',
         },
       }
     }
@@ -77,9 +76,8 @@ export function useWidgetTheme(projectTheme?: ChatTheme, socketTheme?: ChatTheme
     position?: 'bottom-left' | 'bottom-right'
   ): React.CSSProperties => {
     return {
-      // Las CSS variables ya se aplican en el root container desde standalone.tsx
-      // Solo necesitamos la variable de primaryColor para compatibilidad
-      '--chat-primary': mergedTheme.primaryColor,
+      // --chat-primary derived from cssVariables.primary for components that still need it inline
+      '--chat-primary': `hsl(${mergedTheme.cssVariables.primary})`,
       zIndex: isOpen ? 2147483647 : 9999,
       position: 'fixed',
       top: isMobile && isOpen ? 0 : 'auto',
