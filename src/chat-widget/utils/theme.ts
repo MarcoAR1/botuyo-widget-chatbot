@@ -72,13 +72,13 @@ export const DEFAULT_CSS_VARIABLES: CSSVariables = {
 /**
  * Valores CSS para Dark Mode
  */
-export const DARK_CSS_VARIABLES: CSSVariables = {
+export const DARK_CSS_VARIABLES: Partial<CSSVariables> = {
   background: '240 10% 3.9%', // Fondo oscuro
   foreground: '0 0% 98%', // Texto claro
   card: '240 10% 10%', // Tarjetas oscuras
   cardForeground: '0 0% 98%', // Texto claro
-  primary: '160 84% 39%', // Verde BotUyo
-  primaryForeground: '0 0% 100%', // Blanco
+  // NOTE: primary and primaryForeground are intentionally OMITTED
+  // They come from the server config (brand color) and should NOT be overridden by dark defaults
   muted: '240 3.7% 15.9%', // Gris oscuro
   mutedForeground: '240 5% 64.9%', // Gris claro
   border: '240 3.7% 15.9%', // Bordes oscuros
