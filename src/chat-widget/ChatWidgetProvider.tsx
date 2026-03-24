@@ -75,48 +75,56 @@ export interface ChatWidgetProviderProps extends ChatWidgetProps {
 /**
  * Creates a Shadow DOM container in document.body, injects widget CSS,
  * and renders children inside via React Portal.
+ * Handles React Strict Mode double-invocation safely.
  */
 function ShadowDOMHost({ children }: { children: ReactNode }) {
-  const containerRef = useRef<HTMLDivElement | null>(null)
-  const shadowRef = useRef<ShadowRoot | null>(null)
   const mountRef = useRef<HTMLDivElement | null>(null)
+  const containerRef = useRef<HTMLDivElement | null>(null)
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
     if (typeof document === 'undefined') return
 
-    // Create outer container (anchor in document.body — no layout impact)
-    const container = document.createElement('div')
-    container.id = 'botuyo-chat-widget-root'
-    // No position/sizing so it doesn't create a containing block
-    // that breaks position:fixed on child elements
-    document.body.appendChild(container)
+    // Reuse existing container if present (React Strict Mode remount)
+    let container = document.getElementById('botuyo-chat-widget-root') as HTMLDivElement | null
+    let shadow: ShadowRoot
+    let mount: HTMLDivElement
+
+    if (container && container.shadowRoot) {
+      // Reuse — already set up from a previous mount
+      shadow = container.shadowRoot
+      mount = shadow.getElementById('botuyo-chat-widget-root') as HTMLDivElement
+        || shadow.querySelector('div') as HTMLDivElement
+    } else {
+      // Create fresh container + shadow
+      container = document.createElement('div')
+      container.id = 'botuyo-chat-widget-root'
+      document.body.appendChild(container)
+
+      shadow = container.attachShadow({ mode: 'open' })
+
+      // Inject CSS (replace :root with :host for Shadow DOM)
+      const style = document.createElement('style')
+      style.textContent = cssContent.replace(/:root/g, ':host')
+      shadow.appendChild(style)
+
+      // Mount point for React
+      mount = document.createElement('div')
+      mount.id = 'botuyo-chat-widget-root'
+      shadow.appendChild(mount)
+    }
+
     containerRef.current = container
-
-    // Attach Shadow DOM for CSS isolation
-    const shadow = container.attachShadow({ mode: 'open' })
-    shadowRef.current = shadow
-
-    // Inject CSS into shadow root (not <head>)
-    // Replace :root with :host so CSS variables inherit inside Shadow DOM
-    const style = document.createElement('style')
-    style.textContent = cssContent.replace(/:root/g, ':host')
-    shadow.appendChild(style)
-
-    // Create mount point for React inside shadow root
-    const mount = document.createElement('div')
-    mount.id = 'botuyo-chat-widget-root'
-    shadow.appendChild(mount)
     mountRef.current = mount
-
     setReady(true)
     logger.debug('ChatWidgetProvider: Shadow DOM initialized')
 
     return () => {
-      container.remove()
-      containerRef.current = null
-      shadowRef.current = null
-      mountRef.current = null
+      if (containerRef.current) {
+        containerRef.current.remove()
+        containerRef.current = null
+        mountRef.current = null
+      }
     }
   }, [])
 
