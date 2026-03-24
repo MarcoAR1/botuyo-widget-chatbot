@@ -2,24 +2,26 @@
  * @package @botuyo/chat-widget
  * ChatWidgetProvider - React Context Provider para el widget
  *
- * Este provider permite usar el widget de chat como un componente React estándar
- * con acceso a su estado y métodos a través de hooks.
+ * Uses Shadow DOM for CSS isolation (same mechanism as standalone.tsx)
+ * while preserving React Context via createPortal.
+ *
+ * This gives us:
+ * - Full CSS isolation (Shadow DOM) — identical to standalone
+ * - React Context API (useChatWidget) — open/close/sendMessage/etc.
+ * - No CSS conflicts with host page
  */
 
 /* eslint-disable react-refresh/only-export-components */
-// Este archivo exporta tanto el componente Provider como el hook useChatWidget
 
 import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { ChatWidget } from './ChatWidget'
 import type { ChatWidgetProps } from './types'
 import { logger } from './utils/logger'
 import { LanguageProvider, type SupportedLocale } from './i18n'
 
 // Import the full widget CSS as inline string (same as standalone.tsx)
-// This is bundled at build time by Vite's ?inline import
 import cssContent from '../../styles.css?inline'
-
-const STYLE_ID = 'botuyo-chat-widget-styles'
 
 // ========== Context Types ==========
 
@@ -68,10 +70,67 @@ export interface ChatWidgetProviderProps extends ChatWidgetProps {
   defaultLocale?: SupportedLocale
 }
 
+// ========== Shadow DOM Host Component ==========
+
+/**
+ * Creates a Shadow DOM container in document.body, injects widget CSS,
+ * and renders children inside via React Portal.
+ */
+function ShadowDOMHost({ children }: { children: ReactNode }) {
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const shadowRef = useRef<ShadowRoot | null>(null)
+  const mountRef = useRef<HTMLDivElement | null>(null)
+  const [ready, setReady] = useState(false)
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+
+    // Create outer container (anchor in document.body — no layout impact)
+    const container = document.createElement('div')
+    container.id = 'botuyo-chat-widget-root'
+    // No position/sizing so it doesn't create a containing block
+    // that breaks position:fixed on child elements
+    document.body.appendChild(container)
+    containerRef.current = container
+
+    // Attach Shadow DOM for CSS isolation
+    const shadow = container.attachShadow({ mode: 'open' })
+    shadowRef.current = shadow
+
+    // Inject CSS into shadow root (not <head>)
+    // Replace :root with :host so CSS variables inherit inside Shadow DOM
+    const style = document.createElement('style')
+    style.textContent = cssContent.replace(/:root/g, ':host')
+    shadow.appendChild(style)
+
+    // Create mount point for React inside shadow root
+    const mount = document.createElement('div')
+    mount.id = 'botuyo-chat-widget-root'
+    shadow.appendChild(mount)
+    mountRef.current = mount
+
+    setReady(true)
+    logger.debug('ChatWidgetProvider: Shadow DOM initialized')
+
+    return () => {
+      container.remove()
+      containerRef.current = null
+      shadowRef.current = null
+      mountRef.current = null
+    }
+  }, [])
+
+  if (!ready || !mountRef.current) return null
+
+  // Portal renders React children inside Shadow DOM while preserving React context
+  return createPortal(children, mountRef.current)
+}
+
 // ========== Provider Component ==========
 
 /**
- * Provider que envuelve tu aplicación para dar acceso al Chat Widget
+ * Provider que envuelve tu aplicación para dar acceso al Chat Widget.
+ * Usa Shadow DOM para aislamiento CSS (idéntico al standalone).
  *
  * @example
  * ```tsx
@@ -99,36 +158,6 @@ export function ChatWidgetProvider({
 }: ChatWidgetProviderProps) {
   const [isOpen, setIsOpen] = useState(initialState?.isOpen ?? false)
   const [unreadCount, setUnreadCount] = useState(0)
-
-  // ── CSS Auto-injection ──
-  // Inject widget CSS into <head> on mount (mirrors standalone's Shadow DOM injection)
-  // This makes the Provider fully self-contained — consumers don't need extra CSS config
-  const styleInjectedRef = useRef(false)
-  useEffect(() => {
-    if (styleInjectedRef.current) return
-    if (typeof document === 'undefined') return
-
-    // Don't inject if already present (e.g. multiple Providers or hot reload)
-    if (document.getElementById(STYLE_ID)) {
-      styleInjectedRef.current = true
-      return
-    }
-
-    const style = document.createElement('style')
-    style.id = STYLE_ID
-    style.textContent = cssContent
-    document.head.appendChild(style)
-    styleInjectedRef.current = true
-    logger.debug('ChatWidgetProvider: injected widget CSS into <head>')
-
-    return () => {
-      const existing = document.getElementById(STYLE_ID)
-      if (existing) {
-        existing.remove()
-        styleInjectedRef.current = false
-      }
-    }
-  }, [])
 
   const open = useCallback(() => {
     setIsOpen(true)
@@ -195,17 +224,20 @@ export function ChatWidgetProvider({
     <LanguageProvider defaultLocale={defaultLocale}>
       <ChatWidgetContext.Provider value={contextValue}>
         {children}
-        <ChatWidget
-          {...widgetProps}
-          onStateChange={newIsOpen => {
-            setIsOpen(newIsOpen)
-            if (newIsOpen) {
-              setUnreadCount(0)
-            }
-            onStateChange?.(newIsOpen)
-          }}
-          onEvent={handleEvent}
-        />
+        {/* ChatWidget renders inside Shadow DOM via portal — CSS isolated */}
+        <ShadowDOMHost>
+          <ChatWidget
+            {...widgetProps}
+            onStateChange={newIsOpen => {
+              setIsOpen(newIsOpen)
+              if (newIsOpen) {
+                setUnreadCount(0)
+              }
+              onStateChange?.(newIsOpen)
+            }}
+            onEvent={handleEvent}
+          />
+        </ShadowDOMHost>
       </ChatWidgetContext.Provider>
     </LanguageProvider>
   )
@@ -247,3 +279,4 @@ export function useChatWidget(): ChatWidgetContextValue {
 // ========== Exports ==========
 
 export default ChatWidgetProvider
+
