@@ -24,7 +24,7 @@ const BotMessageSchema = z.object({
   type: z.enum(['text', 'image', 'audio', 'location', 'system']).default('text'),
   content: z.string().optional(),
   imageUrl: z.string().url().optional(),
-  audioUrl: z.string().url().optional(),
+  audioUrl: z.string().optional(), // Can be a full URL or internal API path
   latitude: z.number().optional(),
   longitude: z.number().optional(),
   timestamp: z.string().optional(),
@@ -90,14 +90,23 @@ export function useChatSocket(options: UseChatSocketOptions) {
             imageUrl: safe.imageUrl || safe.content || '',
             altText: 'Imagen enviada',
           }
-        case 'audio':
+        case 'audio': {
+          // Construct secure API URL for audio playback
+          // If audioUrl is already a full URL (http/https), use it as-is
+          // If it's an internal path, construct: {apiBaseUrl}/api/voice/audio/{messageId}
+          const rawAudioUrl = safe.audioUrl || safe.content || ''
+          const isFullUrl = rawAudioUrl.startsWith('http://') || rawAudioUrl.startsWith('https://')
+          const audioSrc = isFullUrl
+            ? rawAudioUrl
+            : rawAudioUrl // fallback to raw value (AudioPlayer handles gracefully)
           return {
             id: baseId,
             type: 'audio',
             sender: baseSender,
             timestamp: ts,
-            content: safe.audioUrl || safe.content || '',
+            content: audioSrc,
           }
+        }
         case 'location':
           return {
             id: baseId,

@@ -57,11 +57,11 @@ const DARK_CSS_VARS: Record<string, string> = {
   '--background': '240 10% 3.9%',
   '--foreground': '0 0% 98%',
   '--card': '240 10% 3.9%',
-  '--cardForeground': '0 0% 98%',
+  '--card-foreground': '0 0% 98%',
   '--primary': '160 84% 39%',
-  '--primaryForeground': '0 0% 100%',
+  '--primary-foreground': '0 0% 100%',
   '--muted': '240 3.7% 15.9%',
-  '--mutedForeground': '240 5% 64.9%',
+  '--muted-foreground': '240 5% 64.9%',
   '--border': '240 3.7% 15.9%',
 };
 
@@ -91,12 +91,19 @@ interface CSSVariables {
   border?: string;
   destructive?: string;
   radius?: string;
+  // Layout
+  windowBorderRadius?: string;
+  launcherBorderRadius?: string;
+  windowHeight?: string;
+  windowBottom?: string;
+  // Spacing
   spacing1?: string;
   spacing2?: string;
   spacing3?: string;
   spacing4?: string;
   spacing5?: string;
   spacing6?: string;
+  spacing7?: string;
   spacing8?: string;
 }
 
@@ -171,31 +178,40 @@ class BotUyoChatWidget {
     // Apply CSS variables to mount point if provided
     if (this.config.theme?.cssVariables && this.mountPoint) {
       const vars = this.config.theme.cssVariables;
-      const varMap: Record<string, string | undefined> = {
-        background: vars.background,
-        foreground: vars.foreground,
-        card: vars.card,
-        cardForeground: vars.cardForeground,
-        primary: vars.primary,
-        primaryForeground: vars.primaryForeground,
-        muted: vars.muted,
-        mutedForeground: vars.mutedForeground,
-        border: vars.border,
-        destructive: vars.destructive,
-        radius: vars.radius,
-        // Design System - Spacing
-        spacing1: vars.spacing1,
-        spacing2: vars.spacing2,
-        spacing3: vars.spacing3,
-        spacing4: vars.spacing4,
-        spacing5: vars.spacing5,
-        spacing6: vars.spacing6,
-        spacing8: vars.spacing8,
-      };
 
-      Object.entries(varMap).forEach(([key, value]) => {
+      // Map camelCase config keys to kebab-case CSS custom property names
+      const varMap: [string, string | undefined][] = [
+        // Colors
+        ['--background', vars.background],
+        ['--foreground', vars.foreground],
+        ['--card', vars.card],
+        ['--card-foreground', vars.cardForeground],
+        ['--primary', vars.primary],
+        ['--primary-foreground', vars.primaryForeground],
+        ['--muted', vars.muted],
+        ['--muted-foreground', vars.mutedForeground],
+        ['--border', vars.border],
+        ['--destructive', vars.destructive],
+        ['--radius', vars.radius],
+        // Layout
+        ['--window-border-radius', vars.windowBorderRadius],
+        ['--launcher-border-radius', vars.launcherBorderRadius],
+        ['--window-height', vars.windowHeight],
+        ['--window-bottom', vars.windowBottom],
+        // Spacing
+        ['--spacing-1', vars.spacing1],
+        ['--spacing-2', vars.spacing2],
+        ['--spacing-3', vars.spacing3],
+        ['--spacing-4', vars.spacing4],
+        ['--spacing-5', vars.spacing5],
+        ['--spacing-6', vars.spacing6],
+        ['--spacing-7', vars.spacing7],
+        ['--spacing-8', vars.spacing8],
+      ];
+
+      varMap.forEach(([cssVar, value]) => {
         if (value !== undefined) {
-          this.mountPoint!.style.setProperty(`--${key}`, value);
+          this.mountPoint!.style.setProperty(cssVar, value);
         }
       });
     }
@@ -226,14 +242,16 @@ class BotUyoChatWidget {
       agentId: this.config.agentId,
       theme: {
         // Defaults
-        primaryColor: '#10b981',
         botName: 'Asistente Virtual',
         // logoUrl is optional - components use DEFAULT_AVATAR_URL if not provided
         position: 'bottom-right',
         welcomeMessage: '¡Hola! 👋 ¿En qué puedo ayudarte?',
         inputPlaceholder: 'Escribe tu mensaje...',
-        borderRadius: '0.75rem',
-        launcherBorderRadius: '50%',
+        cssVariables: {
+          primary: '160 84% 39%',
+          windowBorderRadius: '24px',
+          launcherBorderRadius: '50%',
+        },
         // User config overrides defaults
         ...this.config.theme,
       },
@@ -261,7 +279,7 @@ class BotUyoChatWidget {
               width: '60px',
               height: '60px',
               borderRadius: '50%',
-              backgroundColor: widgetProps.theme?.primaryColor || '#10b981',
+              backgroundColor: '#10b981',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -436,8 +454,7 @@ export { BotUyoChatWidget };
 export type { StandaloneConfig };
 
 // Re-export React components for npm package usage
-// ShadowChatWidget wraps ChatWidget in Shadow DOM for CSS isolation
-export { ShadowChatWidget as ChatWidget } from './ShadowChatWidget';
+export { ChatWidget } from './src/chat-widget/ChatWidget';
 export { ChatWidget as ChatWidgetUnstyled } from './src/chat-widget/ChatWidget';
 export { ChatWidgetProvider, useChatWidget } from './src/chat-widget/ChatWidgetProvider';
 export type { ChatWidgetContextValue, ChatWidgetProviderProps } from './src/chat-widget/ChatWidgetProvider';

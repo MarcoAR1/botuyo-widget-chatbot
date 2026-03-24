@@ -30,8 +30,9 @@ describe('theme', () => {
       expect(DARK_CSS_VARIABLES.foreground).toBe('0 0% 98%')
     })
 
-    it('should use same primary color in both light and dark themes', () => {
-      expect(DEFAULT_CSS_VARIABLES.primary).toBe(DARK_CSS_VARIABLES.primary)
+    it('should NOT override primary in dark mode defaults', () => {
+      // Primary comes from server config, dark defaults should not override it
+      expect(DARK_CSS_VARIABLES.primary).toBeUndefined()
     })
 
     it('should have all required CSS variable properties', () => {
@@ -51,15 +52,20 @@ describe('theme', () => {
 
       requiredProps.forEach(prop => {
         expect(DEFAULT_CSS_VARIABLES[prop]).toBeDefined()
-        expect(DARK_CSS_VARIABLES[prop]).toBeDefined()
       })
+    })
+
+    it('should have spacing variables defined', () => {
+      expect(DEFAULT_CSS_VARIABLES.spacing1).toBe('0.25rem')
+      expect(DEFAULT_CSS_VARIABLES.spacing7).toBe('1.75rem')
+      expect(DEFAULT_CSS_VARIABLES.spacing8).toBe('2rem')
     })
   })
 
   describe('Predefined Themes', () => {
     describe('OCEAN_THEME', () => {
-      it('should have ocean blue color', () => {
-        expect(OCEAN_THEME.primaryColor).toBe('hsl(211, 100%, 50%)')
+      it('should have ocean blue primary via cssVariables', () => {
+        expect(OCEAN_THEME.cssVariables?.primary).toBe('211 100% 50%')
       })
 
       it('should have ocean branding', () => {
@@ -68,8 +74,8 @@ describe('theme', () => {
     })
 
     describe('SUNSET_THEME', () => {
-      it('should have sunset orange color', () => {
-        expect(SUNSET_THEME.primaryColor).toBe('hsl(24, 95%, 53%)')
+      it('should have sunset orange primary via cssVariables', () => {
+        expect(SUNSET_THEME.cssVariables?.primary).toBe('24 95% 53%')
       })
 
       it('should have sunset branding', () => {
@@ -82,20 +88,21 @@ describe('theme', () => {
     it('should return default theme when no user theme provided', () => {
       const merged = mergeThemeWithDefaults()
 
-      expect(merged.primaryColor).toBe(DEFAULT_THEME.primaryColor)
       expect(merged.botName).toBe(DEFAULT_THEME.botName)
       expect(merged.cssVariables).toEqual(DEFAULT_CSS_VARIABLES)
     })
 
     it('should merge user theme with defaults', () => {
       const userTheme = {
-        primaryColor: 'hsl(200, 100%, 50%)',
         botName: 'Custom Bot',
+        cssVariables: {
+          primary: '200 100% 50%',
+        },
       }
 
       const merged = mergeThemeWithDefaults(userTheme)
 
-      expect(merged.primaryColor).toBe('hsl(200, 100%, 50%)')
+      expect(merged.cssVariables.primary).toBe('200 100% 50%')
       expect(merged.botName).toBe('Custom Bot')
       expect(merged.position).toBe(DEFAULT_THEME.position) // Default
     })
@@ -130,42 +137,71 @@ describe('theme', () => {
 
     it('should override all default values when provided', () => {
       const userTheme = {
-        primaryColor: 'hsl(0, 100%, 50%)',
         botName: 'New Bot',
         logoUrl: 'https://example.com/logo.png',
         position: 'bottom-left' as const,
         welcomeMessage: 'Custom welcome',
         inputPlaceholder: 'Custom placeholder',
+        cssVariables: {
+          primary: '0 100% 50%',
+        },
       }
 
       const merged = mergeThemeWithDefaults(userTheme)
 
-      expect(merged.primaryColor).toBe(userTheme.primaryColor)
+      expect(merged.cssVariables.primary).toBe('0 100% 50%')
       expect(merged.botName).toBe(userTheme.botName)
       expect(merged.logoUrl).toBe(userTheme.logoUrl)
       expect(merged.position).toBe(userTheme.position)
       expect(merged.welcomeMessage).toBe(userTheme.welcomeMessage)
       expect(merged.inputPlaceholder).toBe(userTheme.inputPlaceholder)
     })
+
+    it('should give socketTheme priority over defaults', () => {
+      const socketTheme = {
+        botName: 'Socket Bot',
+        cssVariables: {
+          primary: '210 100% 50%',
+        },
+      }
+
+      const merged = mergeThemeWithDefaults(undefined, socketTheme)
+
+      expect(merged.botName).toBe('Socket Bot')
+      expect(merged.cssVariables.primary).toBe('210 100% 50%')
+    })
+
+    it('should give userTheme priority over socketTheme', () => {
+      const userTheme = {
+        cssVariables: { primary: '0 100% 50%' },
+      }
+      const socketTheme = {
+        cssVariables: { primary: '210 100% 50%' },
+      }
+
+      const merged = mergeThemeWithDefaults(userTheme, socketTheme)
+
+      expect(merged.cssVariables.primary).toBe('0 100% 50%')
+    })
   })
 
   describe('getPrimaryColor', () => {
-    it('should return provided primary color', () => {
-      const color = getPrimaryColor({ primaryColor: 'hsl(200, 50%, 50%)' })
+    it('should return cssVariables.primary as hsl()', () => {
+      const color = getPrimaryColor({ cssVariables: { primary: '200 50% 50%' } })
 
-      expect(color).toBe('hsl(200, 50%, 50%)')
+      expect(color).toBe('hsl(200 50% 50%)')
     })
 
     it('should return default color when not provided', () => {
       const color = getPrimaryColor({})
 
-      expect(color).toBe('hsl(160, 84%, 39%)')
+      expect(color).toBe(`hsl(${DEFAULT_CSS_VARIABLES.primary})`)
     })
 
-    it('should handle undefined primaryColor', () => {
-      const color = getPrimaryColor({ primaryColor: undefined })
+    it('should fallback to legacy primaryColor if no cssVariables.primary', () => {
+      const color = getPrimaryColor({ primaryColor: 'hsl(200, 50%, 50%)' })
 
-      expect(color).toBe('hsl(160, 84%, 39%)')
+      expect(color).toBe('hsl(200, 50%, 50%)')
     })
   })
 
@@ -214,6 +250,28 @@ describe('theme', () => {
       expect(styles['--card-foreground']).toBe(DEFAULT_CSS_VARIABLES.cardForeground)
       expect(styles['--primary-foreground']).toBe(DEFAULT_CSS_VARIABLES.primaryForeground)
       expect(styles['--muted-foreground']).toBe(DEFAULT_CSS_VARIABLES.mutedForeground)
+    })
+
+    it('should include spacing variables', () => {
+      const styles = cssVariablesToInlineStyles({})
+
+      expect(styles['--spacing-1']).toBe(DEFAULT_CSS_VARIABLES.spacing1)
+      expect(styles['--spacing-7']).toBe(DEFAULT_CSS_VARIABLES.spacing7)
+      expect(styles['--spacing-8']).toBe(DEFAULT_CSS_VARIABLES.spacing8)
+    })
+
+    it('should include layout variables when provided', () => {
+      const styles = cssVariablesToInlineStyles({
+        windowBorderRadius: '24px',
+        launcherBorderRadius: '50%',
+        windowHeight: '700px',
+        windowBottom: '24px',
+      })
+
+      expect(styles['--window-border-radius']).toBe('24px')
+      expect(styles['--launcher-border-radius']).toBe('50%')
+      expect(styles['--window-height']).toBe('700px')
+      expect(styles['--window-bottom']).toBe('24px')
     })
   })
 
@@ -267,17 +325,14 @@ describe('theme', () => {
       const themes = [DEFAULT_THEME, OCEAN_THEME, SUNSET_THEME]
 
       themes.forEach(theme => {
-        expect(theme.primaryColor).toBeDefined()
         expect(theme.botName).toBeDefined()
-        // position, welcomeMessage, inputPlaceholder are optional in ChatTheme
-        if (theme.cssVariables) {
-          expect(theme.cssVariables).toBeDefined()
-        }
+        expect(theme.cssVariables).toBeDefined()
+        expect(theme.cssVariables?.primary).toBeDefined()
       })
     })
 
     it('all themes should have valid position values', () => {
-      const validPositions = ['bottom-right', 'bottom-left', 'top-right', 'top-left']
+      const validPositions = ['bottom-right', 'bottom-left']
       const themes = [DEFAULT_THEME, OCEAN_THEME, SUNSET_THEME]
 
       themes.forEach(theme => {
@@ -288,11 +343,12 @@ describe('theme', () => {
       })
     })
 
-    it('all themes should have valid HSL color formats', () => {
+    it('all themes should have valid HSL values in cssVariables.primary', () => {
       const themes = [DEFAULT_THEME, OCEAN_THEME, SUNSET_THEME]
 
       themes.forEach(theme => {
-        expect(theme.primaryColor).toMatch(/^hsl\(\d+,\s*\d+%,\s*\d+%\)$/)
+        // HSL values without hsl() wrapper, e.g. "160 84% 39%"
+        expect(theme.cssVariables?.primary).toMatch(/^\d+\s+\d+%\s+\d+%$/)
       })
     })
   })

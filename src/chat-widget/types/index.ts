@@ -254,11 +254,6 @@ export interface ChatTheme {
     /** Distancia desde el borde inferior (ej: "24px") */
     windowBottom?: string
 
-    // ── Color primario (reemplaza primaryColor top-level) ───────────────────
-    /** Color primario en formato HSL sin hsl() (ej: "210 100% 50%") */
-    primary?: string
-    /** Color de texto sobre fondo primario (ej: "0 0% 100%") */
-    primaryForeground?: string
 
     // Design System - Spacing
     /** Spacing 1 - Extra small (ej: "0.25rem") */
@@ -273,9 +268,30 @@ export interface ChatTheme {
     spacing5?: string
     /** Spacing 6 - Large (ej: "1.5rem") */
     spacing6?: string
+    /** Spacing 7 - Large (ej: "1.75rem") */
+    spacing7?: string
     /** Spacing 8 - Extra large (ej: "2rem") */
     spacing8?: string
   }
+
+  /** Dark mode CSS variable overrides. Same keys as cssVariables.
+   *  primary/primaryForeground are preserved from light mode —
+   *  only override surface colors (background, card, muted, border, etc.) */
+  darkCssVariables?: {
+    background?: string
+    foreground?: string
+    card?: string
+    cardForeground?: string
+    primary?: string
+    primaryForeground?: string
+    muted?: string
+    mutedForeground?: string
+    border?: string
+    destructive?: string
+  }
+
+  /** Text shown in the widget header bar (overrides botName in header) */
+  headerText?: string
 
   /** Animation configuration - control all widget animations */
   animations?: AnimationConfig

@@ -12,7 +12,7 @@ import { useIsMobile } from './hooks/useIsMobile'
 import { useWidgetTheme } from './hooks/useWidgetTheme'
 import { useChatWidget } from './hooks/useChatWidget'
 import { useDarkMode } from './hooks/useDarkMode'
-import { DARK_CSS_VARIABLES } from './utils/theme'
+import { DARK_CSS_VARIABLES, getPrimaryColor } from './utils/theme'
 
 // Premium animations
 import './styles/premium-animations.css'
@@ -120,21 +120,24 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
     if (!mergedTheme.cssVariables) return {}
 
     // Start with the merged light theme
-    let cssVars = { ...mergedTheme.cssVariables }
+    let cssVars: Record<string, string | undefined> = { ...mergedTheme.cssVariables }
 
     // Overlay dark CSS variables when dark mode is active
     if (isDarkMode) {
-      // Priority: socketTheme.darkCssVariables > DARK_CSS_VARIABLES (defaults)
+      // Priority: user theme darkCssVariables > socketTheme.darkCssVariables > DARK_CSS_VARIABLES (defaults)
       const socketDarkVars = (socketTheme as any)?.darkCssVariables || {}
+      const userDarkVars = theme?.darkCssVariables || {}
       cssVars = {
         ...cssVars,
         ...DARK_CSS_VARIABLES,
         ...socketDarkVars,
+        ...userDarkVars,
       }
     }
 
     const vars: Record<string, string> = {}
 
+    // Color variables (kebab-case to match styles.css)
     if (cssVars.background) vars['--background'] = cssVars.background
     if (cssVars.foreground) vars['--foreground'] = cssVars.foreground
     if (cssVars.card) vars['--card'] = cssVars.card
@@ -146,16 +149,25 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
     if (cssVars.border) vars['--border'] = cssVars.border
     if (cssVars.destructive) vars['--destructive'] = cssVars.destructive
     if (cssVars.radius) vars['--radius'] = cssVars.radius
+
+    // Layout variables
+    if (cssVars.windowBorderRadius) vars['--window-border-radius'] = cssVars.windowBorderRadius
+    if (cssVars.launcherBorderRadius) vars['--launcher-border-radius'] = cssVars.launcherBorderRadius
+    if (cssVars.windowHeight) vars['--window-height'] = cssVars.windowHeight
+    if (cssVars.windowBottom) vars['--window-bottom'] = cssVars.windowBottom
+
+    // Spacing variables (kebab-case)
     if (cssVars.spacing1) vars['--spacing-1'] = cssVars.spacing1
     if (cssVars.spacing2) vars['--spacing-2'] = cssVars.spacing2
     if (cssVars.spacing3) vars['--spacing-3'] = cssVars.spacing3
     if (cssVars.spacing4) vars['--spacing-4'] = cssVars.spacing4
     if (cssVars.spacing5) vars['--spacing-5'] = cssVars.spacing5
     if (cssVars.spacing6) vars['--spacing-6'] = cssVars.spacing6
+    if (cssVars.spacing7) vars['--spacing-7'] = cssVars.spacing7
     if (cssVars.spacing8) vars['--spacing-8'] = cssVars.spacing8
 
     return vars
-  }, [mergedTheme.cssVariables, isDarkMode, socketTheme])
+  }, [mergedTheme.cssVariables, isDarkMode, socketTheme, theme?.darkCssVariables])
 
   if (mergedTheme.isHidden) return null
 
@@ -211,7 +223,7 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
               logoUrl={mergedTheme.logoUrl}
               welcomeMessage={mergedTheme.welcomeMessage}
               inputPlaceholder={theme?.inputPlaceholder || (socketTheme as any)?.inputPlaceholder}
-              primaryColor={mergedTheme.primaryColor}
+              
               position={theme?.position}
               bubbleStyles={mergedStyles}
               avatars={theme?.avatars || (socketTheme as any)?.avatars || (socketTheme as any)?.avatarAnimations || {}}
@@ -236,7 +248,7 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
             onClick={handleToggle}
             unreadCount={unreadCount}
             position={theme?.position || 'bottom-right'}
-            primaryColor={mergedTheme.primaryColor}
+            primaryColor={getPrimaryColor(mergedTheme)}
             logoUrl={mergedTheme.logoUrl}
             starterPrompt={theme?.starterPrompt || (socketTheme as any)?.starterPrompt}
             avatars={theme?.avatars || (socketTheme as any)?.avatars || (socketTheme as any)?.avatarAnimations || {}}

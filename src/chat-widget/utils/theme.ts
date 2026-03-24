@@ -40,6 +40,7 @@ export interface CSSVariables {
   spacing4?: string
   spacing5?: string
   spacing6?: string
+  spacing7?: string
   spacing8?: string
 }
 
@@ -66,6 +67,7 @@ export const DEFAULT_CSS_VARIABLES: CSSVariables = {
   spacing4: '1rem', // 16px (default)
   spacing5: '0.75rem', // 12px (padding default)
   spacing6: '1.5rem', // 24px
+  spacing7: '1.75rem', // 28px
   spacing8: '2rem', // 32px
 }
 
@@ -92,6 +94,7 @@ export const DARK_CSS_VARIABLES: Partial<CSSVariables> = {
   spacing4: '1rem',
   spacing5: '0.75rem',
   spacing6: '1.5rem',
+  spacing7: '1.75rem',
   spacing8: '2rem',
 }
 
@@ -123,6 +126,8 @@ export const DEFAULT_THEME: Required<
     | 'animations'
     | 'effects'
     | 'avatar3dUrl'
+    | 'darkCssVariables'
+    | 'headerText'
   >
 > = {
   botName: 'BotUyo',
@@ -265,6 +270,8 @@ export function mergeThemeWithDefaults(
     | 'animations'
     | 'effects'
     | 'avatar3dUrl'
+    | 'darkCssVariables'
+    | 'headerText'
   >
 > {
   const mergedCssVariables: CSSVariables = {
@@ -323,6 +330,15 @@ export function cssVariablesToInlineStyles(
   if (merged.launcherBorderRadius) styles['--launcher-border-radius'] = merged.launcherBorderRadius
   if (merged.windowHeight) styles['--window-height'] = merged.windowHeight
   if (merged.windowBottom) styles['--window-bottom'] = merged.windowBottom
+  // Spacing vars
+  if (merged.spacing1) styles['--spacing-1'] = merged.spacing1
+  if (merged.spacing2) styles['--spacing-2'] = merged.spacing2
+  if (merged.spacing3) styles['--spacing-3'] = merged.spacing3
+  if (merged.spacing4) styles['--spacing-4'] = merged.spacing4
+  if (merged.spacing5) styles['--spacing-5'] = merged.spacing5
+  if (merged.spacing6) styles['--spacing-6'] = merged.spacing6
+  if (merged.spacing7) styles['--spacing-7'] = merged.spacing7
+  if (merged.spacing8) styles['--spacing-8'] = merged.spacing8
   return styles
 }
 

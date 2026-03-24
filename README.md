@@ -1,323 +1,302 @@
-# BotUyo Chat Widget
+# @botuyo/chat-widget
 
-Widget de chat AI embebible enterprise-ready. Disponible via **NPM** y **CDN** para cualquier sitio web.
-
-[![npm version](https://badge.fury.io/js/%40botuyo%2Fchat-widget-standalone.svg)](https://www.npmjs.com/package/@botuyo/chat-widget-standalone)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+> AI-powered chat widget with Shadow DOM isolation, dark mode, voice chat, and full white-labeling. Works as a CDN script tag or NPM React component.
 
 ---
 
-## 🚀 Instalación Rápida
+## Quick Start — CDN (Standalone)
 
-### Opción 1: CDN (JavaScript Vanilla)
+Add a single script tag to any HTML page. No build step required.
 
 ```html
-<!-- CSS (REQUERIDO) -->
-<link rel="stylesheet" href="https://cdn-chatbot.botuyo.com/latest/botuyo-chat.css">
-
-<!-- JavaScript -->
-<script src="https://cdn-chatbot.botuyo.com/latest/botuyo-chat.js"></script>
+<script src="https://cdn.botuyo.com/widget/botuyo-chat.js"></script>
 <script>
   BotUyoChat.init({
-    apiKey: 'tu-api-key',
-    apiBaseUrl: 'https://api.botuyo.com',
-    theme: {
-      primaryColor: '#10b981',
-      botName: 'Asistente BotUyo',
-      position: 'bottom-right'
-    }
+    apiKey: 'YOUR_API_KEY'
   });
 </script>
 ```
 
-**CDN Alternativo (jsDelivr/unpkg):**
+That's it. The widget connects to the BotUyo backend, receives the agent configuration (name, avatar, colors, voice settings), and renders itself in a Shadow DOM so it never conflicts with your site's CSS.
+
+### CDN — Custom Theme Override
+
+You can override any server-sent value locally:
+
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@botuyo/chat-widget-standalone@1.0.4/dist/botuyo-chat.umd.css">
-<script src="https://cdn.jsdelivr.net/npm/@botuyo/chat-widget-standalone@1.0.4/dist/botuyo-chat.umd.js"></script>
+<script src="https://cdn.botuyo.com/widget/botuyo-chat.js"></script>
+<script>
+  BotUyoChat.init({
+    apiKey: 'YOUR_API_KEY',
+    theme: {
+      botName: 'Soporte',
+      position: 'bottom-left',
+      welcomeMessage: '¡Hola! ¿En qué te puedo ayudar?',
+      inputPlaceholder: 'Escribí tu mensaje...',
+      cssVariables: {
+        primary: '210 100% 50%',        // Blue
+        primaryForeground: '0 0% 100%', // White text on blue
+        background: '0 0% 100%',        // White background
+        foreground: '210 20% 12%',      // Dark text
+        radius: '0.75rem',
+      },
+      darkCssVariables: {
+        background: '220 40% 3%',
+        foreground: '210 20% 98%',
+        card: '220 40% 5%',
+        muted: '220 30% 10%',
+        border: '220 30% 12%',
+      },
+    },
+  });
+</script>
 ```
 
-### Opción 2: NPM Package (React/Next.js)
+### CDN — Programmatic API
+
+```js
+BotUyoChat.open();                    // Open the chat window
+BotUyoChat.close();                   // Close the chat window
+BotUyoChat.sendMessage('Hola!');      // Send a message
+BotUyoChat.destroy();                 // Remove widget from page
+
+// Update config at runtime
+BotUyoChat.update({
+  theme: { botName: 'New Name' }
+});
+```
+
+---
+
+## NPM — React / Next.js
 
 ```bash
-npm install @botuyo/chat-widget-standalone@1.0.4
+npm install @botuyo/chat-widget-standalone
 ```
+
+### Option 1: Drop-in Component (Shadow DOM)
+
+The default `ChatWidget` export renders inside Shadow DOM for full CSS isolation:
 
 ```tsx
-import BotUyoChat from '@botuyo/chat-widget-standalone';
+import { ChatWidget } from '@botuyo/chat-widget-standalone';
 
-// En useEffect o al cargar
-BotUyoChat.init({
-  apiKey: 'tu-api-key',
-  apiBaseUrl: 'https://api.botuyo.com',
-  theme: {
-    primaryColor: '#10b981',
-    botName: 'Asistente Virtual'
-  }
-});
+export default function App() {
+  return (
+    <ChatWidget
+      apiKey="YOUR_API_KEY"
+      theme={{
+        position: 'bottom-right',
+        cssVariables: {
+          primary: '210 100% 50%',
+        },
+      }}
+    />
+  );
+}
 ```
 
----
+### Option 2: Provider + Hook (Programmatic Control)
 
-## ⚙️ Configuración Completa
+Use `ChatWidgetProvider` to access the widget state from any component:
 
-```typescript
-interface StandaloneConfig {
-  // ═══════════════════════════════════════════
-  // REQUERIDO
-  // ═══════════════════════════════════════════
-  apiKey: string;              // Tu API key de BotUyo
-  apiBaseUrl: string;          // URL del backend WebSocket
+```tsx
+import { ChatWidgetProvider, useChatWidget } from '@botuyo/chat-widget-standalone';
 
-  // ═══════════════════════════════════════════
-  // TEMA (opcional)
-  // ═══════════════════════════════════════════
-  theme?: {
-    primaryColor?: string;         // Color principal (default: '#10b981')
-    botName?: string;              // Nombre del bot (default: 'Asistente Virtual')
-    logoUrl?: string;              // URL del avatar del bot
-    position?: 'bottom-right' | 'bottom-left';
-    welcomeMessage?: string;       // Mensaje de bienvenida inicial
-    inputPlaceholder?: string;     // Placeholder del input
-    borderRadius?: string;         // Border radius ventana (default: '1.5rem')
-    height?: string;               // Altura del chat (default: '600px')
-    bottom?: string;               // Distancia desde abajo (default: '24px')
-    
-    // Animaciones
-    animations?: {
-      enabled?: boolean;           // Toggle maestro (default: true)
-      messageEntry?: 'spring' | 'slide' | 'fade' | 'scale' | 'none';
-      typingIndicator?: 'wave' | 'dots' | 'pulse' | 'none';
-      launcherPulse?: boolean;     // Pulso del botón launcher
-      windowTransitions?: boolean; // Animación apertura/cierre
-    };
-    
-    // Efectos visuales
-    effects?: {
-      glassmorphism?: boolean;     // Blur en headers
-      gradients?: boolean;         // Fondos degradados
-      softShadows?: boolean;       // Sombras suaves
-      glowEffects?: boolean;       // Glow en focus/hover
-      shimmerLoading?: boolean;    // Shimmer en carga
-      hoverLift?: boolean;         // Elevación en hover
-    };
-  };
+function App() {
+  return (
+    <ChatWidgetProvider apiKey="YOUR_API_KEY">
+      <MyPage />
+    </ChatWidgetProvider>
+  );
+}
 
-  // ═══════════════════════════════════════════
-  // MEDIA CONFIG (opcional)
-  // ═══════════════════════════════════════════
-  mediaConfig?: {
-    enableVoice?: boolean;         // Habilitar notas de voz (default: true)
-    enableAttachments?: boolean;   // Habilitar adjuntos (default: true)
-    enableLocation?: boolean;      // Habilitar ubicación (default: true)
-  };
+function MyPage() {
+  const { open, close, isOpen, unreadCount, sendMessage } = useChatWidget();
 
-  // ═══════════════════════════════════════════
-  // CALLBACKS (opcional)
-  // ═══════════════════════════════════════════
-  onVoiceCall?: () => void;        // Cuando se presiona el botón de llamada
-  onNavigate?: (url: string) => void;
-  onStateChange?: (isOpen: boolean) => void;
-  onEvent?: (eventName: string, data: any) => void;
+  return (
+    <button onClick={open}>
+      Chat {unreadCount > 0 && `(${unreadCount})`}
+    </button>
+  );
+}
+```
+
+### Option 3: Unstyled Component (No Shadow DOM)
+
+If you want the widget in your own DOM tree (useful inside existing design systems):
+
+```tsx
+import { ChatWidgetUnstyled } from '@botuyo/chat-widget-standalone';
+import '@botuyo/chat-widget-standalone/style.css';
+
+export default function App() {
+  return <ChatWidgetUnstyled apiKey="YOUR_API_KEY" />;
 }
 ```
 
 ---
 
-## 📞 Llamada de Voz (Demo)
+## Configuration Reference
 
-El widget incluye un **demo interactivo de llamada de voz** que:
-- Accede al micrófono real del usuario
-- Muestra waveform animado según el nivel de audio
-- Simula respuestas del bot después de 1 segundo de silencio
+### `ChatWidgetProps`
 
-```javascript
-BotUyoChat.init({
-  apiKey: 'tu-api-key',
-  apiBaseUrl: 'https://api.botuyo.com',
-  onVoiceCall: () => {
-    console.log('Llamada de voz iniciada');
-    // El demo se abre automáticamente dentro del widget
-  }
-});
-```
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `apiKey` | `string` | **(required)** | Your public API key |
+| `apiBaseUrl` | `string` | `https://api.botuyo.com` | Backend gateway URL |
+| `agentId` | `string` | — | Connect to a specific agent flow |
+| `theme` | `ChatTheme` | — | Visual configuration (see below) |
+| `mediaConfig` | `MediaConfig` | — | Toggle images, audio, files, location, voice |
+| `userContext` | `{ token?, metadata? }` | — | Pass authenticated user info |
+| `pageContext` | `PageContext` | — | Page-level context sent with each message |
+| `includeSEOMetadata` | `boolean` | `false` | Auto-capture page SEO data |
+| `onNavigate` | `(url) => void` | — | Bot requests navigation |
+| `onLogin` | `(userData) => void` | — | Bot completes authentication |
+| `onEvent` | `(name, data) => void` | — | Widget lifecycle events |
+| `onStateChange` | `(isOpen) => void` | — | Window open/close callback |
 
-> **Nota:** Este es un demo visual. Para integrar llamadas de voz reales, conecta con tu servicio de voz preferido (OpenAI Realtime, LiveKit, Twilio, etc.)
+### `ChatTheme`
 
----
+| Property | Type | Description |
+|----------|------|-------------|
+| `botName` | `string` | Bot display name |
+| `logoUrl` | `string` | Bot avatar URL |
+| `headerText` | `string` | Header bar text (overrides botName in header) |
+| `position` | `'bottom-right' \| 'bottom-left'` | Launcher position |
+| `welcomeMessage` | `string` | First message shown to user |
+| `inputPlaceholder` | `string` | Input field placeholder |
+| `starterPrompt` | `string` | Prompt bubble shown when chat is closed |
+| `defaultLocale` | `'es' \| 'en' \| 'pt' \| 'fr'` | Widget language |
+| `avatarScale` | `number` | Avatar zoom (e.g., `1.2` = 20% bigger) |
+| `showPromptAvatar` | `boolean` | Show mini avatar in prompt bubble |
+| `isHidden` | `boolean` | Hide widget (draft/paused agents) |
+| `cssVariables` | `CSSVariables` | Light mode colors and layout (see below) |
+| `darkCssVariables` | `Partial<CSSVariables>` | Dark mode color overrides |
+| `animations` | `AnimationConfig` | Animation toggles |
+| `effects` | `EffectsConfig` | Visual effect toggles |
+| `avatars` | `EmotionAvatarMap` | Per-emotion avatar URLs |
+| `avatar3dUrl` | `string` | URL to `.vrm`/`.glb` 3D model for voice calls |
+| `bubbleStyles` | `BubbleStyles` | Fine-grained bubble/card styling |
 
-## 🎨 Theme Builder
+### `cssVariables` — Design Tokens (HSL format)
 
-Usa el **Theme Builder** para personalizar visualmente el widget:
+All color values use **HSL without the `hsl()` wrapper**, e.g., `"210 100% 50%"`.
 
-```
-https://tu-dominio.com/builder.html
-```
+| Variable | CSS Property | Default (Light) | Description |
+|----------|-------------|-----------------|-------------|
+| `background` | `--background` | `0 0% 100%` | Page/widget background |
+| `foreground` | `--foreground` | `240 10% 3.9%` | Main text color |
+| `card` | `--card` | `0 0% 100%` | Card background |
+| `cardForeground` | `--card-foreground` | `240 10% 3.9%` | Card text |
+| `primary` | `--primary` | `160 84% 39%` | Brand/accent color |
+| `primaryForeground` | `--primary-foreground` | `0 0% 100%` | Text on primary bg |
+| `muted` | `--muted` | `240 4.8% 95.9%` | Muted backgrounds |
+| `mutedForeground` | `--muted-foreground` | `240 3.8% 46.1%` | Muted text |
+| `border` | `--border` | `240 5.9% 90%` | Border color |
+| `destructive` | `--destructive` | `0 84.2% 60.2%` | Error/danger color |
+| `radius` | `--radius` | `0.5rem` | Base border radius |
 
-El builder permite:
-- Cambiar colores en tiempo real
-- Presets: Default, Dark, Ocean, Sunset, Forest
-- Copiar código de integración listo para usar
+**Layout variables:**
 
----
+| Variable | CSS Property | Default | Description |
+|----------|-------------|---------|-------------|
+| `windowBorderRadius` | `--window-border-radius` | `24px` | Chat window corner radius |
+| `launcherBorderRadius` | `--launcher-border-radius` | `50%` | Launcher button radius |
+| `windowHeight` | `--window-height` | `700px` | Chat window height (desktop) |
+| `windowBottom` | `--window-bottom` | `24px` | Distance from bottom edge |
 
-## 🛠️ API Pública
+**Spacing variables:**
 
-```javascript
-// Inicializar
-BotUyoChat.init(config);
+| Variable | CSS Property | Default |
+|----------|-------------|---------|
+| `spacing1` | `--spacing-1` | `0.25rem` (4px) |
+| `spacing2` | `--spacing-2` | `0.5rem` (8px) |
+| `spacing3` | `--spacing-3` | `0.75rem` (12px) |
+| `spacing4` | `--spacing-4` | `1rem` (16px) |
+| `spacing5` | `--spacing-5` | `0.75rem` (12px) |
+| `spacing6` | `--spacing-6` | `1.5rem` (24px) |
+| `spacing7` | `--spacing-7` | `1.75rem` (28px) |
+| `spacing8` | `--spacing-8` | `2rem` (32px) |
 
-// Controles
-BotUyoChat.open();              // Abrir chat
-BotUyoChat.close();             // Cerrar chat
-BotUyoChat.toggle();            // Toggle abierto/cerrado
-BotUyoChat.destroy();           // Destruir widget
+### `darkCssVariables`
 
-// Actualizar configuración en vivo
-BotUyoChat.update({
-  theme: { primaryColor: '#ef4444' }
-});
-```
+Same keys as `cssVariables`. Only override surface colors — `primary` and `primaryForeground` are preserved from the light theme by default:
 
----
-
-## 📚 Ejemplos
-
-### Ejemplo Mínimo
-```html
-<link rel="stylesheet" href="https://cdn-chatbot.botuyo.com/latest/botuyo-chat.css">
-<script src="https://cdn-chatbot.botuyo.com/latest/botuyo-chat.js"></script>
-<script>
-  BotUyoChat.init({
-    apiKey: 'demo-key',
-    apiBaseUrl: 'https://api.botuyo.com'
-  });
-</script>
-```
-
-### Ejemplo Completo
-```html
-<script>
-  BotUyoChat.init({
-    apiKey: 'mi-api-key',
-    apiBaseUrl: 'https://api.botuyo.com',
-    
-    theme: {
-      primaryColor: '#6366f1',
-      botName: 'Asistente Mi Empresa',
-      logoUrl: 'https://mi-sitio.com/logo.png',
-      position: 'bottom-right',
-      welcomeMessage: '¡Hola! 👋 ¿En qué puedo ayudarte?',
-      borderRadius: '1.5rem',
-      height: '550px',
-      
-      animations: {
-        enabled: true,
-        messageEntry: 'spring',
-        launcherPulse: true,
-      },
-      
-      effects: {
-        glassmorphism: true,
-        softShadows: true,
-        glowEffects: true,
-      },
-    },
-
-    mediaConfig: {
-      enableVoice: true,
-      enableAttachments: true,
-      enableLocation: false,
-    },
-
-    onStateChange: (isOpen) => {
-      console.log('Chat:', isOpen ? 'abierto' : 'cerrado');
-    },
-
-    onVoiceCall: () => {
-      console.log('Llamada de voz iniciada');
-    },
-  });
-</script>
-```
-
----
-
-## 🎭 Temas Predefinidos
-
-### Tema Claro (Default)
-```javascript
-theme: {
-  primaryColor: '#10b981'
+```js
+darkCssVariables: {
+  background: '220 40% 3%',
+  foreground: '210 20% 98%',
+  card: '220 40% 5%',
+  muted: '220 30% 10%',
+  border: '220 30% 12%',
 }
 ```
 
-### Tema Oscuro
-```javascript
-theme: {
-  primaryColor: '#8b5cf6',
-  cssVariables: {
-    background: '240 10% 3.9%',
-    foreground: '0 0% 98%',
-    card: '240 4% 16%',
-    border: '240 4% 20%'
-  }
-}
-```
+### `AnimationConfig`
 
-### Tema Ocean
-```javascript
-theme: {
-  primaryColor: '#0ea5e9'
-}
-```
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `enabled` | `boolean` | `true` | Master toggle |
+| `messageEntry` | `'slide' \| 'fade' \| 'scale' \| 'spring' \| 'none'` | `'spring'` | Message entry style |
+| `typingIndicator` | `'dots' \| 'wave' \| 'pulse' \| 'none'` | `'dots'` | Typing animation |
+| `buttonEffects` | `boolean` | `true` | Hover/press effects |
+| `smoothScroll` | `boolean` | `true` | Smooth scroll in messages |
+| `launcherPulse` | `boolean` | `true` | Launcher pulse animation |
+| `windowTransitions` | `boolean` | `true` | Window open/close animation |
 
----
+### `EffectsConfig`
 
-## 🌐 Compatibilidad
-
-| Navegador | Versión Mínima |
-|-----------|----------------|
-| Chrome | 90+ |
-| Firefox | 88+ |
-| Safari | 14+ |
-| Edge | 90+ |
-| iOS Safari | 14+ |
-| Chrome Mobile | 90+ |
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `glassmorphism` | `boolean` | `true` | Blur effect on headers |
+| `gradients` | `boolean` | `true` | Gradient backgrounds |
+| `softShadows` | `boolean` | `true` | Soft shadow effects |
+| `glowEffects` | `boolean` | `true` | Hover/focus glow |
+| `shimmerLoading` | `boolean` | `true` | Shimmer loading skeleton |
+| `hoverLift` | `boolean` | `true` | Card hover lift effect |
 
 ---
 
-## 📦 Build Local
+## Dark Mode
+
+The widget auto-detects dark mode via:
+1. `data-theme="dark"` attribute on `<html>`
+2. `prefers-color-scheme: dark` media query
+
+When dark mode is active, colors are applied in this priority:
+1. **User-provided `darkCssVariables`** (highest priority)
+2. **Server-sent `darkCssVariables`** (from agent config)
+3. **Built-in dark defaults** (fallback)
+
+`primary` and `primaryForeground` are **never overridden** by dark defaults — they always come from your brand configuration.
+
+---
+
+## Events
+
+Listen to widget lifecycle events via `onEvent`:
+
+| Event Name | Data | Description |
+|-----------|------|-------------|
+| `backend_config` | `config` | Agent config received from server |
+| `history_loaded` | `{ messages }` | Chat history loaded |
+| `message_sent` | `{ id }` | Message delivered successfully |
+| `message_failed` | `{ id, payload }` | Message delivery failed |
+| `queued_message` | `{ id, payload }` | Message queued (offline) |
+
+---
+
+## Development
 
 ```bash
-git clone https://github.com/botuyo/chat-widget.git
-cd chat-widget
-
-npm install
-
-# Desarrollo
-npm run dev
-
-# Build producción
-npm run build
-
-# Solo UMD bundle
-npm run build:umd
-
-# Tests
-npm test
+npm run dev          # Start dev server
+npm run build        # Production build (ES + UMD + types)
+npm run test:run     # Run all tests
+npm run lint         # ESLint
+npm run typecheck    # TypeScript check
 ```
 
----
+## License
 
-## 🔗 Links
-
-- **NPM**: [npmjs.com/package/@botuyo/chat-widget-standalone](https://www.npmjs.com/package/@botuyo/chat-widget-standalone)
-- **CDN BotUyo**: `https://cdn-chatbot.botuyo.com/latest/`
-- **CDN jsDelivr**: `https://cdn.jsdelivr.net/npm/@botuyo/chat-widget-standalone@1.0.4/dist/`
-- **Documentación**: [docs.botuyo.com](https://docs.botuyo.com)
-
----
-
-## 📄 Licencia
-
-MIT License - © 2026 BotUyo
+MIT

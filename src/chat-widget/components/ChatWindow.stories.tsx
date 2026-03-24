@@ -41,10 +41,7 @@ const meta = {
       control: 'text',
       description: 'Placeholder text for the input field',
     },
-    primaryColor: {
-      control: 'color',
-      description: 'Primary color for branding',
-    },
+
     position: {
       control: 'select',
       options: ['bottom-right', 'bottom-left'],
@@ -94,7 +91,7 @@ export const Default: Story = {
     botName: 'BotUyo',
     welcomeMessage: '¡Hola! ¿En qué puedo ayudarte?',
     inputPlaceholder: 'Escribe un mensaje...',
-    primaryColor: '#10b981',
+
     position: 'bottom-right',
     onClose: () => console.log('Chat closed'),
     onSendMessage: (msg: string) => console.log('Message sent:', msg),
@@ -232,7 +229,7 @@ export const LongConversation: Story = {
 export const CustomColors: Story = {
   args: {
     ...Default.args,
-    primaryColor: '#6366f1',
+    theme: { cssVariables: { primary: '239 84% 67%' } },
   },
 }
 
