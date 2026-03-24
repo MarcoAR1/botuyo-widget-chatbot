@@ -2,9 +2,10 @@ name: Deploy to Cloudflare R2
 
 on:
   push:
+    branches: [main]
     tags:
-      - 'v*'  # Trigger on version tags (v1.0.0, v1.1.0, etc.)
-  workflow_dispatch:  # Allow manual trigger
+      - 'v*'
+  workflow_dispatch:
     inputs:
       version:
         description: 'Version to deploy (e.g., v1, v2, latest)'
@@ -14,46 +15,44 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Build widget
         run: npm run build
-      
+
       - name: Verify build outputs
         run: |
-          ls -lah dist/
-          echo "Main JS size: $(wc -c < dist/botuyo-chat.js | numfmt --to=iec)"
-          echo "CSS size: $(wc -c < dist/botuyo-chat.css | numfmt --to=iec)"
-      
+          echo "📦 Build outputs:"
+          ls -lah dist/*.js dist/*.css
+
       - name: Install Wrangler
         run: npm install -g wrangler
-      
+
       - name: Extract version
         id: version
         run: |
-          if [ "${{ github.event_name }}" == "push" ] && [ -n "${{ github.ref }}" ]; then
-            # Tag push: extract version from tag (refs/tags/v1.0.0 -> v1.0.0)
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
             VERSION=${GITHUB_REF#refs/tags/}
-            echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          else
-            # Manual trigger: use input version
+          elif [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             VERSION="${{ github.event.inputs.version }}"
-            echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          else
+            VERSION="latest"
           fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "Deploying version: ${VERSION}"
-      
+
       - name: Deploy to R2
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -61,77 +60,70 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           BUCKET="chatbot-cdn"
-          
+
           echo "🚀 Deploying to R2: ${BUCKET}/${VERSION}/"
-          
-          # Deploy botuyo-chat.js (main entry)
-          wrangler r2 object put ${BUCKET}/${VERSION}/botuyo-chat.js \
-            --file dist/botuyo-chat.js \
-            --content-type application/javascript \
-            --cache-control "public, max-age=31536000, immutable"
-          
-          # Deploy botuyo-chat.css
-          wrangler r2 object put ${BUCKET}/${VERSION}/botuyo-chat.css \
-            --file dist/botuyo-chat.css \
-            --content-type text/css \
-            --cache-control "public, max-age=31536000, immutable"
-          
-          # Deploy all chunk files (vendor-react.js, ChatWidget.js, etc.)
-          echo "📦 Deploying chunk files..."
+
+          # Deploy all JS files
           for file in dist/*.js; do
-            filename=$(basename "$file")
-            # Skip main entry (already deployed)
-            if [ "$filename" != "botuyo-chat.js" ]; then
-              echo "  Uploading ${filename}..."
+            if [ -f "$file" ]; then
+              filename=$(basename "$file")
+              echo "  📦 ${filename}"
               wrangler r2 object put ${BUCKET}/${VERSION}/${filename} \
                 --file "$file" \
                 --content-type application/javascript \
                 --cache-control "public, max-age=31536000, immutable"
             fi
           done
-          
+
+          # Deploy all CSS files
+          for file in dist/*.css; do
+            if [ -f "$file" ]; then
+              filename=$(basename "$file")
+              echo "  🎨 ${filename}"
+              wrangler r2 object put ${BUCKET}/${VERSION}/${filename} \
+                --file "$file" \
+                --content-type text/css \
+                --cache-control "public, max-age=31536000, immutable"
+            fi
+          done
+
           echo "✅ Deployed to ${BUCKET}/${VERSION}/"
-      
-      - name: Deploy to /latest/ (if version tag)
+
+      - name: Also deploy to /latest/ (on version tags)
         if: startsWith(github.ref, 'refs/tags/v')
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           BUCKET="chatbot-cdn"
-          
           echo "🚀 Also deploying to ${BUCKET}/latest/"
-          
-          # Deploy with shorter cache for /latest/
-          wrangler r2 object put ${BUCKET}/latest/botuyo-chat.js \
-            --file dist/botuyo-chat.js \
-            --content-type application/javascript \
-            --cache-control "public, max-age=3600"
-          
-          wrangler r2 object put ${BUCKET}/latest/botuyo-chat.css \
-            --file dist/botuyo-chat.css \
-            --content-type text/css \
-            --cache-control "public, max-age=3600"
-          
-          # Deploy all chunk files to /latest/
-          echo "📦 Deploying chunk files to latest..."
+
           for file in dist/*.js; do
-            filename=$(basename "$file")
-            if [ "$filename" != "botuyo-chat.js" ]; then
-              echo "  Uploading ${filename}..."
+            if [ -f "$file" ]; then
+              filename=$(basename "$file")
               wrangler r2 object put ${BUCKET}/latest/${filename} \
                 --file "$file" \
                 --content-type application/javascript \
                 --cache-control "public, max-age=3600"
             fi
           done
-          
+
+          for file in dist/*.css; do
+            if [ -f "$file" ]; then
+              filename=$(basename "$file")
+              wrangler r2 object put ${BUCKET}/latest/${filename} \
+                --file "$file" \
+                --content-type text/css \
+                --cache-control "public, max-age=3600"
+            fi
+          done
+
           echo "✅ Deployed to ${BUCKET}/latest/"
-      
+
       - name: Create deployment summary
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          
+
           echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Version:** \`${VERSION}\`" >> $GITHUB_STEP_SUMMARY
@@ -140,29 +132,17 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| File | Size |" >> $GITHUB_STEP_SUMMARY
           echo "|------|------|" >> $GITHUB_STEP_SUMMARY
-          echo "| botuyo-chat.js | $(wc -c < dist/botuyo-chat.js | numfmt --to=iec) |" >> $GITHUB_STEP_SUMMARY
-          echo "| botuyo-chat.css | $(wc -c < dist/botuyo-chat.css | numfmt --to=iec) |" >> $GITHUB_STEP_SUMMARY
+          for file in dist/*.js dist/*.css; do
+            if [ -f "$file" ]; then
+              filename=$(basename "$file")
+              size=$(wc -c < "$file" | numfmt --to=iec)
+              echo "| ${filename} | ${size} |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🔗 CDN URLs" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo '```html' >> $GITHUB_STEP_SUMMARY
-          echo "<!-- Version specific (recommended) -->" >> $GITHUB_STEP_SUMMARY
-          echo "<script type=\"module\" src=\"https://cdn-chatbot.botuyo.com/${VERSION}/botuyo-chat.js\"></script>" >> $GITHUB_STEP_SUMMARY
+          echo "<script type=\"module\" src=\"https://cdn-chatbot.botuyo.com/${VERSION}/botuyo-chat.es.js\"></script>" >> $GITHUB_STEP_SUMMARY
           echo "<link rel=\"stylesheet\" href=\"https://cdn-chatbot.botuyo.com/${VERSION}/botuyo-chat.css\">" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "<!-- Latest version (auto-updates) -->" >> $GITHUB_STEP_SUMMARY
-          echo "<script type=\"module\" src=\"https://cdn-chatbot.botuyo.com/latest/botuyo-chat.js\"></script>" >> $GITHUB_STEP_SUMMARY
-          echo "<link rel=\"stylesheet\" href=\"https://cdn-chatbot.botuyo.com/latest/botuyo-chat.css\">" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 💡 Usage" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo '```javascript' >> $GITHUB_STEP_SUMMARY
-          echo "// Initialize the chat widget" >> $GITHUB_STEP_SUMMARY
-          echo "const widget = BotUyoChat.init({" >> $GITHUB_STEP_SUMMARY
-          echo "  serverUrl: 'https://api.botuyo.com'," >> $GITHUB_STEP_SUMMARY
-          echo "  emotion: '😊'" >> $GITHUB_STEP_SUMMARY
-          echo "});" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "✅ **Deployment successful!**" >> $GITHUB_STEP_SUMMARY
