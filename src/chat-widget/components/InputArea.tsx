@@ -79,6 +79,14 @@ export function InputArea({
   const handleSend = () => {
     const trimmedValue = inputValue.trim()
 
+    // 🛡️ CRITICAL: Focus the textarea BEFORE clearing input.
+    // Clearing inputValue unmounts the Send button → browser moves focus to next
+    // focusable element (call button). By focusing textarea first, focus stays put.
+    if (textareaRef.current) {
+      textareaRef.current.focus()
+      textareaRef.current.style.height = '40px'
+    }
+
     if (attachment) {
       onSendAttachment?.(attachment.file, attachment.type)
       setAttachment(null)
@@ -86,13 +94,6 @@ export function InputArea({
     } else if (trimmedValue && isConnected) {
       onSendMessage(trimmedValue)
       setInputValue('')
-    }
-
-    // Resetear altura del textarea y refocus
-    if (textareaRef.current) {
-      textareaRef.current.style.height = '40px'
-      // Always refocus the textarea after sending so focus doesn't jump to call button
-      requestAnimationFrame(() => textareaRef.current?.focus())
     }
   }
 
