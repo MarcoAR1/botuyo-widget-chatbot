@@ -116,8 +116,36 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
   const containerStyle = getContainerStyle(state.isOpen, isMobile, theme?.position)
 
   // Aplicar CSS variables al widget — swap to dark values when isDarkMode
+  // Always inject defaults so Provider mode (no Shadow DOM / no styles.css) is self-contained
   const cssVariablesStyle = useMemo(() => {
-    if (!mergedTheme.cssVariables) return {}
+    // Hardcoded defaults (same as styles.css :root) — ensures widget works without external CSS
+    const defaults: Record<string, string> = {
+      '--background': '0 0% 100%',
+      '--foreground': '240 10% 3.9%',
+      '--card': '0 0% 100%',
+      '--card-foreground': '240 10% 3.9%',
+      '--primary': '160 84% 39%',
+      '--primary-foreground': '0 0% 100%',
+      '--muted': '240 4.8% 95.9%',
+      '--muted-foreground': '240 3.8% 46.1%',
+      '--border': '240 5.9% 90%',
+      '--destructive': '0 84.2% 60.2%',
+      '--radius': '0.5rem',
+      '--window-border-radius': '24px',
+      '--launcher-border-radius': '50%',
+      '--window-height': '700px',
+      '--window-bottom': '24px',
+      '--spacing-1': '0.25rem',
+      '--spacing-2': '0.5rem',
+      '--spacing-3': '0.75rem',
+      '--spacing-4': '1rem',
+      '--spacing-5': '0.75rem',
+      '--spacing-6': '1.5rem',
+      '--spacing-7': '1.75rem',
+      '--spacing-8': '2rem',
+    }
+
+    if (!mergedTheme.cssVariables) return defaults
 
     // Start with the merged light theme
     let cssVars: Record<string, string | undefined> = { ...mergedTheme.cssVariables }
@@ -135,7 +163,8 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
       }
     }
 
-    const vars: Record<string, string> = {}
+    // Overlay theme values onto defaults
+    const vars: Record<string, string> = { ...defaults }
 
     // Color variables (kebab-case to match styles.css)
     if (cssVars.background) vars['--background'] = cssVars.background

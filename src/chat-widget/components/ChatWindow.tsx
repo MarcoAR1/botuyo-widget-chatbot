@@ -116,12 +116,11 @@ export function ChatWindow({
           'flex flex-col overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]',
           'text-foreground z-[9999]',
 
-          // 💻 DESKTOP: ANCHO Y ALTO CONTROLADO CON MARGEN DEL TECHO
+          // 💻 DESKTOP: fixed positioning + animation classes only
           !isMobile && [
             'fixed',
             isBottomLeft ? 'left-6' : 'right-6',
-            'w-[350px] min-w-[350px] max-w-[350px]',
-            'rounded-[32px] border shadow-soft-2xl',
+            'border',
             'animate-in fade-in zoom-in-95',
             isBottomLeft ? 'slide-in-from-bottom-10' : 'slide-in-from-bottom-10',
           ],
@@ -132,6 +131,14 @@ export function ChatWindow({
         style={{
           // useDynamicHeight already calculates height, maxHeight, and bottom correctly
           ...dynamicHeightStyles,
+          // 💻 DESKTOP: inline layout (Provider-safe — no Tailwind arbitrary classes needed)
+          ...(!isMobile ? {
+            width: '350px',
+            minWidth: '350px',
+            maxWidth: '350px',
+            borderRadius: '32px',
+            boxShadow: '0 25px 65px -5px rgba(0, 0, 0, 0.15), 0 8px 20px -8px rgba(0, 0, 0, 0.1)',
+          } : {}),
           // 🎨 CSS VARIABLES - Los temas se aplican automáticamente
           backgroundColor: 'hsl(var(--background))',
           borderColor: 'hsl(var(--border))',
