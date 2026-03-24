@@ -361,7 +361,8 @@ export interface SystemMessage extends BaseMessage {
 
 export interface AudioMessage extends BaseMessage {
   type: 'audio'
-  content: string // URL o Base64 del audio
+  content: string // URL or Base64 of the audio
+  text?: string // Optional transcript text (shown below the audio player)
 }
 
 export interface FileMessage extends BaseMessage {

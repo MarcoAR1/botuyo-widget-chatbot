@@ -194,11 +194,26 @@ export const MessageBubble = memo(
                 </div>
               }
             >
-              <AudioPlayer
-                url={(message as AudioMessage).content}
-                isBot={isBot}
-                primaryColor={primaryColor}
-              />
+              <div>
+                <AudioPlayer
+                  url={(message as AudioMessage).content}
+                  isBot={isBot}
+                  primaryColor={primaryColor}
+                />
+                {(message as AudioMessage).text && (
+                  <p
+                    style={{
+                      fontSize: '0.8rem',
+                      opacity: 0.7,
+                      marginTop: '4px',
+                      fontStyle: 'italic',
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {(message as AudioMessage).text}
+                  </p>
+                )}
+              </div>
             </Suspense>
           )
 

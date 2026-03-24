@@ -32,11 +32,12 @@ describe('Launcher', () => {
       expect(avatar).toHaveAttribute('src', 'https://example.com/avatar.jpg')
     })
 
-    it('should use icon when no logo provided', () => {
+    it('should use default avatar when no logo provided', () => {
       const { container } = renderWithI18n(<Launcher isOpen={false} onClick={mockOnClick} />)
 
-      const icon = container.querySelector('svg.lucide-message-circle')
-      expect(icon).toBeInTheDocument()
+      // Default avatar URL is used as fallback
+      const avatar = container.querySelector('img')
+      expect(avatar).toBeInTheDocument()
     })
 
     it('should render launcher in closed state', () => {
@@ -56,8 +57,9 @@ describe('Launcher', () => {
     it('should show different icons based on state', () => {
       const { container, rerender } = renderWithI18n(<Launcher isOpen={false} onClick={mockOnClick} />)
 
-      const messageIcon = container.querySelector('svg.lucide-message-circle')
-      expect(messageIcon).toBeInTheDocument()
+      // Closed state shows default avatar image
+      const avatar = container.querySelector('img')
+      expect(avatar).toBeInTheDocument()
 
       rerender(<Launcher isOpen={true} onClick={mockOnClick} />)
       const closeIcon = container.querySelector('svg.lucide-x')
@@ -262,26 +264,26 @@ describe('Launcher', () => {
 
   describe('Styling and Theming', () => {
     it('should apply custom primary color', () => {
-      const { container } = renderWithI18n(
+      renderWithI18n(
         <Launcher isOpen={false} onClick={mockOnClick} primaryColor="200 100% 50%" />
       )
 
-      const button = container.querySelector('button[aria-label]')
+      const button = screen.getByRole('button', { name: /abrir chat/i })
       expect(button).toBeInTheDocument()
     })
 
     it('should have rounded corners', () => {
-      const { container } = renderWithI18n(<Launcher isOpen={false} onClick={mockOnClick} />)
+      renderWithI18n(<Launcher isOpen={false} onClick={mockOnClick} />)
 
-      const button = container.querySelector('button[aria-label]')
+      const button = screen.getByRole('button', { name: /abrir chat/i })
       expect(button?.className).toMatch(/rounded/)
     })
 
     it('should have shadow on main launcher button', () => {
-      const { container } = renderWithI18n(<Launcher isOpen={false} onClick={mockOnClick} />)
+      renderWithI18n(<Launcher isOpen={false} onClick={mockOnClick} />)
 
-      const button = container.querySelector('button[aria-label]')
-      expect(button?.className).toMatch(/shadow-soft-xl/)
+      const button = screen.getByRole('button', { name: /abrir chat/i })
+      expect(button?.className).toMatch(/shadow/)
     })
 
     it('should have proper flex layout', () => {

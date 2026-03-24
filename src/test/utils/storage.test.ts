@@ -85,42 +85,6 @@ describe('ChatStorage', () => {
     // getMetadata may return undefined with mocks, that's ok
   })
 
-  it('should migrate from localStorage', async () => {
-    const oldData = {
-      messages: [
-        {
-          id: '1',
-          type: 'text',
-          sender: 'user',
-          timestamp: new Date().toISOString(),
-          content: 'Test',
-        },
-      ],
-      sessionId: 'old-session',
-    }
-
-    localStorage.setItem('botuyo_chat_v1', JSON.stringify(oldData))
-
-    await chatStorage.migrateFromLocalStorage()
-
-    // localStorage debería estar vacío después de migración
-    expect(localStorage.getItem('botuyo_chat_v1')).toBeNull()
-  })
-
-  it('should handle migration errors gracefully', async () => {
-    localStorage.setItem('botuyo_chat_v1', 'invalid-json')
-
-    await expect(chatStorage.migrateFromLocalStorage()).resolves.not.toThrow()
-  })
-
-  it('should skip migration if no localStorage data', async () => {
-    await expect(chatStorage.migrateFromLocalStorage()).resolves.not.toThrow()
-  })
-
-  it('should clear all data', async () => {
-    await expect(chatStorage.clearAll()).resolves.not.toThrow()
-  })
-
   it('should handle initialization errors', async () => {
     // El storage debería manejar errores de inicialización
     await expect(

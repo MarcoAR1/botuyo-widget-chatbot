@@ -36,6 +36,7 @@ describe('useDynamicHeight', () => {
       expect(result.current).toMatchObject({
         height: '700px',
         maxHeight: '912px', // 1000 - 64 - 24 (DESKTOP_MARGIN_TOP + DEFAULT_BOTTOM)
+        bottom: '24px',
       })
     })
 
@@ -96,8 +97,8 @@ describe('useDynamicHeight', () => {
 
       rerender()
 
-      // Altura ajustada: 600 - 64 = 536, clamped to [500, 700] = 536
-      expect(result.current.height).toBe('536px')
+      // Altura ajustada: 600 - 64 - 24 (DESKTOP_MARGIN_TOP + DEFAULT_BOTTOM) = 512, clamped to [500, 700] = 512
+      expect(result.current.height).toBe('512px')
     })
   })
 

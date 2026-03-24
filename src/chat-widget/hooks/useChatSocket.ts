@@ -92,19 +92,21 @@ export function useChatSocket(options: UseChatSocketOptions) {
           }
         case 'audio': {
           // Construct secure API URL for audio playback
-          // If audioUrl is already a full URL (http/https), use it as-is
-          // If it's an internal path, construct: {apiBaseUrl}/api/voice/audio/{messageId}
-          const rawAudioUrl = safe.audioUrl || safe.content || ''
+          // Internal audioUrl paths → full API URL via apiBaseUrl
+          const rawAudioUrl = safe.audioUrl || ''
           const isFullUrl = rawAudioUrl.startsWith('http://') || rawAudioUrl.startsWith('https://')
           const audioSrc = isFullUrl
             ? rawAudioUrl
-            : rawAudioUrl // fallback to raw value (AudioPlayer handles gracefully)
+            : rawAudioUrl
+              ? `${apiBaseUrl}/api/voice/audio/${baseId}` // Use messageId-based secure endpoint
+              : safe.content || ''
           return {
             id: baseId,
             type: 'audio',
             sender: baseSender,
             timestamp: ts,
             content: audioSrc,
+            text: safe.content || undefined, // Preserve transcript text
           }
         }
         case 'location':

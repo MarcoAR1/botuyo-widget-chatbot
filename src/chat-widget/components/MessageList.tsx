@@ -275,22 +275,23 @@ export const MessageList = memo(
             })}
           </div>
 
-          {/* Espaciador final para evitar que el input tape el último mensaje */}
-          <div ref={messagesEndRef} className="h-6 shrink-0" />
           {/* INDICADOR DE ESCRITURA (AVATAR + ONDAS) */}
-        </div>
-        {isTyping && (
-          <div className="flex items-end gap-3 mt-4 mb-2 animate-in fade-in slide-in-from-left-4 duration-500">
-            <div className="w-8 h-8 rounded-xl bg-muted/60 border border-border/50 flex items-center justify-center shrink-0 shadow-soft-sm">
-              <div className="flex gap-[2px]">
-                <span className="w-1 h-1 bg-primary/50 rounded-full animate-bounce [animation-delay:-0.3s]" />
-                <span className="w-1 h-1 bg-primary/50 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                <span className="w-1 h-1 bg-primary/50 rounded-full animate-bounce" />
+          {isTyping && (
+            <div className="flex items-end gap-3 mt-4 mb-2 animate-in fade-in slide-in-from-left-4 duration-500">
+              <div className="w-8 h-8 rounded-xl bg-muted/60 border border-border/50 flex items-center justify-center shrink-0 shadow-soft-sm">
+                <div className="flex gap-[2px]">
+                  <span className="w-1 h-1 bg-primary/50 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                  <span className="w-1 h-1 bg-primary/50 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                  <span className="w-1 h-1 bg-primary/50 rounded-full animate-bounce" />
+                </div>
               </div>
+              <TypingIndicator />
             </div>
-            <TypingIndicator />
-          </div>
-        )}
+          )}
+
+          {/* Scroll anchor — MUST be after typing indicator so auto-scroll includes the dots */}
+          <div ref={messagesEndRef} className="h-6 shrink-0" />
+        </div>
       </div>
     )
   },
