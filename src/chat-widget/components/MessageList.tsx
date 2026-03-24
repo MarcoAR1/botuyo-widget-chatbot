@@ -98,8 +98,8 @@ export const MessageList = memo(
       return (
         <div
           ref={containerRef}
-          className="flex-1 overflow-y-auto scroll-smooth bg-background/50 scrollbar-none"
-          style={{ padding: 'var(--spacing-5)' }}
+          className="flex-1 overflow-y-auto scroll-smooth scrollbar-none"
+          style={{ padding: 'var(--spacing-5)', scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
         >
           <div
             style={{
@@ -182,7 +182,8 @@ export const MessageList = memo(
     return (
       <div
         ref={containerRef}
-        className="flex-1 overflow-y-auto scroll-smooth p-4 bg-background/50 scrollbar-none"
+        className="flex-1 overflow-y-auto scroll-smooth p-4 scrollbar-none"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
       >
         <div className="min-h-full flex flex-col justify-end">
           {/* === ESTADO VACÍO / BIENVENIDA PREMIUM === */}
