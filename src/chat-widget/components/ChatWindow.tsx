@@ -101,8 +101,8 @@ export function ChatWindow({
   return (
     <>
       {/* Descripción oculta para lectores de pantalla */}
-      <div id="chat-window-description" className="sr-only">
-        {t('accessibility.dialogDescription')}
+      <div id="chat-dialog-description" className="sr-only">
+        {t('accessibility.dialogDescription', { botName: botName ?? 'BotUyo' })}
       </div>
 
       <div
@@ -110,7 +110,7 @@ export function ChatWindow({
         role="dialog"
         aria-modal="true"
         aria-labelledby="chat-window-title"
-        aria-describedby="chat-window-description"
+        aria-describedby="chat-dialog-description"
         tabIndex={-1}
         className={cn(
           'flex flex-col overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]',

@@ -26,11 +26,14 @@ export function useTranslations(namespace?: string) {
   const { locale: currentLocale, setLocale } = useLanguage()
 
   const t = useCallback(
-    (key: string): string => {
+    (key: string, params?: Record<string, string>): string => {
       const messages = translations[currentLocale]
       const fullKey = namespace ? `${namespace}.${key}` : key
-      const translation = getNestedValue(messages, fullKey)
-      return translation || key
+      let translation = getNestedValue(messages, fullKey) || key
+      if (params) {
+        translation = translation.replace(/\{\{(\w+)\}\}/g, (_: string, k: string) => params[k] ?? `{{${k}}}`)
+      }
+      return translation
     },
     [currentLocale, namespace]
   )
@@ -46,8 +49,12 @@ export function useTranslations(namespace?: string) {
  * Función para obtener traducción directamente sin hook
  * Útil para uso fuera de componentes
  */
-export function t(key: string, locale: SupportedLocale = 'es'): string {
-  return getNestedValue(translations[locale], key) || key
+export function t(key: string, locale: SupportedLocale = 'es', params?: Record<string, string>): string {
+  let translation = getNestedValue(translations[locale], key) || key
+  if (params) {
+    translation = translation.replace(/\{\{(\w+)\}\}/g, (_: string, k: string) => params[k] ?? `{{${k}}}`)
+  }
+  return translation
 }
 
 export default useTranslations

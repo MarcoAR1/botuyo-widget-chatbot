@@ -17,6 +17,25 @@ import { DARK_CSS_VARIABLES, getPrimaryColor } from './utils/theme'
 // Premium animations
 import './styles/premium-animations.css'
 
+// Accessibility + utility CSS — injected into <head> when used in bare component mode
+// (standalone.tsx + ChatWidgetProvider inject styles.css into Shadow DOM instead)
+// This file is fully scoped to #botuyo-chat-widget-root, so it is safe to inject
+// into the host page's <head> without any risk of Tailwind preflight collisions.
+import a11yCssContent from './styles/accessibility.css?inline'
+
+const A11Y_CSS_ID = 'botuyo-widget-a11y-css'
+
+function injectWidgetCSSIfNeeded(containerNode: HTMLElement | null) {
+  // If we're mounted inside a Shadow DOM, skip — CSS is already injected there
+  if (containerNode?.getRootNode() instanceof ShadowRoot) return
+  // Inject once per document
+  if (document.getElementById(A11Y_CSS_ID)) return
+  const style = document.createElement('style')
+  style.id = A11Y_CSS_ID
+  style.textContent = a11yCssContent
+  document.head.appendChild(style)
+}
+
 export function ChatWidgetInner(props: ChatWidgetProps) {
   const {
     apiKey,
@@ -35,6 +54,11 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
 
   // Refs y estado local
   const containerRef = useRef<HTMLDivElement>(null!)
+
+  // Inject CSS when used as a bare React component (no Shadow DOM)
+  useEffect(() => {
+    injectWidgetCSSIfNeeded(containerRef.current)
+  }, [])
   const isMobile = useIsMobile()
 
   // Dark mode detection - auto-applies 'dark' class to widget
