@@ -28,3 +28,7 @@ demo
 publish-local.ps1
 .npmrc
 .wrangler/
+
+# Secrets
+.env
+.env.*
