@@ -9,11 +9,17 @@
 /* eslint-disable react-refresh/only-export-components */
 // Este archivo exporta tanto el componente Provider como el hook useChatWidget
 
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from 'react'
 import { ChatWidget } from './ChatWidget'
 import type { ChatWidgetProps } from './types'
 import { logger } from './utils/logger'
 import { LanguageProvider, type SupportedLocale } from './i18n'
+
+// Import the full widget CSS as inline string (same as standalone.tsx)
+// This is bundled at build time by Vite's ?inline import
+import cssContent from '../../styles.css?inline'
+
+const STYLE_ID = 'botuyo-chat-widget-styles'
 
 // ========== Context Types ==========
 
@@ -93,6 +99,36 @@ export function ChatWidgetProvider({
 }: ChatWidgetProviderProps) {
   const [isOpen, setIsOpen] = useState(initialState?.isOpen ?? false)
   const [unreadCount, setUnreadCount] = useState(0)
+
+  // ── CSS Auto-injection ──
+  // Inject widget CSS into <head> on mount (mirrors standalone's Shadow DOM injection)
+  // This makes the Provider fully self-contained — consumers don't need extra CSS config
+  const styleInjectedRef = useRef(false)
+  useEffect(() => {
+    if (styleInjectedRef.current) return
+    if (typeof document === 'undefined') return
+
+    // Don't inject if already present (e.g. multiple Providers or hot reload)
+    if (document.getElementById(STYLE_ID)) {
+      styleInjectedRef.current = true
+      return
+    }
+
+    const style = document.createElement('style')
+    style.id = STYLE_ID
+    style.textContent = cssContent
+    document.head.appendChild(style)
+    styleInjectedRef.current = true
+    logger.debug('ChatWidgetProvider: injected widget CSS into <head>')
+
+    return () => {
+      const existing = document.getElementById(STYLE_ID)
+      if (existing) {
+        existing.remove()
+        styleInjectedRef.current = false
+      }
+    }
+  }, [])
 
   const open = useCallback(() => {
     setIsOpen(true)
