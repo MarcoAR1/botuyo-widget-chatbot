@@ -1,6 +1,8 @@
 name: Publish to npm
 
 on:
+  push:
+    branches: [main]
   release:
     types: [published]
   workflow_dispatch:
@@ -14,10 +16,14 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    # Skip if commit message contains [skip ci] (auto-version commits)
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -25,6 +31,21 @@ jobs:
           node-version: '22'
           cache: 'npm'
           registry-url: 'https://registry.npmjs.org'
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump patch version
+        if: github.event_name == 'push'
+        run: |
+          NEW_VERSION=$(npm version patch --no-git-tag-version)
+          echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
+          echo "📦 Bumped to ${NEW_VERSION}"
+          git add package.json package-lock.json
+          git commit -m "chore: bump to ${NEW_VERSION} [skip ci]"
+          git push
 
       - name: Install dependencies
         run: npm ci
