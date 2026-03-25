@@ -17,22 +17,22 @@ import { DARK_CSS_VARIABLES, getPrimaryColor } from './utils/theme'
 // Premium animations
 import './styles/premium-animations.css'
 
-// Accessibility + utility CSS — injected into <head> when used in bare component mode
-// (standalone.tsx + ChatWidgetProvider inject styles.css into Shadow DOM instead)
-// This file is fully scoped to #botuyo-chat-widget-root, so it is safe to inject
-// into the host page's <head> without any risk of Tailwind preflight collisions.
-import a11yCssContent from './styles/accessibility.css?inline'
+// Full widget CSS — injected into <head> when used in bare React component mode.
+// standalone.tsx + ChatWidgetProvider inject this into Shadow DOM instead (no <head> pollution).
+// Selectors are scoped to #botuyo-chat-widget-root so they don't leak into the host page.
+import widgetCssContent from '../../styles.css?inline'
 
-const A11Y_CSS_ID = 'botuyo-widget-a11y-css'
+const WIDGET_CSS_ID = 'botuyo-widget-css'
 
 function injectWidgetCSSIfNeeded(containerNode: HTMLElement | null) {
   // If we're mounted inside a Shadow DOM, skip — CSS is already injected there
   if (containerNode?.getRootNode() instanceof ShadowRoot) return
   // Inject once per document
-  if (document.getElementById(A11Y_CSS_ID)) return
+  if (document.getElementById(WIDGET_CSS_ID)) return
   const style = document.createElement('style')
-  style.id = A11Y_CSS_ID
-  style.textContent = a11yCssContent
+  style.id = WIDGET_CSS_ID
+  // In <head> mode we target :root for CSS variables (not :host which is Shadow DOM only)
+  style.textContent = widgetCssContent
   document.head.appendChild(style)
 }
 
@@ -230,7 +230,7 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
   return (
       <div
         ref={containerRef}
-        id="botuyo-chat-widget"
+        id="botuyo-chat-widget-root"
         className={cn(
           'botuyo-chat-widget flex flex-col',
           !isMobile && (theme?.position === 'bottom-left' ? 'items-start' : 'items-end')
