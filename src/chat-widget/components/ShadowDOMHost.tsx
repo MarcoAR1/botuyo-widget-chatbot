@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { logger } from '../utils/logger'
-import cssContent from '../../../styles.css?inline'
+import cssContent from '../compiled-tailwind.css?raw'
 
 /**
  * Creates a Shadow DOM container in document.body, injects widget CSS,
