@@ -16,8 +16,9 @@
     "./style.css": "./dist/botuyo-chat.css"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "npm run clean && npm run build:es && npm run build:umd && npm run build:types",
+    "dev": "npm run build:css && vite",
+    "build": "npm run clean && npm run build:css && npm run build:es && npm run build:umd && npm run build:types",
+    "build:css": "npx @tailwindcss/cli -i ./styles.css -o ./src/chat-widget/compiled-tailwind.css --minify",
     "build:es": "vite build",
     "build:umd": "vite build -c vite.config.umd.mjs",
     "build:types": "tsc --project tsconfig.build.json",

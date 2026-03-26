@@ -21,7 +21,7 @@ import { LanguageProvider as _LanguageProvider } from './src/chat-widget/i18n/La
 
 // CSS inlined as string — auto-injected at runtime
 // Consumers never need to import CSS manually
-import cssContent from './styles.css?inline';
+import cssContent from './src/chat-widget/compiled-tailwind.css?raw';
 
 // CSS is injected into Shadow DOM (not <head>) — see render() below
 

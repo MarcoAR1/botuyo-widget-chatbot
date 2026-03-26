@@ -51,50 +51,6 @@ export default defineConfig({
         },
         exports: 'named',
         assetFileNames: 'botuyo-chat.[ext]',
-        // Manual chunks for code splitting
-        manualChunks: (id) => {
-          // React is now external, no need for vendor-react chunk
-          
-          // ReactMarkdown y plugins (heavy - lazy loaded en MessageBubble)
-          // Must be before chat-ui to avoid circular deps
-          if (id.includes('node_modules/react-markdown') || 
-              id.includes('node_modules/remark') || 
-              id.includes('node_modules/rehype') ||
-              id.includes('node_modules/unified') ||
-              id.includes('node_modules/micromark') ||
-              id.includes('node_modules/mdast') ||
-              id.includes('node_modules/hast')) {
-            return 'chunk-markdown';
-          }
-          
-          // Socket.IO chunk (lazy loaded)
-          if (id.includes('node_modules/socket.io-client') || id.includes('engine.io-client')) {
-            return 'vendor-socket';
-          }
-          
-          // Browser image compression (lazy loaded)
-          if (id.includes('node_modules/browser-image-compression')) {
-            return 'browser-image-compression';
-          }
-          
-          // Gallery component (lazy loaded)
-          if (id.includes('/components/Gallery')) {
-            return 'chunk-gallery';
-          }
-          
-          // AudioPlayer component (lazy loaded)
-          if (id.includes('/components/AudioPlayer')) {
-            return 'chunk-audio';
-          }
-          
-          // Chat UI chunk (main chat interface)
-          if (id.includes('/components/ChatWindow') || 
-              id.includes('/components/MessageList') ||
-              id.includes('/components/InputArea') ||
-              id.includes('/components/MessageBubble')) {
-            return 'chunk-chat-ui';
-          }
-        },
       },
     },
     outDir: 'dist',
