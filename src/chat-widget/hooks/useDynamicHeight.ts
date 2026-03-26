@@ -22,25 +22,19 @@ export function useDynamicHeight({ isOpen, height, bottom }: DynamicHeightOption
 
   const calculateHeight = useCallback(() => {
     if (isMobile) {
-      // En móvil, usamos el visual viewport para ajustarnos al teclado
+      // En móvil, dejamos que el viewport nativo y "fixed inset-0" acomoden el widget naturalmente.
+      // Modificar window.visualViewport.offsetTop dinámicamente puede causar un "brinco" (double-bounce)
+      // cuando el OS (iOS o Android) ya está intentando ajustar el layout al abrir el teclado.
       const updateMobileHeight = () => {
         if (window.visualViewport) {
           setDynamicHeight({
             height: `${window.visualViewport.height}px`,
-            width: '100%',
-            top: `${window.visualViewport.offsetTop}px`,
-            left: '0px',
-            bottom: 'auto',
-            right: 'auto',
-            transform: 'none',
+            // Quitamos 'top' y 'bottom' fijos calculados, porque usamos 'inset-0' en la clase css
+            // y permitimos que el navegador use el comportamiento por defecto de teclado.
           })
         } else {
-          // Fallback para navegadores sin visualViewport
           setDynamicHeight({
-            height: '100dvh',
-            width: '100%',
-            top: '0px',
-            left: '0px',
+            height: '100dvh', // Usa dvh para soportar las barras de navegación
           })
         }
       }

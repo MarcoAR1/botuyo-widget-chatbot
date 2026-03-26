@@ -83,14 +83,12 @@ export function ChatWindow({
 
     if (isMobile) {
       document.body.style.overflow = 'hidden'
-      document.body.style.position = 'fixed'
-      document.body.style.width = '100%'
+      // Remove position: fixed because iOS shifts the entire layout viewport
+      // when the virtual keyboard opens, causing the widget to double-bounce/shoot upwards.
     }
 
     return () => {
       document.body.style.overflow = ''
-      document.body.style.position = ''
-      document.body.style.width = ''
     }
   }, [isOpen, isMobile])
 
