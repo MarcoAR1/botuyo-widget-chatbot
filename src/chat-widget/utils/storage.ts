@@ -24,8 +24,8 @@ class ChatStorage {
   private DB_NAME: string
   private readonly DB_VERSION = 1
 
-  constructor(agentId: string = 'default') {
-    this.DB_NAME = `botuyo-chat-${agentId}`
+  constructor(apiKey: string, agentId: string = 'default') {
+    this.DB_NAME = `botuyo-chat-${apiKey}-${agentId}`
   }
 
   async init() {
@@ -140,9 +140,9 @@ class ChatStorage {
   }
 
   // Método para migrar desde localStorage (compatibilidad)
-  async migrateFromLocalStorage(agentId: string = 'default') {
+  async migrateFromLocalStorage(apiKey: string, agentId: string = 'default') {
     try {
-      const STORAGE_KEY = `botuyo_chat_v1_${agentId}`
+      const STORAGE_KEY = `botuyo_chat_v1_${apiKey}_${agentId}`
       const saved = localStorage.getItem(STORAGE_KEY)
 
       if (!saved) return
@@ -175,10 +175,11 @@ class ChatStorage {
 
 // Singleton Factory per agent
 const storageInstances = new Map<string, ChatStorage>()
-export const getChatStorage = (agentId: string = 'default'): ChatStorage => {
-  if (!storageInstances.has(agentId)) {
-    storageInstances.set(agentId, new ChatStorage(agentId))
+export const getChatStorage = (apiKey: string, agentId: string = 'default'): ChatStorage => {
+  const instanceKey = `${apiKey}_${agentId}`
+  if (!storageInstances.has(instanceKey)) {
+    storageInstances.set(instanceKey, new ChatStorage(apiKey, agentId))
   }
-  return storageInstances.get(agentId)!
+  return storageInstances.get(instanceKey)!
 }
 

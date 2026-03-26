@@ -8,6 +8,7 @@
 /* Full Tailwind — CSS isolation is handled by Shadow DOM in standalone.tsx,
    so the full import (including preflight) is safe and won't leak. */
 @import 'tailwindcss';
+@source "./src";
 @import './src/chat-widget/styles/accessibility.css';
 
 /* ===================================

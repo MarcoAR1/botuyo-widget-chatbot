@@ -17,24 +17,8 @@ import { DARK_CSS_VARIABLES, getPrimaryColor } from './utils/theme'
 // Premium animations
 import './styles/premium-animations.css'
 
-// Full widget CSS — injected into <head> when used in bare React component mode.
-// standalone.tsx + ChatWidgetProvider inject this into Shadow DOM instead (no <head> pollution).
-// Selectors are scoped to #botuyo-chat-widget-root so they don't leak into the host page.
-import widgetCssContent from '../../styles.css?inline'
-
-const WIDGET_CSS_ID = 'botuyo-widget-css'
-
-function injectWidgetCSSIfNeeded(containerNode: HTMLElement | null) {
-  // If we're mounted inside a Shadow DOM, skip — CSS is already injected there
-  if (containerNode?.getRootNode() instanceof ShadowRoot) return
-  // Inject once per document
-  if (document.getElementById(WIDGET_CSS_ID)) return
-  const style = document.createElement('style')
-  style.id = WIDGET_CSS_ID
-  // In <head> mode we target :root for CSS variables (not :host which is Shadow DOM only)
-  style.textContent = widgetCssContent
-  document.head.appendChild(style)
-}
+// Use Shadow DOM to safely isolate CSS instead of polluting the host page
+import { ShadowDOMHost } from './components/ShadowDOMHost'
 
 export function ChatWidgetInner(props: ChatWidgetProps) {
   const {
@@ -55,10 +39,6 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
   // Refs y estado local
   const containerRef = useRef<HTMLDivElement>(null!)
 
-  // Inject CSS when used as a bare React component (no Shadow DOM)
-  useEffect(() => {
-    injectWidgetCSSIfNeeded(containerRef.current)
-  }, [])
   const isMobile = useIsMobile()
 
   // Dark mode detection - auto-applies 'dark' class to widget
@@ -316,15 +296,23 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
   )
 }
 
+export function ChatWidgetWithProviders(props: ChatWidgetProps) {
+  return (
+    <PremiumConfigProvider
+      animations={props.theme?.animations}
+      effects={props.theme?.effects}
+    >
+      <ChatWidgetInner {...props} />
+    </PremiumConfigProvider>
+  )
+}
+
 export function ChatWidget(props: ChatWidgetProps) {
   return (
     <LanguageProvider defaultLocale={props.theme?.defaultLocale}>
-      <PremiumConfigProvider
-        animations={props.theme?.animations}
-        effects={props.theme?.effects}
-      >
-        <ChatWidgetInner {...props} />
-      </PremiumConfigProvider>
+      <ShadowDOMHost>
+        <ChatWidgetWithProviders {...props} />
+      </ShadowDOMHost>
     </LanguageProvider>
   )
 }

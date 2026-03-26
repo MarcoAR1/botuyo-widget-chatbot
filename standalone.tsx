@@ -75,7 +75,7 @@ function detectDarkMode(): boolean {
 // Lazy load ChatWidget - only loaded when user opens chat
 const ChatWidget = lazy(() => 
   import('./src/chat-widget/ChatWidget').then(module => ({
-    default: module.ChatWidget
+    default: module.ChatWidgetWithProviders
   }))
 );
 
@@ -454,8 +454,7 @@ export { BotUyoChatWidget };
 export type { StandaloneConfig };
 
 // Re-export React components for npm package usage
-export { ChatWidget } from './src/chat-widget/ChatWidget';
-export { ChatWidget as ChatWidgetUnstyled } from './src/chat-widget/ChatWidget';
+export { ChatWidget, ChatWidgetWithProviders as ChatWidgetUnstyled } from './src/chat-widget/ChatWidget';
 export { ChatWidgetProvider, useChatWidget } from './src/chat-widget/ChatWidgetProvider';
 export type { ChatWidgetContextValue, ChatWidgetProviderProps } from './src/chat-widget/ChatWidgetProvider';
 export type { 

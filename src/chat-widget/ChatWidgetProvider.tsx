@@ -13,15 +13,13 @@
 
 /* eslint-disable react-refresh/only-export-components */
 
-import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from 'react'
-import { createPortal } from 'react-dom'
+import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
 import { ChatWidget } from './ChatWidget'
 import type { ChatWidgetProps } from './types'
 import { logger } from './utils/logger'
 import { LanguageProvider, type SupportedLocale } from './i18n'
 
-// Import the full widget CSS as inline string (same as standalone.tsx)
-import cssContent from '../../styles.css?inline'
+import { ShadowDOMHost } from './components/ShadowDOMHost'
 
 // ========== Context Types ==========
 
@@ -68,70 +66,6 @@ export interface ChatWidgetProviderProps extends ChatWidgetProps {
   }
   /** Idioma inicial del widget (es, en, pt, fr). Si no se especifica, se detecta automáticamente */
   defaultLocale?: SupportedLocale
-}
-
-// ========== Shadow DOM Host Component ==========
-
-/**
- * Creates a Shadow DOM container in document.body, injects widget CSS,
- * and renders children inside via React Portal.
- * Handles React Strict Mode double-invocation safely.
- */
-function ShadowDOMHost({ children }: { children: ReactNode }) {
-  const mountRef = useRef<HTMLDivElement | null>(null)
-  const containerRef = useRef<HTMLDivElement | null>(null)
-  const [ready, setReady] = useState(false)
-
-  useEffect(() => {
-    if (typeof document === 'undefined') return
-
-    // Reuse existing container if present (React Strict Mode remount)
-    let container = document.getElementById('botuyo-chat-widget-root') as HTMLDivElement | null
-    let shadow: ShadowRoot
-    let mount: HTMLDivElement
-
-    if (container && container.shadowRoot) {
-      // Reuse — already set up from a previous mount
-      shadow = container.shadowRoot
-      mount = shadow.getElementById('botuyo-chat-widget-root') as HTMLDivElement
-        || shadow.querySelector('div') as HTMLDivElement
-    } else {
-      // Create fresh container + shadow
-      container = document.createElement('div')
-      container.id = 'botuyo-chat-widget-root'
-      document.body.appendChild(container)
-
-      shadow = container.attachShadow({ mode: 'open' })
-
-      // Inject CSS (replace :root with :host for Shadow DOM)
-      const style = document.createElement('style')
-      style.textContent = cssContent.replace(/:root/g, ':host')
-      shadow.appendChild(style)
-
-      // Mount point for React
-      mount = document.createElement('div')
-      mount.id = 'botuyo-chat-widget-root'
-      shadow.appendChild(mount)
-    }
-
-    containerRef.current = container
-    mountRef.current = mount
-    setReady(true)
-    logger.debug('ChatWidgetProvider: Shadow DOM initialized')
-
-    return () => {
-      if (containerRef.current) {
-        containerRef.current.remove()
-        containerRef.current = null
-        mountRef.current = null
-      }
-    }
-  }, [])
-
-  if (!ready || !mountRef.current) return null
-
-  // Portal renders React children inside Shadow DOM while preserving React context
-  return createPortal(children, mountRef.current)
 }
 
 // ========== Provider Component ==========

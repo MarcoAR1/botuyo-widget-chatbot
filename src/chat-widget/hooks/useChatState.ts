@@ -8,8 +8,8 @@ import type { ChatState, ChatAction, ChatMessage } from '../types'
 import { logger } from '../utils/logger'
 import { getChatStorage } from '../utils/storage'
 
-function getStorageKey(agentId: string = 'default') {
-  return `botuyo_chat_v1_${agentId}`
+function getStorageKey(apiKey: string, agentId: string = 'default') {
+  return `botuyo_chat_v1_${apiKey}_${agentId}`
 }
 
 const initialState: ChatState = {
@@ -104,11 +104,11 @@ function chatReducer(
   }
 }
 
-export function useChatState(agentId: string = 'default') {
+export function useChatState(apiKey: string, agentId: string = 'default') {
   const [state, dispatch] = useReducer(chatReducer, initialState)
   const [isHydrated, setIsHydrated] = useState(false)
-  const STORAGE_KEY = React.useMemo(() => getStorageKey(agentId), [agentId])
-  const chatStorage = React.useMemo(() => getChatStorage(agentId), [agentId])
+  const STORAGE_KEY = React.useMemo(() => getStorageKey(apiKey, agentId), [apiKey, agentId])
+  const chatStorage = React.useMemo(() => getChatStorage(apiKey, agentId), [apiKey, agentId])
 
   // 1. HIDRATACIÓN (Carga inicial)
   useEffect(() => {
@@ -117,7 +117,7 @@ export function useChatState(agentId: string = 'default') {
     const hydrateFromStorage = async () => {
       try {
         // Migrar desde localStorage si existe
-        await chatStorage.migrateFromLocalStorage(agentId)
+        await chatStorage.migrateFromLocalStorage(apiKey, agentId)
 
         // Cargar mensajes desde IndexedDB
         const messages = await chatStorage.getMessages(100)

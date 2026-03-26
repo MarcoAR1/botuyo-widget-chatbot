@@ -84,7 +84,7 @@ export function useChatWidget(options: UseChatWidgetOptions) {
   // Rate limiting (10 mensajes por minuto)
   const rateLimit = useRateLimit(10, 60000)
 
-  const { state, actions } = useChatState(agentId)
+  const { state, actions } = useChatState(apiKey, agentId)
   const seoMetadata = useSEOMetadata(includeSEOMetadata)
 
   const enrichedPageContext = useMemo<PageContext | undefined>(() => {
