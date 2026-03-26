@@ -15,11 +15,9 @@
 
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
 import { ChatWidget } from './ChatWidget'
-import type { ChatWidgetProps } from './types'
 import { logger } from './utils/logger'
-import { LanguageProvider, type SupportedLocale } from './i18n'
-
-import { ShadowDOMHost } from './components/ShadowDOMHost'
+import type { ChatWidgetProps } from './types'
+import { type SupportedLocale } from './i18n'
 
 // ========== Context Types ==========
 
@@ -163,25 +161,20 @@ export function ChatWidgetProvider({
   )
 
   return (
-    <LanguageProvider defaultLocale={defaultLocale}>
-      <ChatWidgetContext.Provider value={contextValue}>
-        {children}
-        {/* ChatWidget renders inside Shadow DOM via portal — CSS isolated */}
-        <ShadowDOMHost>
-          <ChatWidget
-            {...widgetProps}
-            onStateChange={newIsOpen => {
-              setIsOpen(newIsOpen)
-              if (newIsOpen) {
-                setUnreadCount(0)
-              }
-              onStateChange?.(newIsOpen)
-            }}
-            onEvent={handleEvent}
-          />
-        </ShadowDOMHost>
-      </ChatWidgetContext.Provider>
-    </LanguageProvider>
+    <ChatWidgetContext.Provider value={contextValue}>
+      {children}
+      <ChatWidget
+        {...widgetProps}
+        onStateChange={newIsOpen => {
+          setIsOpen(newIsOpen)
+          if (newIsOpen) {
+            setUnreadCount(0)
+          }
+          onStateChange?.(newIsOpen)
+        }}
+        onEvent={handleEvent}
+      />
+    </ChatWidgetContext.Provider>
   )
 }
 

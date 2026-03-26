@@ -124,14 +124,9 @@ describe('useDynamicHeight', () => {
 
       const { result } = renderHook(() => useDynamicHeight({ isOpen: true }))
 
+      // Only height is set — positioning comes from CSS `fixed inset-0`
       expect(result.current).toEqual({
         height: '500px',
-        width: '100%',
-        top: '0px',
-        left: '0px',
-        bottom: 'auto',
-        right: 'auto',
-        transform: 'none',
       })
 
       expect(mockVisualViewport.addEventListener).toHaveBeenCalledWith(
@@ -153,11 +148,9 @@ describe('useDynamicHeight', () => {
 
       const { result } = renderHook(() => useDynamicHeight({ isOpen: true }))
 
+      // Fallback: only height via dvh
       expect(result.current).toEqual({
         height: '100dvh',
-        width: '100%',
-        top: '0px',
-        left: '0px',
       })
     })
 
@@ -240,7 +233,8 @@ describe('useDynamicHeight', () => {
       const { result, rerender } = renderHook(() => useDynamicHeight({ isOpen: true }))
 
       expect(result.current.height).toBe('500px')
-      expect(result.current.width).toBe('100%')
+      // width is no longer set by useDynamicHeight on mobile — managed by CSS inset-0
+      expect(result.current.width).toBeUndefined()
 
       // Cambiar a desktop
       useIsMobileSpy.mockReturnValue(false)
