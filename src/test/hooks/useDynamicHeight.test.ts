@@ -124,9 +124,10 @@ describe('useDynamicHeight', () => {
 
       const { result } = renderHook(() => useDynamicHeight({ isOpen: true }))
 
-      // Only height is set — positioning comes from CSS `fixed inset-0`
+      // Only height and transform are set — positioning comes from CSS `fixed inset-0`
       expect(result.current).toEqual({
         height: '500px',
+        transform: 'translateY(0px)',
       })
 
       expect(mockVisualViewport.addEventListener).toHaveBeenCalledWith(
@@ -151,6 +152,7 @@ describe('useDynamicHeight', () => {
       // Fallback: only height via dvh
       expect(result.current).toEqual({
         height: '100dvh',
+        transform: 'none',
       })
     })
 
