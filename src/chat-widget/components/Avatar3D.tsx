@@ -79,6 +79,84 @@ const EMOTION_MAP: Record<string, EmotionConfig> = {
 }
 
 // ═══════════════════════════════════════
+// ARKit / READY PLAYER ME BLENDSHAPE SUPPORT
+// ═══════════════════════════════════════
+
+interface ARKitEmotionConfig {
+  morphs: Record<string, number>  // ARKit morph target name → weight 0-1
+  headRotation?: [number, number, number]
+}
+
+const ARKIT_EMOTION_MAP: Record<string, ARKitEmotionConfig> = {
+  default: { morphs: {} },
+  happy: {
+    morphs: { mouthSmileLeft: 0.7, mouthSmileRight: 0.7, cheekSquintLeft: 0.3, cheekSquintRight: 0.3 },
+  },
+  angry: {
+    morphs: { browDownLeft: 0.7, browDownRight: 0.7, mouthFrownLeft: 0.4, mouthFrownRight: 0.4, noseSneerLeft: 0.3, noseSneerRight: 0.3 },
+    headRotation: [0.05, 0, 0],
+  },
+  sorry: {
+    morphs: { browInnerUp: 0.6, mouthFrownLeft: 0.4, mouthFrownRight: 0.4 },
+    headRotation: [-0.08, 0, 0],
+  },
+  confused: {
+    morphs: { browInnerUp: 0.5, browOuterUpLeft: 0.3, mouthFrownLeft: 0.2, mouthFrownRight: 0.2 },
+    headRotation: [0, 0, 0.08],
+  },
+  love: {
+    morphs: { mouthSmileLeft: 0.9, mouthSmileRight: 0.9, cheekSquintLeft: 0.5, cheekSquintRight: 0.5 },
+  },
+  thinking: {
+    morphs: { browInnerUp: 0.3, eyeSquintLeft: 0.2, eyeSquintRight: 0.2 },
+    headRotation: [0.06, -0.1, 0],
+  },
+  wink: {
+    morphs: { eyeBlinkLeft: 0.9, mouthSmileLeft: 0.5, mouthSmileRight: 0.3 },
+  },
+}
+
+type MorphMesh = THREE.Mesh & {
+  morphTargetDictionary: Record<string, number>
+  morphTargetInfluences: number[]
+}
+
+function findMorphMeshes(root: THREE.Object3D): MorphMesh[] {
+  const meshes: MorphMesh[] = []
+  root.traverse((child) => {
+    if (
+      (child as THREE.Mesh).isMesh &&
+      (child as THREE.Mesh).morphTargetDictionary &&
+      (child as THREE.Mesh).morphTargetInfluences
+    ) {
+      meshes.push(child as MorphMesh)
+    }
+  })
+  return meshes
+}
+
+function setMorphTarget(meshes: MorphMesh[], name: string, value: number) {
+  for (const mesh of meshes) {
+    const idx = mesh.morphTargetDictionary[name]
+    if (idx !== undefined) {
+      mesh.morphTargetInfluences[idx] = value
+    }
+  }
+}
+
+function getMorphTarget(meshes: MorphMesh[], name: string): number {
+  for (const mesh of meshes) {
+    const idx = mesh.morphTargetDictionary[name]
+    if (idx !== undefined) return mesh.morphTargetInfluences[idx] || 0
+  }
+  return 0
+}
+
+function hasMorphTarget(meshes: MorphMesh[], name: string): boolean {
+  return meshes.some((m) => m.morphTargetDictionary[name] !== undefined)
+}
+
+// ═══════════════════════════════════════
 // VRM MODEL COMPONENT (inside Canvas)
 // ═══════════════════════════════════════
 
@@ -92,6 +170,7 @@ interface VRMModelProps {
 function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
   const vrmRef = useRef<VRM | null>(null)
   const glbSceneRef = useRef<THREE.Group | null>(null)
+  const morphMeshesRef = useRef<MorphMesh[]>([]) // ARKit/RPM morph target meshes
   const mixerRef = useRef<THREE.AnimationMixer | null>(null)
   const baseRotationY = useRef(0)
   const baseScale = useRef(1)
@@ -101,6 +180,8 @@ function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
   const visemePhase = useRef(0) // Phase for multi-viseme lip sync cycling
   const currentExpressions = useRef<Record<string, number>>({})
   const targetExpressions = useRef<Record<string, number>>({})
+  const currentMorphTargets = useRef<Record<string, number>>({}) // ARKit morph lerp state
+  const targetMorphTargets = useRef<Record<string, number>>({}) // ARKit morph targets
   const headTarget = useRef(new THREE.Euler(0, 0, 0))
   const baseY = useRef(0)
   const { scene, camera } = useThree()
@@ -130,9 +211,18 @@ function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
             vrm.lookAt.target = camera
           }
         } else {
-          // ── PLAIN GLB FALLBACK ──
-          console.info('[Avatar3D] Plain GLB model detected, using fallback animations')
+          // ── GLB PATH (Ready Player Me / plain GLB) ──
           const model = gltf.scene
+
+          // Scan for meshes with morph targets (ARKit blendshapes)
+          const morphMeshes = findMorphMeshes(model)
+          morphMeshesRef.current = morphMeshes
+          if (morphMeshes.length > 0) {
+            const sampleNames = Object.keys(morphMeshes[0].morphTargetDictionary).slice(0, 5)
+            console.info(`[Avatar3D] GLB with ${morphMeshes.length} morph meshes detected. Sample blendshapes: ${sampleNames.join(', ')}`)
+          } else {
+            console.info('[Avatar3D] Plain GLB model detected (no morph targets), using basic fallback animations')
+          }
 
           // Force world matrix update so bbox is accurate
           model.updateMatrixWorld(true)
@@ -195,12 +285,20 @@ function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
     }
   }, [url, scene])
 
-  // Update target expressions when emotion changes (VRM only)
+  // Update target expressions when emotion changes
   useEffect(() => {
-    const config = EMOTION_MAP[emotion || 'default'] || EMOTION_MAP.default
-    targetExpressions.current = config.expressions
-    if (config.headRotation) {
-      headTarget.current.set(...config.headRotation)
+    // VRM path
+    const vrmConfig = EMOTION_MAP[emotion || 'default'] || EMOTION_MAP.default
+    targetExpressions.current = vrmConfig.expressions
+
+    // ARKit/GLB path
+    const arkitConfig = ARKIT_EMOTION_MAP[emotion || 'default'] || ARKIT_EMOTION_MAP.default
+    targetMorphTargets.current = arkitConfig.morphs
+
+    // Head rotation (shared)
+    const headRot = vrmConfig.headRotation || arkitConfig.headRotation
+    if (headRot) {
+      headTarget.current.set(...headRot)
     } else {
       headTarget.current.set(0, 0, 0)
     }
@@ -211,9 +309,11 @@ function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
     const dt = Math.min(delta, 0.1) // Cap delta to avoid jumps
     breathPhase.current += dt * 1.2
 
-    // ── GLB FALLBACK ANIMATION ──
+    // ── GLB / READY PLAYER ME ANIMATION ──
     const glb = glbSceneRef.current
     if (glb) {
+      const morphs = morphMeshesRef.current
+
       // Update animation mixer if present
       if (mixerRef.current) {
         mixerRef.current.update(dt)
@@ -227,14 +327,95 @@ function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
       const idleSway = Math.sin(breathPhase.current * 0.3) * 0.02
       glb.rotation.y = baseRotationY.current + idleSway
 
-      // Audio-reactive scale pulse when speaking
+      // ── ARKit BLINKING ──
+      if (morphs.length > 0 && hasMorphTarget(morphs, 'eyeBlinkLeft')) {
+        blinkTimer.current += dt
+        if (blinkTimer.current >= nextBlinkAt.current) {
+          const blinkProgress = (blinkTimer.current - nextBlinkAt.current) / 0.15
+          if (blinkProgress < 1) {
+            setMorphTarget(morphs, 'eyeBlinkLeft', blinkProgress)
+            setMorphTarget(morphs, 'eyeBlinkRight', blinkProgress)
+          } else if (blinkProgress < 2) {
+            setMorphTarget(morphs, 'eyeBlinkLeft', 2 - blinkProgress)
+            setMorphTarget(morphs, 'eyeBlinkRight', 2 - blinkProgress)
+          } else {
+            setMorphTarget(morphs, 'eyeBlinkLeft', 0)
+            setMorphTarget(morphs, 'eyeBlinkRight', 0)
+            blinkTimer.current = 0
+            nextBlinkAt.current = Math.random() * 4 + 2
+          }
+        }
+      }
+
+      // ── ARKit EMOTION BLENDING ──
+      if (morphs.length > 0) {
+        const allMorphKeys = new Set([
+          ...Object.keys(currentMorphTargets.current),
+          ...Object.keys(targetMorphTargets.current),
+        ])
+        for (const key of allMorphKeys) {
+          // Skip blink morphs during active blink animation
+          if ((key === 'eyeBlinkLeft' || key === 'eyeBlinkRight') && blinkTimer.current >= nextBlinkAt.current) continue
+          const current = currentMorphTargets.current[key] || 0
+          const target = targetMorphTargets.current[key] || 0
+          const next = THREE.MathUtils.lerp(current, target, 4 * dt)
+          currentMorphTargets.current[key] = next
+          setMorphTarget(morphs, key, next)
+        }
+      }
+
+      // ── ARKit / RPM MULTI-VISEME LIP SYNC ──
+      if (morphs.length > 0 && callState === 'speaking' && audioLevel > 0.01) {
+        visemePhase.current += dt * 12
+        const amp = Math.min(audioLevel * 1.5, 0.8)
+        const p = visemePhase.current
+
+        // Ready Player Me viseme blendshapes (Oculus naming)
+        const hasRPMVisemes = hasMorphTarget(morphs, 'viseme_aa')
+        if (hasRPMVisemes) {
+          const rpmVisemes: [string, number][] = [
+            ['viseme_aa', Math.max(0, Math.sin(p * 1.0)) * amp],
+            ['viseme_E',  Math.max(0, Math.sin(p * 1.7 + 1.2)) * amp * 0.6],
+            ['viseme_I',  Math.max(0, Math.sin(p * 2.3 + 2.5)) * amp * 0.4],
+            ['viseme_O',  Math.max(0, Math.sin(p * 1.3 + 3.8)) * amp * 0.7],
+            ['viseme_U',  Math.max(0, Math.sin(p * 1.9 + 5.0)) * amp * 0.5],
+          ]
+          for (const [name, target] of rpmVisemes) {
+            const current = getMorphTarget(morphs, name)
+            setMorphTarget(morphs, name, THREE.MathUtils.lerp(current, target, 8 * dt))
+          }
+        } else if (hasMorphTarget(morphs, 'jawOpen')) {
+          // Fallback: generic ARKit jaw-based lip sync
+          const jawTarget = Math.min(audioLevel * 1.2, 0.7)
+          const currentJaw = getMorphTarget(morphs, 'jawOpen')
+          setMorphTarget(morphs, 'jawOpen', THREE.MathUtils.lerp(currentJaw, jawTarget, 8 * dt))
+          if (hasMorphTarget(morphs, 'mouthOpen')) {
+            setMorphTarget(morphs, 'mouthOpen', THREE.MathUtils.lerp(getMorphTarget(morphs, 'mouthOpen'), jawTarget * 0.6, 8 * dt))
+          }
+        }
+      } else if (morphs.length > 0) {
+        // Smoothly close all viseme morphs when not speaking
+        const visemeNames = [
+          'viseme_aa', 'viseme_E', 'viseme_I', 'viseme_O', 'viseme_U',
+          'viseme_CH', 'viseme_DD', 'viseme_FF', 'viseme_kk', 'viseme_nn',
+          'viseme_PP', 'viseme_RR', 'viseme_SS', 'viseme_TH', 'viseme_sil',
+          'jawOpen', 'mouthOpen',
+        ]
+        for (const name of visemeNames) {
+          const current = getMorphTarget(morphs, name)
+          if (current > 0.01) {
+            setMorphTarget(morphs, name, current * 0.85)
+          }
+        }
+      }
+
+      // Audio-reactive scale pulse when speaking (for models without morph targets)
       if (callState === 'speaking' && audioLevel > 0.01) {
         const pulse = 1 + audioLevel * 0.03
         const targetScale = baseScale.current * pulse
         const currentScale = glb.scale.x
         glb.scale.setScalar(THREE.MathUtils.lerp(currentScale, targetScale, 0.1))
       } else {
-        // Return to base scale smoothly
         const currentScale = glb.scale.x
         if (Math.abs(currentScale - baseScale.current) > 0.001) {
           glb.scale.setScalar(THREE.MathUtils.lerp(currentScale, baseScale.current, 0.05))
