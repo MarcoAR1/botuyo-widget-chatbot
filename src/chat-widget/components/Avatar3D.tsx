@@ -98,6 +98,7 @@ function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
   const blinkTimer = useRef(0)
   const nextBlinkAt = useRef(3.5) // Initial value, randomized in useFrame
   const breathPhase = useRef(0)
+  const visemePhase = useRef(0) // Phase for multi-viseme lip sync cycling
   const currentExpressions = useRef<Record<string, number>>({})
   const targetExpressions = useRef<Record<string, number>>({})
   const headTarget = useRef(new THREE.Euler(0, 0, 0))
@@ -123,6 +124,11 @@ function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
           vrm.scene.position.y = -center.y - height * 0.05
           baseY.current = vrm.scene.position.y
           scene.add(vrm.scene)
+
+          // Eyes look straight at camera (forward-facing)
+          if (vrm.lookAt) {
+            vrm.lookAt.target = camera
+          }
         } else {
           // ── PLAIN GLB FALLBACK ──
           console.info('[Avatar3D] Plain GLB model detected, using fallback animations')
@@ -280,16 +286,39 @@ function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
       vrm.expressionManager?.setValue(key, next)
     }
 
-    // ── SPEAKING MOUTH ──
+    // ── MULTI-VISEME LIP SYNC ──
+    // Cycles through Aa, Ee, Ih, Oh, Ou at different frequencies
+    // driven by audioLevel — simulates natural speech mouth shapes
     if (callState === 'speaking' && audioLevel > 0.01) {
-      const mouthTarget = Math.min(audioLevel * 1.5, 0.8)
-      const currentMouth = vrm.expressionManager?.getValue(VRMExpressionPresetName.Aa) || 0
-      const smoothMouth = THREE.MathUtils.lerp(currentMouth, mouthTarget, 8 * dt)
-      vrm.expressionManager?.setValue(VRMExpressionPresetName.Aa, smoothMouth)
+      visemePhase.current += dt * 12 // ~12Hz cycling for natural speech cadence
+      const amp = Math.min(audioLevel * 1.5, 0.8)
+      const p = visemePhase.current
+
+      // Each viseme gets a sine wave at a different frequency for variety
+      const visemes: [string, number][] = [
+        [VRMExpressionPresetName.Aa, Math.max(0, Math.sin(p * 1.0)) * amp],
+        [VRMExpressionPresetName.Ee, Math.max(0, Math.sin(p * 1.7 + 1.2)) * amp * 0.6],
+        [VRMExpressionPresetName.Ih, Math.max(0, Math.sin(p * 2.3 + 2.5)) * amp * 0.4],
+        [VRMExpressionPresetName.Oh, Math.max(0, Math.sin(p * 1.3 + 3.8)) * amp * 0.7],
+        [VRMExpressionPresetName.Ou, Math.max(0, Math.sin(p * 1.9 + 5.0)) * amp * 0.5],
+      ]
+
+      for (const [name, target] of visemes) {
+        const current = vrm.expressionManager?.getValue(name) || 0
+        vrm.expressionManager?.setValue(name, THREE.MathUtils.lerp(current, target, 8 * dt))
+      }
     } else {
-      const currentMouth = vrm.expressionManager?.getValue(VRMExpressionPresetName.Aa) || 0
-      if (currentMouth > 0.01) {
-        vrm.expressionManager?.setValue(VRMExpressionPresetName.Aa, currentMouth * 0.9)
+      // Smoothly close all visemes when not speaking
+      const visemeNames = [
+        VRMExpressionPresetName.Aa, VRMExpressionPresetName.Ee,
+        VRMExpressionPresetName.Ih, VRMExpressionPresetName.Oh,
+        VRMExpressionPresetName.Ou,
+      ]
+      for (const name of visemeNames) {
+        const current = vrm.expressionManager?.getValue(name) || 0
+        if (current > 0.01) {
+          vrm.expressionManager?.setValue(name, current * 0.85)
+        }
       }
     }
 
@@ -315,6 +344,29 @@ function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
       const head = vrm.humanoid.getNormalizedBoneNode('head')
       if (head) {
         head.rotation.z = THREE.MathUtils.lerp(head.rotation.z, 0.03, 2 * dt)
+      }
+    }
+
+    // ── BODY IDLE GESTURES ──
+    // Subtle spine sway and shoulder micro-movement for lifelike presence
+    if (vrm.humanoid) {
+      const spine = vrm.humanoid.getNormalizedBoneNode('spine')
+      if (spine) {
+        const spineSwayZ = Math.sin(breathPhase.current * 0.4) * 0.008
+        const spineSwayX = Math.cos(breathPhase.current * 0.25) * 0.005
+        spine.rotation.z = THREE.MathUtils.lerp(spine.rotation.z, spineSwayZ, 2 * dt)
+        spine.rotation.x = THREE.MathUtils.lerp(spine.rotation.x, spineSwayX, 2 * dt)
+      }
+
+      const leftArm = vrm.humanoid.getNormalizedBoneNode('leftUpperArm')
+      const rightArm = vrm.humanoid.getNormalizedBoneNode('rightUpperArm')
+      if (leftArm) {
+        const armSway = Math.sin(breathPhase.current * 0.35 + 0.5) * 0.01
+        leftArm.rotation.z = THREE.MathUtils.lerp(leftArm.rotation.z, armSway, 1.5 * dt)
+      }
+      if (rightArm) {
+        const armSway = Math.sin(breathPhase.current * 0.35 + 3.5) * 0.01
+        rightArm.rotation.z = THREE.MathUtils.lerp(rightArm.rotation.z, -armSway, 1.5 * dt)
       }
     }
 
