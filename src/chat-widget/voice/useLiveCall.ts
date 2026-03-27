@@ -112,6 +112,13 @@ export function useLiveCall(options: UseLiveCallOptions): UseLiveCallReturn {
   const audioQueueRef = useRef<ArrayBuffer[]>([])
   const callTimerRef = useRef<NodeJS.Timeout | null>(null)
   const handlersRef = useRef({ onStateChange, onTranscription, onBotResponse, onError })
+  const isMountedRef = useRef(true)
+
+  // Track mount state for safe cleanup
+  useEffect(() => {
+    isMountedRef.current = true
+    return () => { isMountedRef.current = false }
+  }, [])
 
   // Keep handlers ref updated
   useEffect(() => {
@@ -140,6 +147,7 @@ export function useLiveCall(options: UseLiveCallOptions): UseLiveCallReturn {
    * Update state and notify
    */
   const updateState = useCallback((newState: LiveCallState) => {
+    if (!isMountedRef.current) return
     setState(newState)
     handlersRef.current.onStateChange?.(newState)
   }, [])
@@ -390,8 +398,8 @@ export function useLiveCall(options: UseLiveCallOptions): UseLiveCallReturn {
   const endCall = useCallback(() => {
     console.log('[BotUyo] Ending live call')
 
-    // Send end_call message
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
+    // Send end_call message (use numeric 1 = OPEN to avoid global reference issues during cleanup)
+    if (wsRef.current && wsRef.current.readyState === 1) {
       wsRef.current.send(JSON.stringify({ type: 'end_call' }))
     }
 
@@ -408,9 +416,9 @@ export function useLiveCall(options: UseLiveCallOptions): UseLiveCallReturn {
     // Stop timer
     stopCallTimer()
 
-    // Reset state
+    // Reset state (guarded — updateState already checks isMountedRef)
     updateState('idle')
-    setCallDuration(0)
+    if (isMountedRef.current) setCallDuration(0)
   }, [stopMicrophone, stopCallTimer, updateState])
 
   // Cleanup on unmount
