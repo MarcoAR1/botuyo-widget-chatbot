@@ -11,6 +11,12 @@ import type { UseVoiceChatOptions, UseVoiceChatReturn, VoiceServerMessage } from
 import { VOICE_AUDIO_CONFIG } from './types'
 import { useVoiceState } from './useVoiceState'
 import { logger } from '../utils/logger'
+import {
+  ENHANCED_AUDIO_CONSTRAINTS,
+  NOISE_GATE_THRESHOLD,
+  NOISE_GATE_HOLD_FRAMES,
+  createEnhancementChain,
+} from './audioEnhancement'
 
 /**
  * AudioWorklet processor code as inline string
@@ -22,6 +28,7 @@ class AudioProcessor extends AudioWorkletProcessor {
     super();
     this.buffer = new Float32Array(1600);
     this.bufferIndex = 0;
+    this.holdCounter = 0;
   }
 
   process(inputs, outputs, parameters) {
@@ -39,8 +46,24 @@ class AudioProcessor extends AudioWorkletProcessor {
           int16Buffer[j] = s < 0 ? s * 0x8000 : s * 0x7FFF;
         }
 
-        // Send to main thread
-        this.port.postMessage(int16Buffer.buffer, [int16Buffer.buffer]);
+        // Noise gate: calculate RMS and only send if above threshold
+        let sumSq = 0;
+        for (let k = 0; k < int16Buffer.length; k++) {
+          const normalized = int16Buffer[k] / 0x7FFF;
+          sumSq += normalized * normalized;
+        }
+        const rms = Math.sqrt(sumSq / int16Buffer.length);
+
+        if (rms > ${NOISE_GATE_THRESHOLD}) {
+          this.holdCounter = ${NOISE_GATE_HOLD_FRAMES};
+        } else if (this.holdCounter > 0) {
+          this.holdCounter--;
+        }
+
+        // Only send chunk if gate is open (speech detected or within hold time)
+        if (this.holdCounter > 0) {
+          this.port.postMessage(int16Buffer.buffer, [int16Buffer.buffer]);
+        }
 
         // Reset buffer
         this.buffer = new Float32Array(1600);
@@ -316,13 +339,7 @@ export function useVoiceChat(options: UseVoiceChatOptions): UseVoiceChatReturn {
     try {
       // Request microphone access
       const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          sampleRate: VOICE_AUDIO_CONFIG.input.sampleRate,
-          channelCount: VOICE_AUDIO_CONFIG.input.channels,
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-        },
+        audio: ENHANCED_AUDIO_CONSTRAINTS,
       })
       streamRef.current = stream
 
@@ -355,8 +372,10 @@ export function useVoiceChat(options: UseVoiceChatOptions): UseVoiceChatReturn {
       // Load AudioWorklet
       await audioContextRef.current.audioWorklet.addModule(processorUrlRef.current)
 
-      // Create processing chain
+      // Create processing chain with enhancement
       const source = audioContextRef.current.createMediaStreamSource(stream)
+      const enhanced = createEnhancementChain(audioContextRef.current, source)
+
       processorRef.current = new AudioWorkletNode(audioContextRef.current, 'audio-processor')
 
       // Send audio chunks to WebSocket
@@ -366,7 +385,7 @@ export function useVoiceChat(options: UseVoiceChatOptions): UseVoiceChatReturn {
         }
       }
 
-      source.connect(processorRef.current)
+      enhanced.connect(processorRef.current)
 
       // Notify server
       wsRef.current?.send(

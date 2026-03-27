@@ -17,6 +17,12 @@ import type {
   LiveCallErrorMessage,
 } from './types'
 import { VOICE_AUDIO_CONFIG } from './types'
+import {
+  ENHANCED_AUDIO_CONSTRAINTS,
+  NOISE_GATE_THRESHOLD,
+  NOISE_GATE_HOLD_FRAMES,
+  createEnhancementChain,
+} from './audioEnhancement'
 
 /**
  * Inline AudioWorklet processor code
@@ -28,6 +34,7 @@ class PCMProcessor extends AudioWorkletProcessor {
     super();
     this.buffer = new Float32Array(${VOICE_AUDIO_CONFIG.input.chunkSize});
     this.bufferIndex = 0;
+    this.holdCounter = 0;
   }
 
   process(inputs, outputs, parameters) {
@@ -45,7 +52,25 @@ class PCMProcessor extends AudioWorkletProcessor {
           int16Buffer[j] = s < 0 ? s * 0x8000 : s * 0x7FFF;
         }
 
-        this.port.postMessage(int16Buffer.buffer, [int16Buffer.buffer]);
+        // Noise gate: calculate RMS and only send if above threshold
+        let sumSq = 0;
+        for (let k = 0; k < int16Buffer.length; k++) {
+          const normalized = int16Buffer[k] / 0x7FFF;
+          sumSq += normalized * normalized;
+        }
+        const rms = Math.sqrt(sumSq / int16Buffer.length);
+
+        if (rms > ${NOISE_GATE_THRESHOLD}) {
+          this.holdCounter = ${NOISE_GATE_HOLD_FRAMES * 5};
+        } else if (this.holdCounter > 0) {
+          this.holdCounter--;
+        }
+
+        // Only send chunk if gate is open (speech detected or within hold time)
+        if (this.holdCounter > 0) {
+          this.port.postMessage(int16Buffer.buffer, [int16Buffer.buffer]);
+        }
+
         this.buffer = new Float32Array(${VOICE_AUDIO_CONFIG.input.chunkSize});
         this.bufferIndex = 0;
       }
@@ -193,13 +218,7 @@ export function useLiveCall(options: UseLiveCallOptions): UseLiveCallReturn {
    */
   const startMicrophone = useCallback(async () => {
     const stream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        sampleRate: VOICE_AUDIO_CONFIG.input.sampleRate,
-        channelCount: VOICE_AUDIO_CONFIG.input.channels,
-        echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: true,
-      },
+      audio: ENHANCED_AUDIO_CONSTRAINTS,
     })
     streamRef.current = stream
 
@@ -214,6 +233,10 @@ export function useLiveCall(options: UseLiveCallOptions): UseLiveCallReturn {
     URL.revokeObjectURL(workletUrl)
 
     const source = audioContextRef.current.createMediaStreamSource(stream)
+
+    // Enhancement chain: highpass → lowpass → compressor
+    const enhanced = createEnhancementChain(audioContextRef.current, source)
+
     processorRef.current = new AudioWorkletNode(audioContextRef.current, 'pcm-processor')
 
     // Send audio chunks to WebSocket
@@ -223,7 +246,7 @@ export function useLiveCall(options: UseLiveCallOptions): UseLiveCallReturn {
       }
     }
 
-    source.connect(processorRef.current)
+    enhanced.connect(processorRef.current)
   }, [])
 
   /**

@@ -19,6 +19,12 @@ import remarkGfm from 'remark-gfm'
 import rehypeSanitize from 'rehype-sanitize'
 import type { EmotionAvatarMap } from './Launcher'
 import { DEFAULT_AVATAR_URL } from '../utils/defaultAssets'
+import {
+  ENHANCED_AUDIO_CONSTRAINTS,
+  NOISE_GATE_THRESHOLD,
+  NOISE_GATE_HOLD_FRAMES,
+  createEnhancementChain,
+} from '../voice/audioEnhancement'
 
 // Lazy-loaded 3D avatar — separate chunk, 0KB impact on main bundle
 const Avatar3D = lazy(() => import('./Avatar3D'))
@@ -113,13 +119,14 @@ const OUTPUT_SAMPLE_RATE = 24000
 const INACTIVITY_TIMEOUT_SECONDS = 120 // 2 minutes of silence → auto-end
 const INACTIVITY_WARNING_SECONDS = 90  // Warn at 1:30 of silence
 
-// Inline AudioWorklet processor for PCM capture at 16kHz
+// Inline AudioWorklet processor for PCM capture at 16kHz (with noise gate)
 const AUDIO_PROCESSOR_CODE = `
 class VoicePCMProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
     this.buffer = new Float32Array(1600); // 100ms at 16kHz
     this.bufferIndex = 0;
+    this.holdCounter = 0;
   }
   process(inputs) {
     const input = inputs[0]?.[0];
@@ -133,7 +140,25 @@ class VoicePCMProcessor extends AudioWorkletProcessor {
           const s = Math.max(-1, Math.min(1, this.buffer[j]));
           int16[j] = s < 0 ? s * 0x8000 : s * 0x7FFF;
         }
-        this.port.postMessage(int16.buffer, [int16.buffer]);
+
+        // Noise gate: calculate RMS and only send if above threshold
+        let sumSq = 0;
+        for (let k = 0; k < int16.length; k++) {
+          const normalized = int16[k] / 0x7FFF;
+          sumSq += normalized * normalized;
+        }
+        const rms = Math.sqrt(sumSq / int16.length);
+
+        if (rms > ${NOISE_GATE_THRESHOLD}) {
+          this.holdCounter = ${NOISE_GATE_HOLD_FRAMES};
+        } else if (this.holdCounter > 0) {
+          this.holdCounter--;
+        }
+
+        if (this.holdCounter > 0) {
+          this.port.postMessage(int16.buffer, [int16.buffer]);
+        }
+
         this.buffer = new Float32Array(1600);
         this.bufferIndex = 0;
       }
@@ -803,13 +828,7 @@ export function VoiceCallOverlay({
     if (!socket) return
 
     const stream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        sampleRate: INPUT_SAMPLE_RATE,
-        channelCount: 1,
-        echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: true,
-      },
+      audio: ENHANCED_AUDIO_CONSTRAINTS,
     })
     streamRef.current = stream
 
@@ -819,10 +838,13 @@ export function VoiceCallOverlay({
     if (ctx.state === 'suspended') await ctx.resume()
     const source = ctx.createMediaStreamSource(stream)
 
-    // Analyser for visualization
+    // Enhancement chain: highpass → lowpass → compressor
+    const enhanced = createEnhancementChain(ctx, source)
+
+    // Analyser for visualization (fed from enhanced signal)
     const analyser = ctx.createAnalyser()
     analyser.fftSize = 256
-    source.connect(analyser)
+    enhanced.connect(analyser)
     analyserRef.current = analyser
 
     // Create processor URL
@@ -843,7 +865,7 @@ export function VoiceCallOverlay({
       }
     }
 
-    source.connect(workletNode)
+    enhanced.connect(workletNode)
 
     // Start visualization loop
     const updateLevel = () => {
