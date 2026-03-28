@@ -64,10 +64,11 @@ export function CallButton({
         type="button"
         onClick={handleClick}
         disabled={disabled || isCalling}
+        tabIndex={-1}
         className={cn(
           'h-10 px-4 rounded-full flex items-center justify-center gap-2',
           'transition-all duration-200 shrink-0',
-          'shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2',
+          'shadow-md outline-none',
           'font-medium text-sm',
           isInCall && 'bg-red-500 hover:bg-red-600 text-white',
           isCalling && 'animate-pulse cursor-wait',
@@ -77,7 +78,6 @@ export function CallButton({
           {
             backgroundColor: isIdle ? primaryColor || 'hsl(var(--primary))' : undefined,
             color: isIdle ? 'white' : undefined,
-            '--tw-ring-color': primaryColor || 'hsl(var(--primary))',
           } as React.CSSProperties
         }
         aria-label={isIdle ? 'Start voice call' : isCalling ? 'Connecting...' : 'End call'}
