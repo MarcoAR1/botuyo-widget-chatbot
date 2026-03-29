@@ -113,6 +113,10 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
   }, [mediaConfig, socketTheme])
 
   // Helpers
+  const handleClose = useCallback(() => {
+    actions.closeWindow()
+  }, [actions])
+
   const stopPropagation = useCallback((e: React.SyntheticEvent) => {
     e.stopPropagation()
   }, [])
@@ -248,7 +252,7 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
               isConnected={isConnected}
               isTyping={state.isTyping}
               messages={state.messages}
-              onClose={() => actions.closeWindow()}
+              onClose={handleClose}
               onSendMessage={handleSendText}
               onSendAttachment={handleSendAttachment}
               onSendLocation={handleSendLocation}

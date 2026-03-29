@@ -5,7 +5,7 @@
  * Principio: Single Responsibility - solo gestionar el foco del teclado
  */
 
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 
 interface UseFocusTrapOptions {
   /** Si el trap está activo */
@@ -37,6 +37,48 @@ export function useFocusTrap({ enabled, returnFocusRef, onEscape }: UseFocusTrap
   const containerRef = useRef<HTMLDivElement>(null)
   const previousActiveElementRef = useRef<HTMLElement | null>(null)
 
+  // Store onEscape in a ref so the effect doesn't re-run when the callback
+  // reference changes (e.g. inline arrow in parent). This prevents the
+  // focus-stealing re-initialization loop that was causing the textarea
+  // to lose focus after every message send.
+  const onEscapeRef = useRef(onEscape)
+  onEscapeRef.current = onEscape
+
+  // Stable keydown handler that reads onEscape from the ref
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    const container = containerRef.current
+    if (!container) return
+
+    // Escape para cerrar
+    if (e.key === 'Escape') {
+      onEscapeRef.current?.()
+      return
+    }
+
+    // Tab cycling
+    if (e.key === 'Tab') {
+      const focusableElements = container.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      )
+
+      if (focusableElements.length === 0) return
+
+      const firstElement = focusableElements[0]
+      const lastElement = focusableElements[focusableElements.length - 1]
+
+      // Shift + Tab en el primero → ir al último
+      if (e.shiftKey && document.activeElement === firstElement) {
+        e.preventDefault()
+        lastElement.focus()
+      }
+      // Tab en el último → ir al primero
+      else if (!e.shiftKey && document.activeElement === lastElement) {
+        e.preventDefault()
+        firstElement.focus()
+      }
+    }
+  }, [])
+
   useEffect(() => {
     if (!enabled) return
 
@@ -63,40 +105,6 @@ export function useFocusTrap({ enabled, returnFocusRef, onEscape }: UseFocusTrap
       }
     }, 100)
 
-    // Handler para atrapar el foco con Tab
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!container) return
-
-      // Escape para cerrar
-      if (e.key === 'Escape') {
-        onEscape?.()
-        return
-      }
-
-      // Tab cycling
-      if (e.key === 'Tab') {
-        const focusableElements = container.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        )
-
-        if (focusableElements.length === 0) return
-
-        const firstElement = focusableElements[0]
-        const lastElement = focusableElements[focusableElements.length - 1]
-
-        // Shift + Tab en el primero → ir al último
-        if (e.shiftKey && document.activeElement === firstElement) {
-          e.preventDefault()
-          lastElement.focus()
-        }
-        // Tab en el último → ir al primero
-        else if (!e.shiftKey && document.activeElement === lastElement) {
-          e.preventDefault()
-          firstElement.focus()
-        }
-      }
-    }
-
     document.addEventListener('keydown', handleKeyDown)
 
     return () => {
@@ -109,7 +117,7 @@ export function useFocusTrap({ enabled, returnFocusRef, onEscape }: UseFocusTrap
         targetToFocus.focus()
       }
     }
-  }, [enabled, onEscape, returnFocusRef])
+  }, [enabled, returnFocusRef, handleKeyDown])
 
   return containerRef
 }

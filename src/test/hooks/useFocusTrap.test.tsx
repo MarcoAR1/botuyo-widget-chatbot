@@ -142,6 +142,37 @@ describe('useFocusTrap', () => {
     })
   })
 
+  describe('Stable Focus (regression)', () => {
+    it('should NOT re-focus first element when onEscape reference changes', async () => {
+      // This test verifies the fix for the bug where sending a message
+      // caused the focus trap to re-initialize (due to unstable onEscape),
+      // stealing focus from the textarea and moving it to the close button.
+      const onEscape1 = vi.fn()
+      const onEscape2 = vi.fn()
+
+      const { rerender } = renderWithI18n(
+        <TestComponent enabled={true} onEscape={onEscape1} />
+      )
+
+      // Wait for initial focus
+      await new Promise(resolve => setTimeout(resolve, 150))
+
+      // Focus the third button (simulating textarea having focus)
+      const button3 = screen.getByText('Button 3')
+      button3.focus()
+      expect(document.activeElement).toBe(button3)
+
+      // Re-render with a NEW onEscape reference (simulates parent re-render)
+      rerender(<TestComponent enabled={true} onEscape={onEscape2} />)
+
+      // Wait longer than the 100ms focus timeout
+      await new Promise(resolve => setTimeout(resolve, 200))
+
+      // Focus should STILL be on button3, NOT stolen back to button1
+      expect(document.activeElement).toBe(button3)
+    })
+  })
+
   describe('Edge Cases', () => {
     it('should handle empty container gracefully', async () => {
       function EmptyComponent({ enabled }: { enabled: boolean }) {

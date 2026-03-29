@@ -95,6 +95,12 @@ export function InputArea({
       onSendMessage(trimmedValue)
       setInputValue('')
     }
+
+    // 🛡️ Safety net: re-focus after React re-render + any scroll/DOM mutations.
+    // Catches edge cases where scrollIntoView or other effects steal focus.
+    requestAnimationFrame(() => {
+      textareaRef.current?.focus()
+    })
   }
 
   // 🔥 CAPTURA DE ENTER Y CTRL+ENTER (Accesibilidad mejorada)
