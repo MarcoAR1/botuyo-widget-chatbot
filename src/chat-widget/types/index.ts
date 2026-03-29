@@ -336,6 +336,7 @@ export interface TextMessage extends BaseMessage {
   type: 'text'
   content: string
   emotion?: BotEmotion
+  sources?: string[]
 }
 
 export interface ImageMessage extends BaseMessage {

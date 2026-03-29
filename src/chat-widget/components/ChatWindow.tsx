@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import type { BubbleStyles, ChatMessage, MediaConfig } from '../types'
 import { MessageList } from './MessageList'
 import { InputArea } from './InputArea'
+import { SuggestedQuestions } from './SuggestedQuestions'
 import { getPrimaryColor } from '../utils/theme'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { useDynamicHeight } from '../hooks/useDynamicHeight'
@@ -37,6 +38,8 @@ export interface ChatWindowProps {
   /** URL to a .vrm/.glb 3D model for voice call avatar */
   avatar3dUrl?: string
   theme?: import('../types').ChatTheme
+  /** Pre-chat suggested questions (shown before first user message) */
+  suggestedQuestions?: string[]
 }
 
 export function ChatWindow({
@@ -59,6 +62,7 @@ export function ChatWindow({
   onAddVoiceMessage,
   avatar3dUrl,
   theme,
+  suggestedQuestions,
 }: ChatWindowProps) {
   const [logoError, setLogoError] = useState(false)
   const [showVoiceOverlay, setShowVoiceOverlay] = useState(false)
@@ -304,6 +308,14 @@ export function ChatWindow({
           />
           <div className="absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-background/10 to-transparent pointer-events-none" />
         </main>
+
+        {/* --- SUGGESTED QUESTIONS (before first user message) --- */}
+        {suggestedQuestions && suggestedQuestions.length > 0 && !messages.some(m => m.sender === 'user') && (
+          <SuggestedQuestions
+            questions={suggestedQuestions}
+            onSelect={onSendMessage}
+          />
+        )}
 
         {/* --- FOOTER --- */}
         <footer

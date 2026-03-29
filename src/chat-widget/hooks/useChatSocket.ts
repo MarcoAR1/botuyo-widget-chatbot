@@ -30,6 +30,7 @@ const BotMessageSchema = z.object({
   timestamp: z.string().optional(),
   sender: z.enum(['bot', 'user', 'system']).optional(),
   emotion: z.any().optional(),
+  sources: z.array(z.string()).optional(),
 })
 
 export interface UseChatSocketOptions {
@@ -135,6 +136,7 @@ export function useChatSocket(options: UseChatSocketOptions) {
             timestamp: ts,
             content: String((safe as any).content || 'Sin contenido'),
             emotion: (safe as any).emotion,
+            ...((safe as any).sources?.length ? { sources: (safe as any).sources } : {}),
           }
       }
     },

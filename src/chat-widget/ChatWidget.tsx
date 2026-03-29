@@ -265,6 +265,7 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
               avatar3dUrl={theme?.avatar3dUrl}
               getSocket={getSocket}
               onAddVoiceMessage={handleAddVoiceMessage}
+              suggestedQuestions={(socketTheme as any)?.suggestedQuestions}
             />
           </ErrorBoundary>
         </div>

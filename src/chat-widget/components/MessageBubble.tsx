@@ -19,6 +19,7 @@ import type {
   FileMessage,
 } from '../types'
 import type { EmotionAvatarMap } from './Launcher'
+import { SourcesCitation } from './SourcesCitation'
 
 // Lazy load componentes pesados
 const AudioPlayer = lazy(() => import('./AudioPlayer').then(m => ({ default: m.AudioPlayer })))
@@ -480,6 +481,11 @@ export const MessageBubble = memo(
             </div>
           )}
         </div>
+
+        {/* RAG Source Citations — non-invasive chips below bot messages */}
+        {isBot && isLast && message.type === 'text' && (message as TextMessage).sources && (
+          <SourcesCitation sources={(message as TextMessage).sources!} />
+        )}
       </div>
     )
   },
