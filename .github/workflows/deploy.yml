@@ -76,6 +76,9 @@ jobs:
           npm ci
           npm run build
 
+      - name: Install Wrangler
+        run: npm install -g wrangler
+
       - name: Deploy to R2 CDN
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
