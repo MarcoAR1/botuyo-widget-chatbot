@@ -74,16 +74,16 @@ function scanDomForms(): FormState[] {
   const allInputs = doc.querySelectorAll('input, textarea, select')
   const orphanInputs = Array.from(allInputs).filter(el => !el.closest('form'))
 
-  const processInputs = (inputs: Element[], formId: string): FormFieldState[] => {
+  const processInputs = (inputs: Element[]): FormFieldState[] => {
     return Array.from(inputs)
       .filter(el => {
         const type = (el as HTMLInputElement).type
         return type !== 'hidden' && type !== 'submit' && type !== 'button'
       })
-      .map(el => {
+      .reduce<FormFieldState[]>((acc, el) => {
         const input = el as HTMLInputElement
         const name = input.name || input.id || input.getAttribute('data-field') || ''
-        if (!name) return null
+        if (!name) return acc
 
         // Find label
         let label = ''
@@ -100,22 +100,22 @@ function scanDomForms(): FormState[] {
         if (errorEl) error = errorEl.textContent?.trim()
         if (input.validationMessage) error = input.validationMessage
 
-        return {
+        acc.push({
           name,
           label,
           value: input.value || '',
           type: input.type || input.tagName.toLowerCase(),
           required: input.required || input.getAttribute('aria-required') === 'true',
-          error
-        }
-      })
-      .filter((f): f is FormFieldState => f !== null)
+          ...(error !== undefined && { error })
+        })
+        return acc
+      }, [])
   }
 
   // Process actual <form> elements
   formElements.forEach((formEl, i) => {
     const inputs = formEl.querySelectorAll('input, textarea, select')
-    const fields = processInputs(Array.from(inputs), formEl.id || `form-${i}`)
+    const fields = processInputs(Array.from(inputs))
     if (fields.length > 0) {
       forms.push({
         id: formEl.id || formEl.getAttribute('data-form-id') || `form-${i}`,
@@ -126,7 +126,7 @@ function scanDomForms(): FormState[] {
 
   // Process orphan inputs as a "virtual form"
   if (orphanInputs.length > 0) {
-    const fields = processInputs(orphanInputs, 'page-fields')
+    const fields = processInputs(orphanInputs)
     if (fields.length > 0) {
       forms.push({ id: 'page-fields', fields })
     }
