@@ -18,6 +18,44 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Notify Deploy Started
+        shell: bash
+        env:
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          NOTIFICATION_EMAIL: ${{ secrets.NOTIFICATION_EMAIL }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          COMMIT_SHA: ${{ github.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          python3 << 'PYEOF'
+          import smtplib, ssl, os
+          from email.mime.text import MIMEText
+          from datetime import datetime, timezone, timedelta
+
+          ar = timezone(timedelta(hours=-3))
+          now = datetime.now(ar).strftime('%d/%m/%Y %H:%M:%S')
+
+          body = f"""🚀 Widget Deploy INICIADO
+
+          Inicio:  {now} (AR)
+          Commit:  {os.environ.get('COMMIT_MSG', 'N/A')}
+          SHA:     {os.environ['COMMIT_SHA'][:8]}
+          Author:  {os.environ['ACTOR']}
+          Run:     {os.environ['RUN_URL']}
+          """
+
+          msg = MIMEText(body)
+          msg['Subject'] = f'🚀 [Widget] Deploy iniciado — {now}'
+          msg['From'] = 'BotUyo CI/CD <support@botuyo.com>'
+          msg['To'] = os.environ['NOTIFICATION_EMAIL']
+
+          ctx = ssl.create_default_context()
+          with smtplib.SMTP_SSL('smtp.zoho.com', 465, context=ctx) as s:
+              s.login('support@botuyo.com', os.environ['SMTP_PASSWORD'])
+              s.send_message(msg)
+          PYEOF
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -72,7 +110,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Notify Result
+      - name: Notify Deploy Result
         if: always()
         shell: bash
         env:
@@ -88,6 +126,10 @@ jobs:
           python3 << 'PYEOF'
           import smtplib, ssl, os
           from email.mime.text import MIMEText
+          from datetime import datetime, timezone, timedelta
+
+          ar = timezone(timedelta(hours=-3))
+          now = datetime.now(ar).strftime('%d/%m/%Y %H:%M:%S')
 
           status = os.environ['DEPLOY_STATUS']
           icon = '\u2705' if status == 'success' else '\u274c'
@@ -95,6 +137,7 @@ jobs:
 
           body = f"""{icon} Widget Deploy: {status.upper()}
 
+          Fin:     {now} (AR)
           Version: {version}
           Commit:  {os.environ.get('COMMIT_MSG', 'N/A')}
           SHA:     {os.environ['COMMIT_SHA'][:8]}
@@ -106,7 +149,7 @@ jobs:
           """
 
           msg = MIMEText(body)
-          msg['Subject'] = f'{icon} Widget Deploy {version} \u2014 {status.upper()}'
+          msg['Subject'] = f'{icon} [Widget] Deploy {status.upper()} — {now}'
           msg['From'] = 'BotUyo CI/CD <support@botuyo.com>'
           msg['To'] = os.environ['NOTIFICATION_EMAIL']
 
@@ -114,5 +157,4 @@ jobs:
           with smtplib.SMTP_SSL('smtp.zoho.com', 465, context=ctx) as s:
               s.login('support@botuyo.com', os.environ['SMTP_PASSWORD'])
               s.send_message(msg)
-          print(f'Email sent to {os.environ["NOTIFICATION_EMAIL"]}')
           PYEOF
