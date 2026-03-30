@@ -1,0 +1,118 @@
+name: Deploy Widget to CDN + npm
+
+on:
+  push:
+    branches: [main]
+    paths: ['package.json']
+
+concurrency:
+  group: widget-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Extract version
+        id: version
+        run: |
+          VERSION=$(node -e "console.log('v' + require('./package.json').version)")
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "📦 Deploying version: ${VERSION}"
+
+      - name: Install + Build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Deploy to R2 CDN
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          BUCKET="chatbot-cdn"
+
+          echo "🚀 Deploying to R2: ${BUCKET}/${VERSION}/ + ${BUCKET}/latest/"
+
+          for file in dist/*.js dist/*.css; do
+            if [ -f "$file" ]; then
+              filename=$(basename "$file")
+              ct="application/javascript"
+              [[ "$filename" == *.css ]] && ct="text/css"
+
+              # Versioned (immutable, 1 year cache)
+              wrangler r2 object put ${BUCKET}/${VERSION}/${filename} \
+                --file "$file" --content-type "$ct" \
+                --cache-control "public, max-age=31536000, immutable"
+
+              # Latest (short cache)
+              wrangler r2 object put ${BUCKET}/latest/${filename} \
+                --file "$file" --content-type "$ct" \
+                --cache-control "public, max-age=3600"
+
+              echo "  ✅ ${filename}"
+            fi
+          done
+
+      - name: Publish to npm
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Notify Result
+        if: always()
+        shell: bash
+        env:
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          NOTIFICATION_EMAIL: ${{ secrets.NOTIFICATION_EMAIL }}
+          DEPLOY_STATUS: ${{ job.status }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          COMMIT_SHA: ${{ github.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          ACTOR: ${{ github.actor }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          python3 << 'PYEOF'
+          import smtplib, ssl, os
+          from email.mime.text import MIMEText
+
+          status = os.environ['DEPLOY_STATUS']
+          icon = '\u2705' if status == 'success' else '\u274c'
+          version = os.environ.get('VERSION', 'unknown')
+
+          body = f"""{icon} Widget Deploy: {status.upper()}
+
+          Version: {version}
+          Commit:  {os.environ.get('COMMIT_MSG', 'N/A')}
+          SHA:     {os.environ['COMMIT_SHA'][:8]}
+          Author:  {os.environ['ACTOR']}
+          Run:     {os.environ['RUN_URL']}
+
+          CDN:     https://cdn-chatbot.botuyo.com/{version}/botuyo-chat.es.js
+          npm:     @botuyo/chat-widget-standalone@{version.lstrip('v')}
+          """
+
+          msg = MIMEText(body)
+          msg['Subject'] = f'{icon} Widget Deploy {version} \u2014 {status.upper()}'
+          msg['From'] = 'BotUyo CI/CD <support@botuyo.com>'
+          msg['To'] = os.environ['NOTIFICATION_EMAIL']
+
+          ctx = ssl.create_default_context()
+          with smtplib.SMTP_SSL('smtp.zoho.com', 465, context=ctx) as s:
+              s.login('support@botuyo.com', os.environ['SMTP_PASSWORD'])
+              s.send_message(msg)
+          print(f'Email sent to {os.environ["NOTIFICATION_EMAIL"]}')
+          PYEOF
