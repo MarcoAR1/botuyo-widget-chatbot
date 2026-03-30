@@ -228,14 +228,16 @@ export function useChatSocket(options: UseChatSocketOptions) {
 
     socket.on('bot_typing', isTyping => handlersRef.current.onTyping(isTyping))
 
-    // Onboarding bridge: forward agent commands to the parent page via postMessage
-    socket.on('onboarding:command' as any, (data: any) => {
-      try {
-        window.parent.postMessage(data, '*')
-      } catch (_e) {
-        // Not in an iframe or parent not accessible — try self
-        window.postMessage(data, '*')
-      }
+    // ── Form Bridge: bidirectional page ↔ agent communication ──────────
+    // Forward agent commands to the parent page
+    const forwardToPage = (data: any) => {
+      try { window.parent.postMessage(data, '*') } catch (_e) { window.postMessage(data, '*') }
+    }
+    socket.on('onboarding:command' as any, (data: any) => forwardToPage(data))
+    socket.on('form:command' as any, (data: any) => forwardToPage(data))
+    // Agent requests current form state — ask page to broadcast it
+    socket.on('request_form_state' as any, () => {
+      forwardToPage({ type: 'botuyo-request-form-state' })
     })
     socket.on('auth_success', (data: AuthSuccessPayload) => {
       if (handlersRef.current.onLogin) handlersRef.current.onLogin(data)
@@ -245,7 +247,21 @@ export function useChatSocket(options: UseChatSocketOptions) {
       }
     })
 
+    // ── Form State Relay: page → backend ──────────────────────
+    // Listen for form state broadcasts from the host page and relay to backend
+    const formStateHandler = (event: MessageEvent) => {
+      const { type } = event.data || {}
+      if (type === 'botuyo-onboarding-state' || type === 'botuyo-form-state') {
+        socket.emit('form_state' as any, event.data)
+      }
+    }
+    window.addEventListener('message', formStateHandler)
+
     socketRef.current = socket
+
+    // Cleanup form state listener when socket reconnects
+    const prevCleanup = () => window.removeEventListener('message', formStateHandler)
+    ;(socket as any).__formCleanup = prevCleanup
     // eslint-disable-next-line react-hooks/exhaustive-deps -- Deliberately minimal deps to prevent reconnection loops
   }, [apiKey, apiBaseUrl])
 
