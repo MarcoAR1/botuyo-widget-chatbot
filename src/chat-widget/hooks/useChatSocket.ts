@@ -227,6 +227,16 @@ export function useChatSocket(options: UseChatSocketOptions) {
     })
 
     socket.on('bot_typing', isTyping => handlersRef.current.onTyping(isTyping))
+
+    // Onboarding bridge: forward agent commands to the parent page via postMessage
+    socket.on('onboarding:command' as any, (data: any) => {
+      try {
+        window.parent.postMessage(data, '*')
+      } catch (_e) {
+        // Not in an iframe or parent not accessible — try self
+        window.postMessage(data, '*')
+      }
+    })
     socket.on('auth_success', (data: AuthSuccessPayload) => {
       if (handlersRef.current.onLogin) handlersRef.current.onLogin(data)
       // Si el servidor envía un tema, notificarlo
