@@ -470,3 +470,4 @@ export type {
   PageContext 
 } from './src/chat-widget/types';
 export { LanguageProvider, useLanguage } from './src/chat-widget/i18n/LanguageContext';
+export { Avatar3DPreview } from './src/chat-widget/components/Avatar3DPreview';
