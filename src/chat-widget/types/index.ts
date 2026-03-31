@@ -154,6 +154,13 @@ export interface ChatWidgetProps {
 
   /** Callback cuando el widget cambia de estado (abierto/cerrado) */
   onStateChange?: (isOpen: boolean) => void
+
+  // ========== Playground / Embedded Mode ==========
+  /** Start with the chat window already open (default: false) */
+  initialOpen?: boolean
+
+  /** Hide the floating launcher button entirely (default: false) */
+  hideLauncher?: boolean
 }
 
 export interface BubbleStyles {

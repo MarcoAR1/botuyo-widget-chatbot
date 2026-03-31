@@ -34,6 +34,8 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
     onNavigate,
     onEvent,
     onStateChange,
+    initialOpen = false,
+    hideLauncher = false,
   } = props
 
   // Refs y estado local
@@ -86,6 +88,15 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
     onStateChange,
     onThemeUpdate: setSocketTheme, // Callback para recibir tema del socket
   })
+
+  // Playground / embedded mode: auto-open on first socketTheme delivery
+  const didAutoOpen = useRef(false)
+  useEffect(() => {
+    if (initialOpen && socketTheme && !didAutoOpen.current) {
+      didAutoOpen.current = true
+      if (!state.isOpen) actions.openWindow()
+    }
+  }, [initialOpen, socketTheme, state.isOpen, actions])
 
   // Voice transcript persistence — creates ChatMessage objects from voice entries
   const handleAddVoiceMessage = useCallback(
@@ -275,6 +286,7 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
         </div>
 
         {/* LANZADOR (LAUNCHER) */}
+        {!hideLauncher && (
         <div
           className={cn(state.isOpen ? 'hidden' : 'block', !isMobile && 'mt-4')}
           style={{ pointerEvents: 'auto' }}
@@ -297,6 +309,7 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
             showPromptAvatar={theme?.showPromptAvatar ?? (socketTheme as any)?.showPromptAvatar}
           />
         </div>
+        )}
       </div>
   )
 }

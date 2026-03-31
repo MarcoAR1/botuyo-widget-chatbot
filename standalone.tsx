@@ -456,6 +456,7 @@ export type { StandaloneConfig };
 // Re-export React components for npm package usage
 export { ChatWidget, ChatWidgetWithProviders as ChatWidgetUnstyled } from './src/chat-widget/ChatWidget';
 export { ChatWidgetProvider, useChatWidget } from './src/chat-widget/ChatWidgetProvider';
+export { PlaygroundView } from './src/chat-widget/PlaygroundView';
 export type { ChatWidgetContextValue, ChatWidgetProviderProps } from './src/chat-widget/ChatWidgetProvider';
 export type { 
   ChatWidgetProps, 
