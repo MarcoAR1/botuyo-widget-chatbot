@@ -11,6 +11,8 @@ export { ChatWidget } from './ChatWidget'
 export { ChatWidgetProvider, useChatWidget } from './ChatWidgetProvider'
 export type { ChatWidgetContextValue } from './ChatWidgetProvider'
 
+export { Avatar3DPreview } from './components/Avatar3DPreview'
+
 // ========== Tipos ==========
 export type {
   ChatWidgetProps,
