@@ -62,10 +62,10 @@ function VRMModelPreview({ url, autoRotate, hasCustomCamera }: { url: string; au
 
           // Frame the bust/head 
           if (!hasCustomCamera) {
-            const headY = size.y * 0.82 // Approx neck/head level
+            const headY = size.y * 0.75 // Approx neck/head level
             const fov = (camera as THREE.PerspectiveCamera).fov * (Math.PI / 180)
-            const bustHeight = 0.85 // meters
-            const cameraZ = (bustHeight * 0.5) / Math.tan(fov / 2)
+            const frameHeight = size.y * 0.55 // Show head + shoulders
+            const cameraZ = (frameHeight * 0.5) / Math.tan(fov / 2) * 1.3 // Pull back 30% more
             
             camera.position.set(0, headY, -cameraZ)
             camera.lookAt(0, headY, 0)
@@ -98,8 +98,8 @@ function VRMModelPreview({ url, autoRotate, hasCustomCamera }: { url: string; au
           // Frame the object
           if (!hasCustomCamera) {
             const fov = (camera as THREE.PerspectiveCamera).fov * (Math.PI / 180)
-            const headY = size.y * 0.35
-            const cameraZ = (size.y * 0.7) / Math.tan(fov / 2) // slightly taller frame for GLB
+            const headY = size.y * 0.3
+            const cameraZ = (size.y * 0.5) / Math.tan(fov / 2) * 1.2
             camera.position.set(0, headY, -cameraZ)
             camera.lookAt(0, headY, 0)
           }
