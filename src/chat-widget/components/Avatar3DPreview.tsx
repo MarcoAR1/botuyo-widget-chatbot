@@ -26,7 +26,7 @@ interface Avatar3DPreviewProps {
 // VRM/GLB MODEL COMPONENT
 // ═══════════════════════════════════════
 
-function VRMModelPreview({ url, autoRotate }: { url: string; autoRotate?: boolean }) {
+function VRMModelPreview({ url, autoRotate, hasCustomCamera }: { url: string; autoRotate?: boolean; hasCustomCamera?: boolean }) {
   const vrmRef = useRef<VRM | null>(null)
   const glbSceneRef = useRef<THREE.Group | null>(null)
   const mixerRef = useRef<THREE.AnimationMixer | null>(null)
@@ -49,10 +49,9 @@ function VRMModelPreview({ url, autoRotate }: { url: string; autoRotate?: boolea
           vrmRef.current = vrm
           vrm.scene.rotation.y = Math.PI
           const box = new THREE.Box3().setFromObject(vrm.scene)
-          const center = box.getCenter(new THREE.Vector3())
-          const height = box.getSize(new THREE.Vector3()).y
-          vrm.scene.position.y = -center.y - height * 0.05
-          baseY.current = vrm.scene.position.y
+          const size = box.getSize(new THREE.Vector3())
+          
+          baseY.current = 0
           
           if (!autoRotate) {
              vrm.scene.rotation.y = Math.PI
@@ -60,6 +59,17 @@ function VRMModelPreview({ url, autoRotate }: { url: string; autoRotate?: boolea
           }
 
           scene.add(vrm.scene)
+
+          // Frame the bust/head 
+          if (!hasCustomCamera) {
+            const headY = size.y * 0.82 // Approx neck/head level
+            const fov = (camera as THREE.PerspectiveCamera).fov * (Math.PI / 180)
+            const bustHeight = 0.85 // meters
+            const cameraZ = (bustHeight * 0.5) / Math.tan(fov / 2)
+            
+            camera.position.set(0, headY, -cameraZ)
+            camera.lookAt(0, headY, 0)
+          }
 
           // Eyes look straight at camera
           if (vrm.lookAt) {
@@ -85,12 +95,14 @@ function VRMModelPreview({ url, autoRotate }: { url: string; autoRotate?: boolea
           baseRotationY.current = 0
           scene.add(pivot)
 
-          // Frame the HEAD
-          const fov = (camera as THREE.PerspectiveCamera).fov * (Math.PI / 180)
-          const headY = size.y * 0.35
-          const cameraZ = (size.y * 0.5) / Math.tan(fov / 2)
-          camera.position.set(0, headY, -cameraZ)
-          camera.lookAt(0, headY, 0)
+          // Frame the object
+          if (!hasCustomCamera) {
+            const fov = (camera as THREE.PerspectiveCamera).fov * (Math.PI / 180)
+            const headY = size.y * 0.35
+            const cameraZ = (size.y * 0.7) / Math.tan(fov / 2) // slightly taller frame for GLB
+            camera.position.set(0, headY, -cameraZ)
+            camera.lookAt(0, headY, 0)
+          }
           
           // Play embedded animations if available
           if (gltf.animations.length > 0) {
@@ -184,16 +196,18 @@ function VRMModelPreview({ url, autoRotate }: { url: string; autoRotate?: boolea
 // ═══════════════════════════════════════
 
 function PreviewCameraSetup({ 
-  position = [0, 0.1, 0.6], 
-  target = [0, 0.1, 0] 
+  position, 
+  target 
 }: { 
   position?: [number, number, number]
   target?: [number, number, number]
 }) {
   const { camera } = useThree()
   useEffect(() => {
-    camera.position.set(...position)
-    camera.lookAt(...target)
+    if (position && target) {
+      camera.position.set(...position)
+      camera.lookAt(...target)
+    }
   }, [camera, position, target])
   return null
 }
@@ -232,7 +246,7 @@ export function Avatar3DPreview({
           {/* @ts-ignore */}
           <pointLight position={[0, 0.5, -0.5]} intensity={0.5} distance={3} />
 
-          <VRMModelPreview url={url} autoRotate={autoRotate} />
+          <VRMModelPreview url={url} autoRotate={autoRotate} hasCustomCamera={!!(cameraPosition && targetPosition)} />
         </Canvas>
       </Suspense>
     </div>
