@@ -47,16 +47,12 @@ function VRMModelPreview({ url, autoRotate, hasCustomCamera }: { url: string; au
         if (vrm) {
           // ── VRM MODEL PATH ──
           vrmRef.current = vrm
-          vrm.scene.rotation.y = Math.PI
+          vrm.scene.rotation.y = 0
           const box = new THREE.Box3().setFromObject(vrm.scene)
           const size = box.getSize(new THREE.Vector3())
           
           baseY.current = 0
-          
-          if (!autoRotate) {
-             vrm.scene.rotation.y = Math.PI
-             baseRotationY.current = Math.PI
-          }
+          baseRotationY.current = 0
 
           scene.add(vrm.scene)
 
@@ -67,7 +63,8 @@ function VRMModelPreview({ url, autoRotate, hasCustomCamera }: { url: string; au
             const frameHeight = size.y * 0.55 // Show head + shoulders
             const cameraZ = (frameHeight * 0.5) / Math.tan(fov / 2) * 1.3 // Pull back 30% more
             
-            camera.position.set(0, headY, -cameraZ)
+            // Camera placed in front of model at +Z looking backwards at model
+            camera.position.set(0, headY, cameraZ)
             camera.lookAt(0, headY, 0)
           }
 
@@ -100,7 +97,7 @@ function VRMModelPreview({ url, autoRotate, hasCustomCamera }: { url: string; au
             const fov = (camera as THREE.PerspectiveCamera).fov * (Math.PI / 180)
             const headY = size.y * 0.3
             const cameraZ = (size.y * 0.5) / Math.tan(fov / 2) * 1.2
-            camera.position.set(0, headY, -cameraZ)
+            camera.position.set(0, headY, cameraZ) // +Z position
             camera.lookAt(0, headY, 0)
           }
           
