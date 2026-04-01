@@ -21,8 +21,6 @@ import type { EmotionAvatarMap } from './Launcher'
 import { DEFAULT_AVATAR_URL } from '../utils/defaultAssets'
 import {
   ENHANCED_AUDIO_CONSTRAINTS,
-  NOISE_GATE_THRESHOLD,
-  NOISE_GATE_HOLD_FRAMES,
   createEnhancementChain,
 } from '../voice/audioEnhancement'
 
@@ -119,14 +117,16 @@ const OUTPUT_SAMPLE_RATE = 24000
 const INACTIVITY_TIMEOUT_SECONDS = 120 // 2 minutes of silence → auto-end
 const INACTIVITY_WARNING_SECONDS = 90  // Warn at 1:30 of silence
 
-// Inline AudioWorklet processor for PCM capture at 16kHz (with noise gate)
+// Inline AudioWorklet processor for PCM capture at 16kHz
+// NOTE: No client-side noise gate — Gemini Live has built-in server-side VAD
+// that requires a CONTINUOUS audio stream (including silence) to properly
+// detect speech onset/offset. Client-side gating breaks VAD detection.
 const AUDIO_PROCESSOR_CODE = `
 class VoicePCMProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
     this.buffer = new Float32Array(1600); // 100ms at 16kHz
     this.bufferIndex = 0;
-    this.holdCounter = 0;
   }
   process(inputs) {
     const input = inputs[0]?.[0];
@@ -141,23 +141,8 @@ class VoicePCMProcessor extends AudioWorkletProcessor {
           int16[j] = s < 0 ? s * 0x8000 : s * 0x7FFF;
         }
 
-        // Noise gate: calculate RMS and only send if above threshold
-        let sumSq = 0;
-        for (let k = 0; k < int16.length; k++) {
-          const normalized = int16[k] / 0x7FFF;
-          sumSq += normalized * normalized;
-        }
-        const rms = Math.sqrt(sumSq / int16.length);
-
-        if (rms > ${NOISE_GATE_THRESHOLD}) {
-          this.holdCounter = ${NOISE_GATE_HOLD_FRAMES};
-        } else if (this.holdCounter > 0) {
-          this.holdCounter--;
-        }
-
-        if (this.holdCounter > 0) {
-          this.port.postMessage(int16.buffer, [int16.buffer]);
-        }
+        // Send ALL chunks — Gemini server-side VAD handles activity detection
+        this.port.postMessage(int16.buffer, [int16.buffer]);
 
         this.buffer = new Float32Array(1600);
         this.bufferIndex = 0;
