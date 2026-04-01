@@ -47,12 +47,12 @@ function VRMModelPreview({ url, autoRotate, hasCustomCamera }: { url: string; au
         if (vrm) {
           // ── VRM MODEL PATH ──
           vrmRef.current = vrm
-          vrm.scene.rotation.y = 0
+          vrm.scene.rotation.y = Math.PI
           const box = new THREE.Box3().setFromObject(vrm.scene)
           const size = box.getSize(new THREE.Vector3())
           
           baseY.current = 0
-          baseRotationY.current = 0
+          baseRotationY.current = Math.PI
 
           scene.add(vrm.scene)
 

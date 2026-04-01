@@ -277,7 +277,7 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
               avatars={theme?.avatars || (socketTheme as any)?.avatars || (socketTheme as any)?.avatarAnimations || {}}
               mediaConfig={effectiveMediaConfig}
               theme={mergedTheme}
-              avatar3dUrl={theme?.avatar3dUrl}
+              avatar3dUrl={theme?.avatar3dUrl || (socketTheme as any)?.avatar3dUrl}
               getSocket={getSocket}
               onAddVoiceMessage={handleAddVoiceMessage}
               suggestedQuestions={(socketTheme as any)?.suggestedQuestions}
