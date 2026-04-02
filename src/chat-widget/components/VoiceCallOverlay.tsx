@@ -749,6 +749,11 @@ export function VoiceCallOverlay({
           return `${images}\n**${item.title || item.name}**\n${item.description || ''}\n${specs}\n${rooms}\n${rules}\n${link}`
         }
 
+        // ─── Structured items from extractVisualData (card, link, image) ───
+        if (item.type === 'card' && item.content) return item.content
+        if (item.type === 'link' && item.url) return `🔗 [${item.label || item.url}](${item.url})`
+        if (item.type === 'image' && item.url) return `![${item.label || ''}](${item.url})`
+
         // ─── Generic fallback for unknown tool results ───
         if (item.systemInstruction && typeof item.systemInstruction === 'string') {
           return item.systemInstruction
