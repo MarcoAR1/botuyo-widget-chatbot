@@ -712,11 +712,25 @@ export function VoiceCallOverlay({
       resetInactivityTimer() // Agent is processing
     }
 
-    // Handle visual tool results — render accommodation cards in the conversation
+    // Handle visual tool results — render content in the conversation
     const onVoiceToolVisual = (data: { tool: string; items: any[] }) => {
       if (!data?.items?.length) return
       resetInactivityTimer()
-      // Add a visual card entry to the conversation
+
+      // ─── Generic show_content (from voice virtual tools) ───
+      if (data.tool === 'show_content') {
+        const content = data.items.map((item: any) => {
+          if (item.type === 'link') return `[${item.label || item.url}](${item.url})`
+          if (item.type === 'image') return `![${item.label || ''}](${item.url})`
+          return item.label || ''
+        }).filter(Boolean).join('\n')
+        if (content) {
+          setConversation(prev => [...prev, { role: 'bot', text: content }])
+        }
+        return
+      }
+
+      // ─── Domain-specific tool visual handlers ───
       const cardText = data.items.map((item: any) => {
         if (data.tool === 'search_accommodations') {
           const opt = item.options?.[0]
