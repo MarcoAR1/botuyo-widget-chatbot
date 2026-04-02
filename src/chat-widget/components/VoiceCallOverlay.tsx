@@ -748,10 +748,24 @@ export function VoiceCallOverlay({
           const link = item.seeMoreLink ? `[Ver más detalles](${item.seeMoreLink})` : ''
           return `${images}\n**${item.title || item.name}**\n${item.description || ''}\n${specs}\n${rooms}\n${rules}\n${link}`
         }
-        return JSON.stringify(item)
-      }).join('\n\n---\n\n')
 
-      setConversation(prev => [...prev, { role: 'bot', text: cardText }])
+        // ─── Generic fallback for unknown tool results ───
+        if (item.systemInstruction && typeof item.systemInstruction === 'string') {
+          return item.systemInstruction
+        }
+        const urlField = item.signupUrl || item.url || item.link || item.redirectUrl
+            || item.actionPayload?.signupUrl || item.actionPayload?.url
+        if (urlField) {
+          const label = item.label || item.title || data.tool.replace(/_/g, ' ')
+          return `🔗 [${label}](${urlField})`
+        }
+        if (item.status === 'error') return item.error || 'Error al ejecutar la acción'
+        return ''
+      }).filter(Boolean).join('\n\n---\n\n')
+
+      if (cardText) {
+        setConversation(prev => [...prev, { role: 'bot', text: cardText }])
+      }
     }
 
     voiceListenersRef.current = {
