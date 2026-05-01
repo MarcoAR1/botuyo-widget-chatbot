@@ -103,11 +103,13 @@ export function ChatWidgetProvider({
     setIsOpen(true)
     setUnreadCount(0)
     onStateChange?.(true)
+    window.dispatchEvent(new CustomEvent('botuyo-chat:open'))
   }, [onStateChange])
 
   const close = useCallback(() => {
     setIsOpen(false)
     onStateChange?.(false)
+    window.dispatchEvent(new CustomEvent('botuyo-chat:close'))
   }, [onStateChange])
 
   const toggle = useCallback(() => {
@@ -119,6 +121,7 @@ export function ChatWidgetProvider({
       onStateChange?.(newState)
       return newState
     })
+    window.dispatchEvent(new CustomEvent('botuyo-chat:toggle'))
   }, [onStateChange])
 
   const sendMessage = useCallback((text: string) => {
