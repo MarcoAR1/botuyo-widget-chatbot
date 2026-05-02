@@ -160,7 +160,7 @@ export function ChatWindow({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="h-10 w-10 rounded-2xl overflow-hidden bg-primary/10 border-2 border-background shadow-soft-sm">
+                <div className="h-10 w-10 rounded-full overflow-hidden bg-primary/10 border-2 border-background shadow-soft-sm">
                   {logoError ? (
                     <div className="h-full w-full flex items-center justify-center bg-muted text-muted-foreground">
                       <svg
