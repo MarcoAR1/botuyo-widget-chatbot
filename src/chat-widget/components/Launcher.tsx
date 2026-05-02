@@ -281,7 +281,7 @@ export function Launcher({
           } as React.CSSProperties}
           aria-label={isOpen ? 'Cerrar chat' : 'Abrir chat'}
         >
-          <div className="relative h-full w-full flex items-center justify-center overflow-hidden rounded-inherit">
+          <div className="relative h-full w-full flex items-center justify-center overflow-hidden rounded-full">
             <div
               className={cn(
                 'absolute inset-0 transition-all duration-500 flex items-center justify-center',
