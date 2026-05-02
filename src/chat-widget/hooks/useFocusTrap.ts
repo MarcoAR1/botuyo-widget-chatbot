@@ -94,14 +94,20 @@ export function useFocusTrap({ enabled, returnFocusRef, onEscape }: UseFocusTrap
 
     // Pequeño delay para asegurar que el DOM está listo
     const focusTimeout = setTimeout(() => {
-      // Buscar primer elemento focusable
-      const focusable = container.querySelectorAll<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      )
-      if (focusable.length > 0) {
-        focusable[0].focus()
+      // Preferir el input/textarea del chat para escritura inmediata
+      const preferredTarget = container.querySelector<HTMLElement>('textarea, input[type="text"]')
+      if (preferredTarget) {
+        preferredTarget.focus()
       } else {
-        container.focus()
+        // Fallback: primer elemento focusable
+        const focusable = container.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+        if (focusable.length > 0) {
+          focusable[0].focus()
+        } else {
+          container.focus()
+        }
       }
     }, 100)
 
