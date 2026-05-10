@@ -21,6 +21,8 @@ export interface MessageListProps {
   botName?: string
   bubbleStyles?: BubbleStyles
   avatars?: EmotionAvatarMap
+  /** Callback when a quiz/interactive button is clicked */
+  onButtonClick?: (buttonLabel: string, message: ChatMessage) => void
 }
 
 export const MessageList = memo(
@@ -33,6 +35,7 @@ export const MessageList = memo(
     botName = 'BotUyo',
     bubbleStyles,
     avatars,
+    onButtonClick,
   }: MessageListProps) {
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -157,6 +160,7 @@ export const MessageList = memo(
                     avatars={avatars}
                     isFirst={!isSameAsPrev}
                     isLast={!isSameAsNext}
+                    onButtonClick={onButtonClick}
                   />
                 </div>
               )
@@ -270,6 +274,7 @@ export const MessageList = memo(
                     // Props de acumulación para MessageBubble
                     isFirst={!isSameAsPrev}
                     isLast={!isSameAsNext}
+                    onButtonClick={onButtonClick}
                   />
                 </React.Fragment>
               )

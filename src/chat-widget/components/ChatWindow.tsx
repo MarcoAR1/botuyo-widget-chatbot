@@ -305,6 +305,7 @@ export function ChatWindow({
             botName={botName}
             bubbleStyles={bubbleStyles}
             avatars={avatars}
+            onButtonClick={(label) => onSendMessage(`Answer: ${label}`)}
           />
           <div className="absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-background/10 to-transparent pointer-events-none" />
         </main>

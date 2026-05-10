@@ -13,7 +13,7 @@ import type {
   BotMessagePayload,
   AuthSuccessPayload,
 } from '../types/socket'
-import type { ChatMessage, ChatWidgetProps, PageContext } from '../types'
+import type { ChatMessage, ChatWidgetProps, PageContext, ButtonsMessage } from '../types'
 import { getOrCreateDeviceId } from '../utils/deviceId'
 import { logger } from '../utils/logger'
 import { throttle } from '../utils/performance'
@@ -49,6 +49,8 @@ export interface UseChatSocketOptions {
   onNavigate?: ChatWidgetProps['onNavigate']
   onEvent?: ChatWidgetProps['onEvent']
   onThemeUpdate?: (theme: any) => void // Callback para recibir tema del servidor
+  /** Callback when a quiz button is clicked — sends as user message */
+  onQuizAnswer?: (question: string, answer: string) => void
 }
 
 export function useChatSocket(options: UseChatSocketOptions) {
@@ -244,6 +246,24 @@ export function useChatSocket(options: UseChatSocketOptions) {
       // Si el servidor envía un tema, notificarlo
       if (data.theme && handlersRef.current.onThemeUpdate) {
         handlersRef.current.onThemeUpdate(data.theme)
+      }
+    })
+
+    // ── Quiz: interactive buttons from present_quiz tool ──────────
+    socket.on('custom_event' as any, (evt: any) => {
+      if (evt?.eventName === 'quiz_question' && evt?.data) {
+        const { question, buttons } = evt.data as { question: string; buttons: Array<{ id: string; label: string }> }
+        if (question && buttons?.length) {
+          const quizMsg: ButtonsMessage = {
+            id: `quiz-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            type: 'buttons',
+            sender: 'bot',
+            timestamp: new Date(),
+            content: question,
+            buttons
+          }
+          handlersRef.current.onMessage(quizMsg)
+        }
       }
     })
 

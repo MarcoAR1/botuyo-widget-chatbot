@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, lazy, Suspense, memo } from 'react'
+import { useMemo, useState, lazy, Suspense, memo } from 'react'
 import { useTranslations } from '@/chat-widget/i18n'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -17,6 +17,7 @@ import type {
   ImageMessage,
   LocationMessage,
   FileMessage,
+  ButtonsMessage,
 } from '../types'
 import type { EmotionAvatarMap } from './Launcher'
 import { SourcesCitation } from './SourcesCitation'
@@ -35,6 +36,8 @@ export interface MessageBubbleProps {
   isFirst?: boolean
   isLast?: boolean
   index?: number // For stagger animation
+  /** Callback when a quiz/interactive button is clicked */
+  onButtonClick?: (buttonLabel: string, message: ChatMessage) => void
 }
 
 export const MessageBubble = memo(
@@ -47,6 +50,7 @@ export const MessageBubble = memo(
     isFirst = true,
     isLast = true,
     index = 0,
+    onButtonClick,
   }: MessageBubbleProps) {
     const { t } = useTranslations('extracted')
     const isUser = message.sender === 'user'
@@ -293,6 +297,91 @@ export const MessageBubble = memo(
                 className="shrink-0 opacity-60 group-hover:opacity-100 transition-opacity"
               />
             </a>
+          )
+        }
+
+        case 'buttons': {
+          const btnMsg = message as ButtonsMessage
+          const [clickedId, setClickedId] = useState<string | null>(btnMsg.selectedId || null)
+
+          const handleButtonClick = (btn: { id: string; label: string }) => {
+            if (clickedId) return // Already answered
+            setClickedId(btn.id)
+            onButtonClick?.(btn.label, message)
+          }
+
+          return (
+            <div className="space-y-3">
+              {/* Question text */}
+              <div
+                className={cn(
+                  'prose prose-sm max-w-none break-words leading-relaxed dark:prose-invert text-foreground'
+                )}
+              >
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[
+                    [
+                      rehypeSanitize,
+                      {
+                        tagNames: ['p', 'strong', 'em', 'br', 'span'],
+                        attributes: {},
+                      },
+                    ],
+                  ]}
+                  components={{
+                    p: ({ children }) => <p className="mb-0 last:mb-0">{children}</p>,
+                  }}
+                >
+                  {btnMsg.content}
+                </ReactMarkdown>
+              </div>
+
+              {/* Answer buttons */}
+              <div className="flex flex-col gap-2">
+                {btnMsg.buttons.map((btn, btnIdx) => {
+                  const isClicked = clickedId === btn.id
+                  const isDisabled = clickedId !== null && !isClicked
+
+                  return (
+                    <button
+                      key={btn.id}
+                      type="button"
+                      onClick={() => handleButtonClick(btn)}
+                      disabled={clickedId !== null}
+                      className={cn(
+                        'w-full text-left px-4 py-3 rounded-xl border text-sm font-semibold',
+                        'transition-all duration-200 cursor-pointer',
+                        isClicked
+                          ? 'scale-[0.98] ring-2 shadow-md'
+                          : isDisabled
+                            ? 'opacity-40 cursor-default'
+                            : 'hover:scale-[1.02] hover:shadow-md active:scale-[0.97]'
+                      )}
+                      style={{
+                        backgroundColor: isClicked ? `${brandColor}15` : 'hsl(var(--muted) / 0.5)',
+                        borderColor: isClicked ? brandColor : 'hsl(var(--border))',
+                        color: isClicked ? brandColor : 'hsl(var(--foreground))',
+                        ...(isClicked ? { ringColor: brandColor } : {}),
+                      }}
+                    >
+                      <span className="flex items-center gap-3">
+                        <span
+                          className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-black shrink-0"
+                          style={{
+                            backgroundColor: isClicked ? brandColor : 'hsl(var(--muted))',
+                            color: isClicked ? 'white' : 'hsl(var(--muted-foreground))',
+                          }}
+                        >
+                          {String.fromCharCode(65 + btnIdx)}
+                        </span>
+                        <span>{btn.label}</span>
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
           )
         }
 

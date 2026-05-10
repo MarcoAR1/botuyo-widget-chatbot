@@ -327,7 +327,7 @@ export interface AuthenticatedUser {
 }
 
 // ========== Tipos de Mensajes ==========
-export type MessageType = 'text' | 'image' | 'location' | 'system' | 'audio' | 'location' | 'file'
+export type MessageType = 'text' | 'image' | 'location' | 'system' | 'audio' | 'location' | 'file' | 'buttons'
 
 // 🔥 CORRECCIÓN 1: Agregamos 'system' a los senders permitidos
 export type MessageSender = 'user' | 'bot' | 'system'
@@ -381,6 +381,19 @@ export interface FileMessage extends BaseMessage {
   mimeType?: string
 }
 
+export interface QuizButton {
+  id: string
+  label: string
+}
+
+export interface ButtonsMessage extends BaseMessage {
+  type: 'buttons'
+  content: string // Question text
+  buttons: QuizButton[]
+  /** Track which button was clicked (set on click, undefined initially) */
+  selectedId?: string
+}
+
 export type ChatMessage =
   | TextMessage
   | ImageMessage
@@ -388,6 +401,7 @@ export type ChatMessage =
   | SystemMessage
   | AudioMessage
   | FileMessage
+  | ButtonsMessage
 
 // ========== Estado del Widget ==========
 export interface ChatState {
