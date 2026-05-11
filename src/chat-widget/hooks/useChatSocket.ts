@@ -249,8 +249,11 @@ export function useChatSocket(options: UseChatSocketOptions) {
       }
     })
 
-    // ── Quiz: interactive buttons from present_quiz tool ──────────
+    // ── Custom Events: interactive buttons + dashboard updates ──────────
     socket.on('custom_event' as any, (evt: any) => {
+      // Forward ALL custom events to the host page for external listeners
+      forwardToPage({ type: 'botuyo-custom-event', ...evt })
+
       if (evt?.eventName === 'quiz_question' && evt?.data) {
         const { question, buttons } = evt.data as { question: string; buttons: Array<{ id: string; label: string }> }
         if (question && buttons?.length) {
