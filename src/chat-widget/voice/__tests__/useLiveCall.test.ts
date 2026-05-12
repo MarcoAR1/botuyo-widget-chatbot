@@ -92,6 +92,7 @@ describe('useLiveCall', () => {
       type: '',
       frequency: { value: 0 },
       Q: { value: 0 },
+      gain: { value: 0 },
       threshold: { value: 0 },
       knee: { value: 0 },
       ratio: { value: 0 },

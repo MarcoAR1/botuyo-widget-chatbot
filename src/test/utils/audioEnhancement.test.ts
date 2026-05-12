@@ -25,8 +25,8 @@ describe('audioEnhancement', () => {
       expect(NOISE_GATE_THRESHOLD).toBeLessThan(1)
     })
 
-    it('should be tuned for speech detection (~0.008)', () => {
-      expect(NOISE_GATE_THRESHOLD).toBe(0.008)
+    it('should be tuned for near-field voice isolation (~0.012)', () => {
+      expect(NOISE_GATE_THRESHOLD).toBe(0.012)
     })
   })
 
@@ -43,24 +43,35 @@ describe('audioEnhancement', () => {
       expect(ENHANCEMENT_CONFIG.highpass.q).toBe(0.7)
     })
 
+    it('should have de-rumble filter for secondary low-freq attenuation', () => {
+      expect(ENHANCEMENT_CONFIG.deRumble.frequency).toBe(200)
+      expect(ENHANCEMENT_CONFIG.deRumble.q).toBe(0.5)
+    })
+
+    it('should have presence boost config for near-field emphasis', () => {
+      expect(ENHANCEMENT_CONFIG.presenceBoost.frequency).toBe(3000)
+      expect(ENHANCEMENT_CONFIG.presenceBoost.q).toBe(1.0)
+      expect(ENHANCEMENT_CONFIG.presenceBoost.gain).toBe(6)
+    })
+
     it('should have lowpass filter config for cutting high-freq noise', () => {
       expect(ENHANCEMENT_CONFIG.lowpass.frequency).toBe(7500)
       expect(ENHANCEMENT_CONFIG.lowpass.q).toBe(0.7)
     })
 
-    it('should have compressor config with reasonable values', () => {
-      expect(ENHANCEMENT_CONFIG.compressor.threshold).toBe(-24)
-      expect(ENHANCEMENT_CONFIG.compressor.ratio).toBe(4)
-      expect(ENHANCEMENT_CONFIG.compressor.attack).toBeLessThan(0.01) // Fast attack
+    it('should have aggressive compressor config for voice isolation', () => {
+      expect(ENHANCEMENT_CONFIG.compressor.threshold).toBe(-20)
+      expect(ENHANCEMENT_CONFIG.compressor.ratio).toBe(6)
+      expect(ENHANCEMENT_CONFIG.compressor.attack).toBeLessThan(0.005) // Very fast attack
       expect(ENHANCEMENT_CONFIG.compressor.release).toBeGreaterThan(0.1) // Smooth release
     })
   })
 
   describe('createEnhancementChain', () => {
-    it('should create a chain and return the final node', () => {
+    it('should create a 5-node chain (2 highpass + peaking + lowpass + compressor)', () => {
       // Mock AudioContext and nodes
       const mockConnect = vi.fn().mockReturnThis()
-      const mockFilter = { type: '', frequency: { value: 0 }, Q: { value: 0 }, connect: mockConnect }
+      const mockFilter = { type: '', frequency: { value: 0 }, Q: { value: 0 }, gain: { value: 0 }, connect: mockConnect }
       const mockCompressor = {
         threshold: { value: 0 },
         knee: { value: 0 },
@@ -79,12 +90,11 @@ describe('audioEnhancement', () => {
 
       const result = createEnhancementChain(mockCtx, mockSource)
 
-      // Should create 2 filters + 1 compressor
-      expect(mockCtx.createBiquadFilter).toHaveBeenCalledTimes(2)
+      // Should create 4 filters (highpass + deRumble + presenceBoost + lowpass) + 1 compressor
+      expect(mockCtx.createBiquadFilter).toHaveBeenCalledTimes(4)
       expect(mockCtx.createDynamicsCompressor).toHaveBeenCalledOnce()
 
-      // Chain has 3 connections: source→highpass, highpass→lowpass, lowpass→compressor
-      // mockConnect is shared, so it's called 3 times total
+      // Chain has 5 connections: source→hp, hp→deRumble, deRumble→presence, presence→lp, lp→compressor
       expect(mockSource.connect).toHaveBeenCalled()
 
       // Result should be the compressor (last node in chain)
