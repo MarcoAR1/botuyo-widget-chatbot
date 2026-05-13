@@ -81,6 +81,8 @@ type CallState = 'idle' | 'connecting' | 'listening' | 'speaking' | 'thinking'
 interface VoiceEntry {
   role: 'user' | 'bot'
   text: string
+  /** Interactive quiz buttons — rendered as clickable options */
+  quizButtons?: { id: string; label: string }[]
 }
 
 const DEFAULT_EMOTION_EMOJIS: Record<string, string> = {
@@ -717,6 +719,28 @@ export function VoiceCallOverlay({
       if (!data?.items?.length) return
       resetInactivityTimer()
 
+      // ─── Present Quiz: interactive clickable buttons ───
+      if (data.tool === 'present_quiz') {
+        const cardItem = data.items.find((i: any) => i.type === 'card' && i.content)
+        if (cardItem) {
+          // Parse numbered options from the card markdown ("1. Option A\n2. Option B")
+          const lines = (cardItem.content as string).split('\n').filter(Boolean)
+          const questionLine = lines.find((l: string) => l.startsWith('**'))
+          const optionLines = lines.filter((l: string) => /^\d+\.\s/.test(l))
+          const question = questionLine
+            ? questionLine.replace(/\*\*/g, '').replace('📝 ', '')
+            : 'Quiz'
+          const buttons = optionLines.map((opt: string, i: number) => ({
+            id: `quiz_opt_${i}`,
+            label: opt.replace(/^\d+\.\s*/, ''), // Strip "1. " prefix
+          }))
+          if (buttons.length > 0) {
+            setConversation(prev => [...prev, { role: 'bot', text: `📝 ${question}`, quizButtons: buttons }])
+            return
+          }
+        }
+      }
+
       // ─── Generic show_content (from voice virtual tools) ───
       if (data.tool === 'show_content') {
         const content = data.items.map((item: any) => {
@@ -1313,6 +1337,53 @@ export function VoiceCallOverlay({
                       {entry.text}
                     </ReactMarkdown>
                   </div>
+                  {/* Interactive quiz buttons */}
+                  {entry.quizButtons && entry.quizButtons.length > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '10px' }}>
+                      {entry.quizButtons.map((btn) => (
+                        <button
+                          key={btn.id}
+                          onClick={() => {
+                            const socket = getSocket?.()
+                            if (socket?.connected) {
+                              socket.emit('voice_text_input', { text: `Answer: ${btn.label}` })
+                            }
+                            // Add as user message + remove buttons from this entry
+                            setConversation(prev => {
+                              const updated = prev.map((e, idx) =>
+                                idx === i ? { ...e, quizButtons: undefined } : e
+                              )
+                              return [...updated, { role: 'user' as const, text: btn.label }]
+                            })
+                          }}
+                          style={{
+                            padding: '10px 16px',
+                            borderRadius: '10px',
+                            border: `1px solid ${primaryColor}40`,
+                            background: `${primaryColor}15`,
+                            color: 'white',
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            textAlign: 'left' as const,
+                            transition: 'all 150ms ease',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = `${primaryColor}35`
+                            e.currentTarget.style.borderColor = `${primaryColor}80`
+                            e.currentTarget.style.transform = 'translateX(4px)'
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = `${primaryColor}15`
+                            e.currentTarget.style.borderColor = `${primaryColor}40`
+                            e.currentTarget.style.transform = 'translateX(0)'
+                          }}
+                        >
+                          {btn.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
               <div ref={conversationEndRef} />
