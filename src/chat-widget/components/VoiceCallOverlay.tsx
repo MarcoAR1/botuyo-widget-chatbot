@@ -588,6 +588,7 @@ export function VoiceCallOverlay({
     voiceModelTranscript?: (d: any) => void
     voiceModelThinking?: () => void
     voiceToolVisual?: (d: any) => void
+    voiceCustomEvent?: (d: any) => void
     voiceCallEnded?: (d: any) => void
   }>({})
 
@@ -719,27 +720,11 @@ export function VoiceCallOverlay({
       if (!data?.items?.length) return
       resetInactivityTimer()
 
-      // ─── Present Quiz: interactive clickable buttons ───
-      if (data.tool === 'present_quiz') {
-        const cardItem = data.items.find((i: any) => i.type === 'card' && i.content)
-        if (cardItem) {
-          // Parse numbered options from the card markdown ("1. Option A\n2. Option B")
-          const lines = (cardItem.content as string).split('\n').filter(Boolean)
-          const questionLine = lines.find((l: string) => l.startsWith('**'))
-          const optionLines = lines.filter((l: string) => /^\d+\.\s/.test(l))
-          const question = questionLine
-            ? questionLine.replace(/\*\*/g, '').replace('📝 ', '')
-            : 'Quiz'
-          const buttons = optionLines.map((opt: string, i: number) => ({
-            id: `quiz_opt_${i}`,
-            label: opt.replace(/^\d+\.\s*/, ''), // Strip "1. " prefix
-          }))
-          if (buttons.length > 0) {
-            setConversation(prev => [...prev, { role: 'bot', text: `📝 ${question}`, quizButtons: buttons }])
-            return
-          }
-        }
-      }
+      // ─── Present Quiz ───
+      // Rendered from the structured `quiz_question` custom_event (see onVoiceCustomEvent),
+      // which carries explicit buttons. Skip the visual-card path to avoid double-rendering
+      // and fragile markdown parsing.
+      if (data.tool === 'present_quiz') return
 
       // ─── Generic show_content (from voice virtual tools) ───
       if (data.tool === 'show_content') {
@@ -797,6 +782,18 @@ export function VoiceCallOverlay({
       }
     }
 
+    // Structured client events (quiz buttons, etc.) — same canonical `quiz_question`
+    // event used in text mode, carrying explicit buttons (no markdown parsing).
+    const onVoiceCustomEvent = (evt: any) => {
+      if (evt?.eventName === 'quiz_question' && evt?.data) {
+        const { question, buttons } = evt.data as { question: string; buttons: { id: string; label: string }[] }
+        if (question && buttons?.length) {
+          resetInactivityTimer()
+          setConversation(prev => [...prev, { role: 'bot', text: `📝 ${question}`, quizButtons: buttons }])
+        }
+      }
+    }
+
     voiceListenersRef.current = {
       voiceReady: onVoiceReady,
       voiceAudioChunk: onVoiceAudioChunk,
@@ -810,6 +807,7 @@ export function VoiceCallOverlay({
       voiceModelTranscript: onVoiceModelTranscript,
       voiceModelThinking: onVoiceModelThinking,
       voiceToolVisual: onVoiceToolVisual,
+      voiceCustomEvent: onVoiceCustomEvent,
     }
 
     socket.on('voice_ready', onVoiceReady)
@@ -824,6 +822,7 @@ export function VoiceCallOverlay({
     socket.on('voice_model_transcript', onVoiceModelTranscript)
     socket.on('voice_model_thinking', onVoiceModelThinking)
     socket.on('voice_tool_visual', onVoiceToolVisual)
+    socket.on('custom_event', onVoiceCustomEvent)
     socket.on('voice_timeout', onVoiceTimeout)
 
     // Server-initiated call end (e.g., farewell detection auto-hangup)
@@ -855,6 +854,7 @@ export function VoiceCallOverlay({
     if (l.voiceModelTranscript) socket.off('voice_model_transcript', l.voiceModelTranscript)
     if (l.voiceModelThinking) socket.off('voice_model_thinking', l.voiceModelThinking)
     if (l.voiceToolVisual) socket.off('voice_tool_visual', l.voiceToolVisual)
+    if (l.voiceCustomEvent) socket.off('custom_event', l.voiceCustomEvent)
     if (l.voiceCallEnded) socket.off('voice_call_ended', l.voiceCallEnded)
     socket.off('voice_timeout')
 
