@@ -216,4 +216,50 @@ describe('deviceId', () => {
       expect(id1).toBe(id2)
     })
   })
+
+  describe('Cryptographic UUID generation (v1.3.0)', () => {
+    afterEach(() => {
+      vi.unstubAllGlobals()
+      localStorage.clear()
+    })
+
+    it('uses crypto.randomUUID() when available (avoids identity collisions)', () => {
+      const fixedUuid = 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
+      const randomUUID = vi.fn(() => fixedUuid)
+      vi.stubGlobal('crypto', { randomUUID })
+      localStorage.clear()
+
+      const deviceId = getOrCreateDeviceId()
+
+      expect(randomUUID).toHaveBeenCalledTimes(1)
+      expect(deviceId).toBe(fixedUuid)
+    })
+
+    it('falls back to crypto.getRandomValues() when randomUUID is unavailable', () => {
+      const getRandomValues = vi.fn((arr: Uint8Array) => {
+        for (let i = 0; i < arr.length; i++) arr[i] = i
+        return arr
+      })
+      vi.stubGlobal('crypto', { getRandomValues })
+      localStorage.clear()
+
+      const deviceId = getOrCreateDeviceId()
+
+      expect(getRandomValues).toHaveBeenCalled()
+      expect(deviceId).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+      )
+    })
+
+    it('still produces a valid v4 UUID when Web Crypto is unavailable', () => {
+      vi.stubGlobal('crypto', undefined)
+      localStorage.clear()
+
+      const deviceId = getOrCreateDeviceId()
+
+      expect(deviceId).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+      )
+    })
+  })
 })
