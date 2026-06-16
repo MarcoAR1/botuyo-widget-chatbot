@@ -66,12 +66,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/botuyo/chat-widget.git"
+    "url": "https://github.com/MarcoAR1/botuyo-widget-chatbot.git"
   },
   "bugs": {
-    "url": "https://github.com/botuyo/chat-widget/issues"
+    "url": "https://github.com/MarcoAR1/botuyo-widget-chatbot/issues"
   },
-  "homepage": "https://github.com/botuyo/chat-widget#readme",
+  "homepage": "https://github.com/MarcoAR1/botuyo-widget-chatbot#readme",
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",
     "@chromatic-com/storybook": "^5.0.0",

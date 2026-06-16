@@ -13,6 +13,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      id-token: write # OIDC trusted publishing (npm) + provenance
+      contents: read
 
     steps:
       - name: Checkout code
@@ -60,9 +63,13 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
           cache: 'npm'
           registry-url: 'https://registry.npmjs.org'
+
+      # Trusted publishing (OIDC) requires npm >= 11.5.1
+      - name: Ensure latest npm
+        run: npm install -g npm@latest
 
       - name: Extract version
         id: version
@@ -111,8 +118,6 @@ jobs:
 
       - name: Publish to npm
         run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Notify Deploy Result
         if: always()
