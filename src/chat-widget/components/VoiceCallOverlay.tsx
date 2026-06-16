@@ -492,6 +492,8 @@ export function VoiceCallOverlay({
   const [showTextInput, setShowTextInput] = useState(false)
   const [textInputValue, setTextInputValue] = useState('')
   const [timeoutWarning, setTimeoutWarning] = useState(false)
+  /** Display name of the agent after an in-call transfer (transfer_to_department in voice) */
+  const [switchedAgentName, setSwitchedAgentName] = useState<string | null>(null)
 
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const analyserRef = useRef<AnalyserNode | null>(null)
@@ -589,6 +591,7 @@ export function VoiceCallOverlay({
     voiceModelThinking?: () => void
     voiceToolVisual?: (d: any) => void
     voiceCustomEvent?: (d: any) => void
+    voiceAgentSwitched?: (d: any) => void
     voiceCallEnded?: (d: any) => void
   }>({})
 
@@ -598,6 +601,18 @@ export function VoiceCallOverlay({
 
     const onVoiceReady = () => {
       setCallState('listening')
+    }
+
+    // Live agent switch (transfer_to_department in voice): the backend re-composed the
+    // session with a new agent — reflect it (header pill + transcript continuity cue).
+    const onVoiceAgentSwitched = (data: { agentId?: string; agentName?: string; voice?: string }) => {
+      resetInactivityTimer()
+      const name = (data?.agentName || '').toString().trim()
+      setSwitchedAgentName(name || 'Nuevo agente')
+      setConversation(prev => [
+        ...prev,
+        { role: 'bot', text: name ? `🔄 Continuás con ${name}.` : '🔄 Te derivé con el área correspondiente.' },
+      ])
     }
 
     const onVoiceAudioChunk = (data: { data: string; sampleRate?: number }) => {
@@ -808,6 +823,7 @@ export function VoiceCallOverlay({
       voiceModelThinking: onVoiceModelThinking,
       voiceToolVisual: onVoiceToolVisual,
       voiceCustomEvent: onVoiceCustomEvent,
+      voiceAgentSwitched: onVoiceAgentSwitched,
     }
 
     socket.on('voice_ready', onVoiceReady)
@@ -823,6 +839,7 @@ export function VoiceCallOverlay({
     socket.on('voice_model_thinking', onVoiceModelThinking)
     socket.on('voice_tool_visual', onVoiceToolVisual)
     socket.on('custom_event', onVoiceCustomEvent)
+    socket.on('voice_agent_switched', onVoiceAgentSwitched)
     socket.on('voice_timeout', onVoiceTimeout)
 
     // Server-initiated call end (e.g., farewell detection auto-hangup)
@@ -855,6 +872,7 @@ export function VoiceCallOverlay({
     if (l.voiceModelThinking) socket.off('voice_model_thinking', l.voiceModelThinking)
     if (l.voiceToolVisual) socket.off('voice_tool_visual', l.voiceToolVisual)
     if (l.voiceCustomEvent) socket.off('custom_event', l.voiceCustomEvent)
+    if (l.voiceAgentSwitched) socket.off('voice_agent_switched', l.voiceAgentSwitched)
     if (l.voiceCallEnded) socket.off('voice_call_ended', l.voiceCallEnded)
     socket.off('voice_timeout')
 
@@ -1031,6 +1049,7 @@ export function VoiceCallOverlay({
     setIsMuted(false)
     setConversation([])
     setTimeoutWarning(false)
+    setSwitchedAgentName(null)
 
     onClose()
   }, [getSocket, stopMicCapture, removeSocketListeners, onClose, onAddMessage, conversation])
@@ -1197,6 +1216,19 @@ export function VoiceCallOverlay({
               }}
             >
               {cfg.showEmojis && (cfg.emotionEmojis[currentEmotion] || '💬')} {currentEmotion}
+            </span>
+          )}
+          {switchedAgentName && (
+            <span style={{
+              fontSize: '11px',
+              padding: '2px 10px',
+              borderRadius: '20px',
+              background: `${primaryColor}22`,
+              border: `1px solid ${primaryColor}44`,
+              color: '#fff',
+              fontWeight: 600,
+            }}>
+              🔄 {switchedAgentName}
             </span>
           )}
           <span style={{
