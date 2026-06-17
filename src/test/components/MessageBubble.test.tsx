@@ -2,7 +2,7 @@
  * @vitest-environment happy-dom
  */
 import { describe, it, expect, vi } from 'vitest'
-import { screen } from '@testing-library/react'
+import { screen, fireEvent } from '@testing-library/react'
 import { renderWithI18n } from '../utils/i18n-test-utils'
 import { MessageBubble } from '../../chat-widget/components/MessageBubble'
 import type {
@@ -12,6 +12,7 @@ import type {
   LocationMessage,
   SystemMessage,
   FileMessage,
+  ButtonsMessage,
 } from '../../chat-widget/types'
 
 describe('MessageBubble', () => {
@@ -711,6 +712,71 @@ describe('MessageBubble', () => {
       const { container: _container } = renderWithI18n(<MessageBubble message={message} />)
 
       expect(screen.getByText('data.json')).toBeInTheDocument()
+    })
+  })
+
+  describe('Button Messages', () => {
+    it('should render the question and answer buttons', () => {
+      const message: ButtonsMessage = {
+        id: '41',
+        type: 'buttons',
+        content: 'Pick one',
+        buttons: [
+          { id: 'a', label: 'Option A' },
+          { id: 'b', label: 'Option B' },
+        ],
+        sender: 'bot',
+        timestamp: new Date(),
+      }
+
+      renderWithI18n(<MessageBubble message={message} />)
+
+      expect(screen.getByText('Pick one')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Option A/ })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Option B/ })).toBeInTheDocument()
+    })
+
+    it('should call onButtonClick and lock all buttons once one is clicked', () => {
+      const onButtonClick = vi.fn()
+      const message: ButtonsMessage = {
+        id: '42',
+        type: 'buttons',
+        content: 'Pick one',
+        buttons: [
+          { id: 'a', label: 'Option A' },
+          { id: 'b', label: 'Option B' },
+        ],
+        sender: 'bot',
+        timestamp: new Date(),
+      }
+
+      renderWithI18n(<MessageBubble message={message} onButtonClick={onButtonClick} />)
+
+      fireEvent.click(screen.getByRole('button', { name: /Option A/ }))
+
+      expect(onButtonClick).toHaveBeenCalledWith('Option A', message)
+      expect(screen.getByRole('button', { name: /Option A/ })).toBeDisabled()
+      expect(screen.getByRole('button', { name: /Option B/ })).toBeDisabled()
+    })
+
+    it('should respect a pre-selected button (selectedId)', () => {
+      const message: ButtonsMessage = {
+        id: '43',
+        type: 'buttons',
+        content: 'Pick one',
+        buttons: [
+          { id: 'a', label: 'Option A' },
+          { id: 'b', label: 'Option B' },
+        ],
+        selectedId: 'b',
+        sender: 'bot',
+        timestamp: new Date(),
+      }
+
+      renderWithI18n(<MessageBubble message={message} />)
+
+      expect(screen.getByRole('button', { name: /Option A/ })).toBeDisabled()
+      expect(screen.getByRole('button', { name: /Option B/ })).toBeDisabled()
     })
   })
 })
