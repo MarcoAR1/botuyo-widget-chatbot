@@ -97,6 +97,23 @@ describe('VoiceCallOverlay — interactive quiz', () => {
     expect(screen.getByText('gone')).toBeInTheDocument()
   })
 
+  it('renders each option as a clearly-styled button with a number badge', async () => {
+    const socket = await renderOverlay()
+
+    act(() => {
+      socket.handlers['custom_event'](QUIZ_EVENT)
+    })
+
+    // Number badges (1, 2, 3) mirror the agent's spoken "Option 1, 2, 3" and make
+    // the options read unmistakably as interactive buttons (not plain text).
+    expect(screen.getByText('1')).toBeInTheDocument()
+    expect(screen.getByText('2')).toBeInTheDocument()
+    expect(screen.getByText('3')).toBeInTheDocument()
+
+    // Each option label still lives inside a real, clickable <button>.
+    expect(screen.getByText('went').closest('button')).not.toBeNull()
+  })
+
   it('emits voice_text_input with the chosen answer when an option is clicked', async () => {
     const socket = await renderOverlay()
 
@@ -147,5 +164,63 @@ describe('VoiceCallOverlay — interactive quiz', () => {
     })
 
     expect(screen.queryByText('LEGACY_MARKDOWN_SHOULD_NOT_RENDER')).not.toBeInTheDocument()
+  })
+
+  // ─── Tool render vs AI transcript separation ───
+  // The agent SPEAKS while a tool draws (the backend injects the tool's voiceInstruction
+  // so the model reads it aloud). The spoken transcript must stay in its OWN bubble — it
+  // must NOT get concatenated into the quiz/card bubble ("todo pegado todo junto").
+
+  it('keeps the AI spoken transcript in a SEPARATE bubble from the quiz (not concatenated)', async () => {
+    const socket = await renderOverlay()
+
+    // 1) Tool draws the quiz first
+    act(() => {
+      socket.handlers['custom_event'](QUIZ_EVENT)
+    })
+    // 2) Then the AI speaks (model transcript streams in right after)
+    act(() => {
+      socket.handlers['voice_model_transcript']({ text: "Let's try a quick quiz!" })
+    })
+
+    // The quiz bubble must NOT absorb the spoken line.
+    const quizNode = screen.getByText(/What is the past tense/)
+    expect(quizNode).not.toHaveTextContent("Let's try a quick quiz")
+    // ...and the spoken line renders on its own.
+    expect(screen.getByText(/Let's try a quick quiz/)).toBeInTheDocument()
+    // Options stay intact under the quiz.
+    expect(screen.getByText('went')).toBeInTheDocument()
+  })
+
+  it('keeps the AI transcript separate from a tool content card', async () => {
+    const socket = await renderOverlay()
+
+    act(() => {
+      socket.handlers['voice_tool_visual']({
+        tool: 'show_content',
+        items: [{ type: 'text', label: 'CARD_CONTENT_HERE' }],
+      })
+    })
+    act(() => {
+      socket.handlers['voice_model_transcript']({ text: 'Here is some info for you.' })
+    })
+
+    const cardNode = screen.getByText('CARD_CONTENT_HERE')
+    expect(cardNode).not.toHaveTextContent('Here is some info')
+    expect(screen.getByText(/Here is some info/)).toBeInTheDocument()
+  })
+
+  it('still merges consecutive AI transcript fragments into ONE bubble when no tool is involved', async () => {
+    const socket = await renderOverlay()
+
+    act(() => {
+      socket.handlers['voice_model_transcript']({ text: 'Hello' })
+    })
+    act(() => {
+      socket.handlers['voice_model_transcript']({ text: 'there!' })
+    })
+
+    // Streaming fragments of the same turn coalesce — regression guard for the fix above.
+    expect(screen.getByText('Hello there!')).toBeInTheDocument()
   })
 })

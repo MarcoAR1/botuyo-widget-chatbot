@@ -83,6 +83,13 @@ interface VoiceEntry {
   text: string
   /** Interactive quiz buttons — rendered as clickable options */
   quizButtons?: { id: string; label: string }[]
+  /**
+   * When true, a following `voice_model_transcript` starts a NEW bubble instead of
+   * being appended onto this one. Set for tool renders (quiz, content cards) and
+   * system notices (agent switch) so the agent's spoken line never gets glued to
+   * the tool output ("todo pegado").
+   */
+  standalone?: boolean
 }
 
 const DEFAULT_EMOTION_EMOJIS: Record<string, string> = {
@@ -611,7 +618,7 @@ export function VoiceCallOverlay({
       setSwitchedAgentName(name || 'Nuevo agente')
       setConversation(prev => [
         ...prev,
-        { role: 'bot', text: name ? `🔄 Continuás con ${name}.` : '🔄 Te derivé con el área correspondiente.' },
+        { role: 'bot', text: name ? `🔄 Continuás con ${name}.` : '🔄 Te derivé con el área correspondiente.', standalone: true },
       ])
     }
 
@@ -713,12 +720,15 @@ export function VoiceCallOverlay({
       if (!data?.text) return
       resetInactivityTimer() // Agent is responding
       setConversation(prev => {
-        if (prev.length > 0 && prev[prev.length - 1].role === 'bot') {
+        const last = prev[prev.length - 1]
+        // Append to the active spoken bubble — but NEVER onto a tool render or system
+        // notice (standalone), so the agent's transcript stays in its own bubble.
+        if (last && last.role === 'bot' && !last.standalone) {
           const updated = [...prev]
-          const existing = updated[updated.length - 1].text
+          const existing = last.text
           // Add space between fragments if neither ends/starts with one
           const needsSpace = existing.length > 0 && !existing.endsWith(' ') && !data.text.startsWith(' ')
-          updated[updated.length - 1] = { ...updated[updated.length - 1], text: existing + (needsSpace ? ' ' : '') + data.text }
+          updated[updated.length - 1] = { ...last, text: existing + (needsSpace ? ' ' : '') + data.text }
           return updated
         }
         return [...prev, { role: 'bot', text: data.text }]
@@ -749,7 +759,7 @@ export function VoiceCallOverlay({
           return item.label || ''
         }).filter(Boolean).join('\n')
         if (content) {
-          setConversation(prev => [...prev, { role: 'bot', text: content }])
+          setConversation(prev => [...prev, { role: 'bot', text: content, standalone: true }])
         }
         return
       }
@@ -793,7 +803,7 @@ export function VoiceCallOverlay({
       }).filter(Boolean).join('\n\n---\n\n')
 
       if (cardText) {
-        setConversation(prev => [...prev, { role: 'bot', text: cardText }])
+        setConversation(prev => [...prev, { role: 'bot', text: cardText, standalone: true }])
       }
     }
 
@@ -804,7 +814,7 @@ export function VoiceCallOverlay({
         const { question, buttons } = evt.data as { question: string; buttons: { id: string; label: string }[] }
         if (question && buttons?.length) {
           resetInactivityTimer()
-          setConversation(prev => [...prev, { role: 'bot', text: `📝 ${question}`, quizButtons: buttons }])
+          setConversation(prev => [...prev, { role: 'bot', text: `📝 ${question}`, quizButtons: buttons, standalone: true }])
         }
       }
     }
@@ -1294,7 +1304,7 @@ export function VoiceCallOverlay({
       <div className="relative flex-1 overflow-y-auto px-5 pb-4" style={{ scrollbarWidth: 'none' }}>
         <div className="flex flex-col gap-4 w-full">
           {conversation.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
               {conversation.map((entry, i) => (
                 <div
                   key={i}
@@ -1369,10 +1379,10 @@ export function VoiceCallOverlay({
                       {entry.text}
                     </ReactMarkdown>
                   </div>
-                  {/* Interactive quiz buttons */}
+                  {/* Interactive quiz buttons — styled to read unmistakably as tappable options */}
                   {entry.quizButtons && entry.quizButtons.length > 0 && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '10px' }}>
-                      {entry.quizButtons.map((btn) => (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '14px' }}>
+                      {entry.quizButtons.map((btn, optIdx) => (
                         <button
                           key={btn.id}
                           onClick={() => {
@@ -1389,29 +1399,49 @@ export function VoiceCallOverlay({
                             })
                           }}
                           style={{
-                            padding: '10px 16px',
-                            borderRadius: '10px',
-                            border: `1px solid ${primaryColor}40`,
-                            background: `${primaryColor}15`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            width: '100%',
+                            padding: '14px 16px',
+                            borderRadius: '14px',
+                            border: '1px solid rgba(255,255,255,0.18)',
+                            background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}cc)`,
                             color: 'white',
-                            fontSize: '13px',
-                            fontWeight: 600,
+                            fontSize: '14px',
+                            fontWeight: 700,
                             cursor: 'pointer',
                             textAlign: 'left' as const,
+                            boxShadow: `0 4px 14px ${primaryColor}55, inset 0 1px 0 rgba(255,255,255,0.25)`,
                             transition: 'all 150ms ease',
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.background = `${primaryColor}35`
-                            e.currentTarget.style.borderColor = `${primaryColor}80`
-                            e.currentTarget.style.transform = 'translateX(4px)'
+                            e.currentTarget.style.transform = 'translateY(-2px)'
+                            e.currentTarget.style.boxShadow = `0 8px 22px ${primaryColor}77, inset 0 1px 0 rgba(255,255,255,0.3)`
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.background = `${primaryColor}15`
-                            e.currentTarget.style.borderColor = `${primaryColor}40`
-                            e.currentTarget.style.transform = 'translateX(0)'
+                            e.currentTarget.style.transform = 'translateY(0)'
+                            e.currentTarget.style.boxShadow = `0 4px 14px ${primaryColor}55, inset 0 1px 0 rgba(255,255,255,0.25)`
                           }}
                         >
-                          {btn.label}
+                          <span
+                            style={{
+                              flexShrink: 0,
+                              width: '22px',
+                              height: '22px',
+                              borderRadius: '50%',
+                              background: '#ffffff',
+                              color: primaryColor,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                            }}
+                          >
+                            {optIdx + 1}
+                          </span>
+                          <span style={{ flex: 1 }}>{btn.label}</span>
                         </button>
                       ))}
                     </div>
