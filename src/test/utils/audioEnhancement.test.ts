@@ -6,6 +6,11 @@ import {
   ENHANCEMENT_CONFIG,
   createEnhancementChain,
   generateNoiseGateCode,
+  VOICE_GATE_CONFIG,
+  computeExpanderGain,
+  buildVoiceProcessorCode,
+  VOICE_GATE_PRESETS,
+  resolveVoiceGateConfig,
 } from '../../chat-widget/voice/audioEnhancement'
 
 describe('audioEnhancement', () => {
@@ -124,6 +129,151 @@ describe('audioEnhancement', () => {
 
       expect(gateCheck).toContain(String(NOISE_GATE_THRESHOLD))
       expect(gateCheck).toContain(String(NOISE_GATE_HOLD_FRAMES))
+    })
+  })
+
+  describe('VOICE_GATE_CONFIG', () => {
+    it('has a conservative open threshold below normal near-field speech', () => {
+      expect(VOICE_GATE_CONFIG.openThreshold).toBeGreaterThan(0)
+      expect(VOICE_GATE_CONFIG.openThreshold).toBeLessThan(0.02)
+    })
+
+    it('attenuates to a non-zero floor (keeps a continuous stream for server VAD)', () => {
+      expect(VOICE_GATE_CONFIG.floorGain).toBeGreaterThan(0)
+      expect(VOICE_GATE_CONFIG.floorGain).toBeLessThan(1)
+    })
+
+    it('opens instantly (attack) but releases gradually (hold)', () => {
+      expect(VOICE_GATE_CONFIG.attackStep).toBeGreaterThanOrEqual(1)
+      expect(VOICE_GATE_CONFIG.releaseStep).toBeGreaterThan(0)
+      expect(VOICE_GATE_CONFIG.releaseStep).toBeLessThan(1)
+    })
+  })
+
+  describe('computeExpanderGain', () => {
+    const cfg = VOICE_GATE_CONFIG
+
+    it('opens fully when RMS is above the threshold', () => {
+      expect(computeExpanderGain(0.05, cfg.floorGain, cfg)).toBe(1)
+    })
+
+    it('never exceeds unity gain', () => {
+      expect(computeExpanderGain(0.5, 1, cfg)).toBe(1)
+    })
+
+    it('releases gradually toward the floor when RMS is below threshold', () => {
+      const g = computeExpanderGain(0.001, 1, cfg)
+      expect(g).toBeLessThan(1)
+      expect(g).toBeGreaterThanOrEqual(cfg.floorGain)
+      // a single frame steps down by releaseStep only — not an instant cut
+      expect(g).toBeCloseTo(1 - cfg.releaseStep, 5)
+    })
+
+    it('never drops below the floor gain', () => {
+      expect(computeExpanderGain(0, cfg.floorGain, cfg)).toBe(cfg.floorGain)
+    })
+
+    it('takes multiple frames to fully close (hold behaviour prevents choppy speech)', () => {
+      const afterOneFrame = computeExpanderGain(0, 1, cfg)
+      expect(afterOneFrame).toBeGreaterThan(cfg.floorGain)
+    })
+  })
+
+  describe('buildVoiceProcessorCode', () => {
+    it('registers the voice-pcm-processor worklet', () => {
+      expect(buildVoiceProcessorCode()).toContain("registerProcessor('voice-pcm-processor'")
+    })
+
+    it('embeds the gate config values', () => {
+      const code = buildVoiceProcessorCode()
+      expect(code).toContain(String(VOICE_GATE_CONFIG.openThreshold))
+      expect(code).toContain(String(VOICE_GATE_CONFIG.floorGain))
+    })
+
+    it('always posts a chunk (continuous stream — never drops frames for server VAD)', () => {
+      const code = buildVoiceProcessorCode()
+      expect(code).toContain('postMessage')
+      // must NOT use the chunk-dropping hold counter (would break server-side VAD)
+      expect(code).not.toContain('holdCounter')
+    })
+
+    it('computes RMS and applies a smoothed per-sample gain ramp', () => {
+      const code = buildVoiceProcessorCode()
+      expect(code.toLowerCase()).toContain('rms')
+      expect(code).toContain('gain')
+    })
+
+    it('accepts a custom config', () => {
+      const code = buildVoiceProcessorCode({
+        openThreshold: 0.05,
+        floorGain: 0.3,
+        attackStep: 1,
+        releaseStep: 0.2,
+      })
+      expect(code).toContain('0.05')
+      expect(code).toContain('0.3')
+    })
+  })
+
+  describe('VOICE_GATE_PRESETS', () => {
+    it('provides off / low / standard / high presets', () => {
+      expect(VOICE_GATE_PRESETS.off).toBeDefined()
+      expect(VOICE_GATE_PRESETS.low).toBeDefined()
+      expect(VOICE_GATE_PRESETS.standard).toBeDefined()
+      expect(VOICE_GATE_PRESETS.high).toBeDefined()
+    })
+
+    it('standard preset equals the recommended VOICE_GATE_CONFIG', () => {
+      expect(VOICE_GATE_PRESETS.standard).toEqual(VOICE_GATE_CONFIG)
+    })
+
+    it('off preset disables the gate (full pass, no attenuation)', () => {
+      expect(VOICE_GATE_PRESETS.off.openThreshold).toBe(0)
+      expect(VOICE_GATE_PRESETS.off.floorGain).toBe(1)
+    })
+
+    it('high filters more background than standard; low filters less', () => {
+      // higher threshold = gate opens only for louder/closer speech = more filtering
+      expect(VOICE_GATE_PRESETS.high.openThreshold).toBeGreaterThan(VOICE_GATE_PRESETS.standard.openThreshold)
+      expect(VOICE_GATE_PRESETS.low.openThreshold).toBeLessThan(VOICE_GATE_PRESETS.standard.openThreshold)
+      // lower floor = stronger attenuation of below-threshold background
+      expect(VOICE_GATE_PRESETS.high.floorGain).toBeLessThan(VOICE_GATE_PRESETS.standard.floorGain)
+      expect(VOICE_GATE_PRESETS.low.floorGain).toBeGreaterThan(VOICE_GATE_PRESETS.standard.floorGain)
+    })
+  })
+
+  describe('resolveVoiceGateConfig', () => {
+    it('defaults to the standard preset when undefined', () => {
+      expect(resolveVoiceGateConfig()).toEqual(VOICE_GATE_PRESETS.standard)
+    })
+
+    it('treats true as standard and false as off', () => {
+      expect(resolveVoiceGateConfig(true)).toEqual(VOICE_GATE_PRESETS.standard)
+      expect(resolveVoiceGateConfig(false)).toEqual(VOICE_GATE_PRESETS.off)
+    })
+
+    it('resolves named presets', () => {
+      expect(resolveVoiceGateConfig('high')).toEqual(VOICE_GATE_PRESETS.high)
+      expect(resolveVoiceGateConfig('low')).toEqual(VOICE_GATE_PRESETS.low)
+      expect(resolveVoiceGateConfig('off')).toEqual(VOICE_GATE_PRESETS.off)
+      expect(resolveVoiceGateConfig('standard')).toEqual(VOICE_GATE_PRESETS.standard)
+    })
+
+    it('merges a partial override on top of the standard preset', () => {
+      const resolved = resolveVoiceGateConfig({ openThreshold: 0.03 })
+      expect(resolved.openThreshold).toBe(0.03)
+      expect(resolved.floorGain).toBe(VOICE_GATE_PRESETS.standard.floorGain)
+    })
+
+    it('returns a fresh copy (does not mutate the preset)', () => {
+      const resolved = resolveVoiceGateConfig('standard')
+      resolved.openThreshold = 999
+      expect(VOICE_GATE_PRESETS.standard.openThreshold).not.toBe(999)
+    })
+
+    it('falls back to standard for an unknown string (untyped CDN consumers)', () => {
+      // @ts-expect-error — runtime guard for values outside the typed union
+      expect(resolveVoiceGateConfig('bogus')).toEqual(VOICE_GATE_PRESETS.standard)
     })
   })
 })

@@ -17,6 +17,8 @@ import { useRateLimit } from './useRateLimit'
 import { useTranslations } from '../i18n'
 import { BotEmotion } from '../components/Launcher'
 import { logger } from '../utils/logger'
+import { composeAgentLabel } from '../utils/agentLabel'
+import type { AgentSwitchedData } from '../types/socket'
 import { _setInternalSendMessage, _setInternalClearMessages } from '../ChatWidgetProvider'
 
 // Helper utilitario
@@ -148,6 +150,31 @@ export function useChatWidget(options: UseChatWidgetOptions) {
     onNavigate,
     onEvent,
     onThemeUpdate, // Pasar callback de tema al socket
+    onAgentSwitched: useCallback(
+      (data: AgentSwitchedData) => {
+        const label = composeAgentLabel(data.name, data.label)
+        // 1. Reflect the now-active agent/variant in the header (name + avatar).
+        //    onThemeUpdate is the socketTheme state setter → merge, keep other config.
+        if (onThemeUpdate) {
+          onThemeUpdate((prev: any) => ({
+            ...(prev || {}),
+            ...(label ? { botName: label } : {}),
+            ...(data.avatarUrl ? { logoUrl: data.avatarUrl } : {}),
+          }))
+        }
+        // 2. Announce the switch with a system bubble in the transcript.
+        if (label) {
+          actions.addMessage({
+            id: `agent-switched-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+            type: 'system',
+            sender: 'system',
+            timestamp: new Date(),
+            content: t('agent_switched', { name: label }),
+          })
+        }
+      },
+      [onThemeUpdate, actions, t]
+    ),
     onHistoryLoaded: useCallback(
       (historyMessages: ChatMessage[]) => {
         // Merge server history with existing local messages, deduplicating by ID

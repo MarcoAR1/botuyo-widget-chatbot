@@ -13,6 +13,9 @@ export const translations = {
     // Footer
     con_amor_paseo_libre: 'Con ❤️ por BotUyo',
 
+    // Cambio de agente/variante
+    agent_switched: 'Ahora estás con {{name}}',
+
     // Input area
     preview: 'Vista previa',
     fotos: 'Fotos',
@@ -69,6 +72,9 @@ export const translations = {
 
     // Footer
     con_amor_paseo_libre: 'With ❤️ by BotUyo',
+
+    // Agent / variant switch
+    agent_switched: 'Now chatting with {{name}}',
 
     // Input area
     preview: 'Preview',
@@ -127,6 +133,9 @@ export const translations = {
     // Rodapé
     con_amor_paseo_libre: 'Com ❤️ por BotUyo',
 
+    // Troca de agente/variante
+    agent_switched: 'Agora você está com {{name}}',
+
     // Área de entrada
     preview: 'Visualizar',
     fotos: 'Fotos',
@@ -183,6 +192,9 @@ export const translations = {
 
     // Pied de page
     con_amor_paseo_libre: 'Avec ❤️ par BotUyo',
+
+    // Changement d'agent/variante
+    agent_switched: 'Vous discutez maintenant avec {{name}}',
 
     // Zone de saisie
     preview: 'Aperçu',

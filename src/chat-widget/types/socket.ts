@@ -115,6 +115,27 @@ export interface CustomEventPayload {
   data: any
 }
 
+/**
+ * Payload of the `agent_switched` custom event — emitted by the backend when a
+ * `switch_variant` (intra-family) or `transfer_to_department` (inter-agent) tool
+ * runs successfully. Lets the widget reflect the now-active agent/variant in its
+ * header (name + avatar) and show a system bubble. All fields are optional:
+ * `switch_variant` may omit `name`/`avatarUrl` when no variantsMeta exists, and
+ * `transfer_to_department` omits `variantKey`/`avatarUrl`.
+ */
+export interface AgentSwitchedData {
+  /** Connect-time/resolved agent id of the now-active agent (informational). */
+  agentId?: string
+  /** Display name of the now-active agent/variant (e.g. "Ms. Ellis"). */
+  name?: string
+  /** Short variant/department label (e.g. "A2", "Ventas"). */
+  label?: string
+  /** Avatar/logo URL of the now-active agent/variant. */
+  avatarUrl?: string
+  /** The variant key when the switch came from `switch_variant`. */
+  variantKey?: string
+}
+
 // ========== Auth Payload (Handshake) ==========
 export interface SocketAuthPayload {
   /** API Key del tenant */

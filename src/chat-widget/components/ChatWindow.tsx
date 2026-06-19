@@ -14,7 +14,7 @@ import { useDynamicHeight } from '../hooks/useDynamicHeight'
 import { useFocusTrap } from '../hooks/useFocusTrap'
 import { EmotionAvatarMap } from './Launcher'
 import { DEFAULT_AVATAR_URL } from '../utils/defaultAssets'
-import { VoiceCallOverlay } from './VoiceCallOverlay'
+import { VoiceCallOverlay, type VoiceOverlayConfig } from './VoiceCallOverlay'
 
 export interface ChatWindowProps {
   isOpen: boolean
@@ -37,6 +37,8 @@ export interface ChatWindowProps {
   onAddVoiceMessage?: (message: { sender: 'user' | 'bot'; content: string }) => void
   /** URL to a .vrm/.glb 3D model for voice call avatar */
   avatar3dUrl?: string
+  /** Voice call overlay configuration (e.g. background-noise gate sensitivity) */
+  voiceConfig?: VoiceOverlayConfig
   theme?: import('../types').ChatTheme
   /** Pre-chat suggested questions (shown before first user message) */
   suggestedQuestions?: string[]
@@ -61,6 +63,7 @@ export function ChatWindow({
   getSocket,
   onAddVoiceMessage,
   avatar3dUrl,
+  voiceConfig,
   theme,
   suggestedQuestions,
 }: ChatWindowProps) {
@@ -365,6 +368,7 @@ export function ChatWindow({
           avatars={avatars}
           logoUrl={logoUrl}
           avatar3dUrl={avatar3dUrl}
+          voiceConfig={voiceConfig}
           getSocket={getSocket}
           onAddMessage={onAddVoiceMessage}
         />

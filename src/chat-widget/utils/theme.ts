@@ -126,6 +126,7 @@ export const DEFAULT_THEME: Required<
     | 'animations'
     | 'effects'
     | 'avatar3dUrl'
+    | 'voiceNoiseGate'
     | 'darkCssVariables'
     | 'headerText'
   >
@@ -270,6 +271,7 @@ export function mergeThemeWithDefaults(
     | 'animations'
     | 'effects'
     | 'avatar3dUrl'
+    | 'voiceNoiseGate'
     | 'darkCssVariables'
     | 'headerText'
   >

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ChatWidgetProps } from './types'
 import { Launcher } from './components/Launcher'
 import { ChatWindow } from './components/ChatWindow'
+import { VoiceCallOverlay } from './components/VoiceCallOverlay'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { PremiumConfigProvider } from './contexts/AnimationContext'
 import { LanguageProvider } from './i18n/LanguageContext'
@@ -36,6 +37,7 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
     onStateChange,
     initialOpen = false,
     hideLauncher = false,
+    voiceFirst = false,
   } = props
 
   // Refs y estado local
@@ -217,10 +219,55 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
     return vars
   }, [mergedTheme.cssVariables, isDarkMode, socketTheme, theme?.darkCssVariables])
 
+  // Voice call overlay config — the background-noise gate sensitivity comes from
+  // the init `theme` prop or the backend-pushed widget config (socketTheme).
+  // Memoized so the overlay's resolved gate config stays stable across renders.
+  const voiceNoiseGate = theme?.voiceNoiseGate ?? (socketTheme as any)?.voiceNoiseGate
+  const voiceConfig = useMemo(() => ({ noiseGate: voiceNoiseGate }), [voiceNoiseGate])
+
+  // Voice-first (kiosk) mode: latch the call open once the socket connects, then
+  // keep it open so a transient disconnect doesn't unmount the call mid-interview.
+  const [voiceCallOpen, setVoiceCallOpen] = useState(false)
+  useEffect(() => {
+    if (voiceFirst && isConnected) setVoiceCallOpen(true)
+  }, [voiceFirst, isConnected])
+
   if (mergedTheme.isHidden) return null
 
   // Don't render until socket has delivered the agent config (prevents flash)
   if (!socketTheme) return null
+
+  // ── Voice-first (kiosk-style) mode ──────────────────────────────────────
+  // Render ONLY a fullscreen voice-call overlay that auto-starts on connect —
+  // no launcher, no text chat window. Used by the recruiting interview room.
+  // ShadowDOMHost portals to <body> (no transform ancestor), so position:fixed
+  // fills the viewport. The host reacts via onEvent (see ChatWidgetProps.voiceFirst).
+  if (voiceFirst) {
+    return (
+      <div
+        ref={containerRef}
+        id="botuyo-chat-widget-root"
+        className="botuyo-chat-widget"
+        style={{ position: 'fixed', inset: 0, zIndex: 2147483000, ...cssVariablesStyle }}
+        data-animations-disabled={theme?.animations?.enabled === false ? 'true' : undefined}
+      >
+        <ErrorBoundary>
+          <VoiceCallOverlay
+            isOpen={voiceCallOpen}
+            onClose={() => onEvent?.('voice_first_ended', {})}
+            onCallEnded={(reason) => onEvent?.('voice_call_ended', { reason })}
+            primaryColor={getPrimaryColor(mergedTheme)}
+            avatars={theme?.avatars || (socketTheme as any)?.avatars || (socketTheme as any)?.avatarAnimations || {}}
+            logoUrl={mergedTheme.logoUrl}
+            avatar3dUrl={theme?.avatar3dUrl || (socketTheme as any)?.avatar3dUrl}
+            voiceConfig={voiceConfig}
+            getSocket={getSocket}
+            onAddMessage={handleAddVoiceMessage}
+          />
+        </ErrorBoundary>
+      </div>
+    )
+  }
 
   return (
       <div
@@ -278,6 +325,7 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
               mediaConfig={effectiveMediaConfig}
               theme={mergedTheme}
               avatar3dUrl={theme?.avatar3dUrl || (socketTheme as any)?.avatar3dUrl}
+              voiceConfig={voiceConfig}
               getSocket={getSocket}
               onAddVoiceMessage={handleAddVoiceMessage}
               suggestedQuestions={(socketTheme as any)?.suggestedQuestions}

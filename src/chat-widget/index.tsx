@@ -30,5 +30,13 @@ export type {
 
 export type { ChatWidgetProviderProps } from './ChatWidgetProvider'
 
+// ========== Voice noise-gate config ==========
+export type {
+  VoiceGateSetting,
+  VoiceGateSensitivity,
+  VoiceGateConfig,
+} from './voice/audioEnhancement'
+export { VOICE_GATE_PRESETS } from './voice/audioEnhancement'
+
 // ========== Default Export ==========
 export { ChatWidgetProvider as default } from './ChatWidgetProvider'

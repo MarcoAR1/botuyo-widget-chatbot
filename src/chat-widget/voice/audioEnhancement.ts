@@ -203,3 +203,185 @@ export function generateNoiseGateCode(
         if (this.holdCounter > 0) {`,
   }
 }
+
+// ============================================================================
+// CONTINUOUS (VAD-SAFE) NOISE GATE — for the live Gemini path
+// ============================================================================
+
+/**
+ * Downward-expander gate config for the live voice path (VoiceCallOverlay).
+ *
+ * Unlike `generateNoiseGateCode` (which DROPS sub-threshold chunks and is only
+ * safe for paths without server-side VAD), this gate ATTENUATES sub-threshold
+ * audio toward a non-zero floor while STILL sending every chunk. The stream
+ * stays continuous, so Gemini Live's server-side VAD keeps working, but the
+ * room ambience / background chatter that leaks in during the user's pauses is
+ * suppressed instead of being streamed up at full level.
+ *
+ * Tuning notes (RMS on the enhanced signal, Float32 scale 0–1):
+ * - `openThreshold` 0.0125 sits just above quiet room ambient (~0.003–0.008)
+ *   and below normal near-field speech (~0.02–0.10), so the person in front of
+ *   the device opens the gate while distant / low-level background does not.
+ * - `floorGain` 0.12 (≈ −18 dB) is an attenuation, not a hard mute: it keeps the
+ *   stream continuous and click-free, and is forgiving if a soft speaker briefly
+ *   dips below threshold (worst case they are attenuated, never cut to silence).
+ * - `attackStep` 1 opens the gate within a single 100 ms frame (never clips a
+ *   word onset); `releaseStep` 0.16 closes gradually (~0.5 s hold) so natural
+ *   pauses between words are not chopped.
+ *
+ * NOTE: an energy gate leverages the inverse-square law (the near speaker is the
+ * loudest source) — it cannot separate a second person talking AT the device at
+ * conversational volume. That needs hardware beamforming / ML source separation
+ * which browsers do not expose; the browser-level `noiseSuppression` constraint
+ * plus this gate are the strongest client-side levers available.
+ */
+export interface VoiceGateConfig {
+  /** RMS at/above which the gate is fully open (gain → 1) */
+  openThreshold: number
+  /** Gain applied when fully closed (0–1; non-zero keeps the stream continuous) */
+  floorGain: number
+  /** Max gain increase per frame when opening (1 = instant, never clips onsets) */
+  attackStep: number
+  /** Max gain decrease per frame when closing (smaller = longer hold) */
+  releaseStep: number
+}
+
+export const VOICE_GATE_CONFIG: VoiceGateConfig = {
+  openThreshold: 0.0125,
+  floorGain: 0.12,
+  attackStep: 1,
+  releaseStep: 0.16,
+}
+
+/**
+ * Friendly sensitivity presets so each tenant can dial background isolation up
+ * or down without understanding the raw DSP knobs:
+ * - `off`      → gate disabled (every frame passes at full level — legacy behaviour)
+ * - `low`      → gentle; only the quietest ambience is attenuated (safest for soft speakers)
+ * - `standard` → recommended default (= VOICE_GATE_CONFIG)
+ * - `high`     → aggressive; cuts more background, higher risk of clipping a soft speaker
+ */
+export type VoiceGateSensitivity = 'off' | 'low' | 'standard' | 'high'
+
+export const VOICE_GATE_PRESETS: Record<VoiceGateSensitivity, VoiceGateConfig> = {
+  off: { openThreshold: 0, floorGain: 1, attackStep: 1, releaseStep: 1 },
+  low: { openThreshold: 0.008, floorGain: 0.25, attackStep: 1, releaseStep: 0.12 },
+  standard: { ...VOICE_GATE_CONFIG },
+  high: { openThreshold: 0.02, floorGain: 0.05, attackStep: 1, releaseStep: 0.2 },
+}
+
+/**
+ * What a widget consumer can pass to configure the gate:
+ * - a boolean (`true` = standard, `false` = off)
+ * - a named sensitivity preset (`'low' | 'standard' | 'high' | 'off'`)
+ * - a partial config to fine-tune specific knobs (merged over `standard`)
+ */
+export type VoiceGateSetting = boolean | VoiceGateSensitivity | Partial<VoiceGateConfig>
+
+/**
+ * Resolves a consumer-provided gate setting into a full VoiceGateConfig.
+ * Always returns a fresh object; defaults to the recommended `standard` preset.
+ */
+export function resolveVoiceGateConfig(setting?: VoiceGateSetting): VoiceGateConfig {
+  if (setting === undefined || setting === true || setting === 'standard') {
+    return { ...VOICE_GATE_PRESETS.standard }
+  }
+  if (setting === false || setting === 'off') {
+    return { ...VOICE_GATE_PRESETS.off }
+  }
+  if (typeof setting === 'string') {
+    return { ...(VOICE_GATE_PRESETS[setting] ?? VOICE_GATE_PRESETS.standard) }
+  }
+  // Partial object → fine-tune specific knobs on top of the recommended default
+  return { ...VOICE_GATE_PRESETS.standard, ...setting }
+}
+
+/**
+ * Pure downward-expander gain curve — the single source of truth replicated by
+ * the AudioWorklet. Given the current frame RMS and the previously applied gain,
+ * returns the next gain: fast attack, slow release, clamped to [floorGain, 1].
+ *
+ * @param rms - RMS of the current frame (Float32 scale 0–1)
+ * @param prevGain - gain applied to the previous frame
+ * @param config - gate tuning (defaults to VOICE_GATE_CONFIG)
+ */
+export function computeExpanderGain(
+  rms: number,
+  prevGain: number,
+  config: VoiceGateConfig = VOICE_GATE_CONFIG
+): number {
+  const target = rms >= config.openThreshold ? 1 : config.floorGain
+  if (target >= prevGain) {
+    return Math.min(target, prevGain + config.attackStep)
+  }
+  return Math.max(target, prevGain - config.releaseStep)
+}
+
+/**
+ * Builds the AudioWorklet processor source for the live voice path.
+ *
+ * Captures mic input as PCM 16-bit, computes per-frame RMS, applies the
+ * downward-expander gain (smoothed per-sample to avoid clicks) and posts EVERY
+ * frame so the upstream server-side VAD keeps a continuous stream.
+ *
+ * @param config - gate tuning (defaults to VOICE_GATE_CONFIG)
+ * @param processorName - registered worklet name (default 'voice-pcm-processor')
+ * @param chunkSize - samples per frame (default 1600 = 100 ms at 16 kHz)
+ */
+export function buildVoiceProcessorCode(
+  config: VoiceGateConfig = VOICE_GATE_CONFIG,
+  processorName = 'voice-pcm-processor',
+  chunkSize = 1600
+): string {
+  return `
+class VoicePCMProcessor extends AudioWorkletProcessor {
+  constructor() {
+    super();
+    this.buffer = new Float32Array(${chunkSize});
+    this.bufferIndex = 0;
+    this.gain = 1; // current applied gain — starts open
+  }
+  process(inputs) {
+    const input = inputs[0]?.[0];
+    if (!input) return true;
+    for (let i = 0; i < input.length; i++) {
+      this.buffer[this.bufferIndex++] = input[i];
+      if (this.bufferIndex >= ${chunkSize}) {
+        // 1. Frame RMS — near-field speaker vs. background energy
+        let sumSq = 0;
+        for (let j = 0; j < ${chunkSize}; j++) sumSq += this.buffer[j] * this.buffer[j];
+        const rms = Math.sqrt(sumSq / ${chunkSize});
+
+        // 2. Downward-expander target + smoothed gain (fast attack, slow release)
+        const target = rms >= ${config.openThreshold} ? 1 : ${config.floorGain};
+        let nextGain;
+        if (target >= this.gain) {
+          nextGain = Math.min(target, this.gain + ${config.attackStep});
+        } else {
+          nextGain = Math.max(target, this.gain - ${config.releaseStep});
+        }
+
+        // 3. Apply gain with a per-sample ramp (click-free) → Int16 PCM
+        const int16 = new Int16Array(${chunkSize});
+        const gStep = (nextGain - this.gain) / ${chunkSize};
+        let g = this.gain;
+        for (let j = 0; j < ${chunkSize}; j++) {
+          g += gStep;
+          const s = Math.max(-1, Math.min(1, this.buffer[j] * g));
+          int16[j] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+        }
+        this.gain = nextGain;
+
+        // 4. ALWAYS post — a continuous stream keeps server-side VAD accurate
+        this.port.postMessage(int16.buffer, [int16.buffer]);
+
+        this.buffer = new Float32Array(${chunkSize});
+        this.bufferIndex = 0;
+      }
+    }
+    return true;
+  }
+}
+registerProcessor('${processorName}', VoicePCMProcessor);
+`
+}

@@ -804,4 +804,121 @@ describe('useChatSocket', () => {
       )
     })
   })
+
+  describe('Custom Events — agent_switched', () => {
+    const getCustomEventHandler = () =>
+      mockSocket.on.mock.calls.find((call: any[]) => call[0] === 'custom_event')?.[1]
+
+    it('registers a custom_event listener', () => {
+      renderHook(() =>
+        useChatSocket({
+          apiKey: 'test-api-key',
+          apiBaseUrl: 'http://localhost:3000',
+          ...mockHandlers,
+        })
+      )
+
+      expect(getCustomEventHandler()).toBeDefined()
+    })
+
+    it('calls onAgentSwitched with the validated payload (switch_variant shape)', () => {
+      const onAgentSwitched = vi.fn()
+      renderHook(() =>
+        useChatSocket({
+          apiKey: 'test-api-key',
+          apiBaseUrl: 'http://localhost:3000',
+          ...mockHandlers,
+          onAgentSwitched,
+        })
+      )
+
+      act(() => {
+        getCustomEventHandler()?.({
+          eventName: 'agent_switched',
+          data: {
+            variantKey: 'a2',
+            agentId: 'agent-a2',
+            name: 'Ms. Ellis',
+            label: 'A2',
+            avatarUrl: 'https://cdn.example.com/a2.jpg',
+          },
+        })
+      })
+
+      expect(onAgentSwitched).toHaveBeenCalledWith({
+        variantKey: 'a2',
+        agentId: 'agent-a2',
+        name: 'Ms. Ellis',
+        label: 'A2',
+        avatarUrl: 'https://cdn.example.com/a2.jpg',
+      })
+    })
+
+    it('accepts a partial payload (transfer_to_department shape)', () => {
+      const onAgentSwitched = vi.fn()
+      renderHook(() =>
+        useChatSocket({
+          apiKey: 'test-api-key',
+          apiBaseUrl: 'http://localhost:3000',
+          ...mockHandlers,
+          onAgentSwitched,
+        })
+      )
+
+      act(() => {
+        getCustomEventHandler()?.({
+          eventName: 'agent_switched',
+          data: { agentId: 'agent-sales', name: 'Ventas', label: 'Ventas' },
+        })
+      })
+
+      expect(onAgentSwitched).toHaveBeenCalledWith({
+        agentId: 'agent-sales',
+        name: 'Ventas',
+        label: 'Ventas',
+      })
+    })
+
+    it('does NOT call onAgentSwitched for other custom events', () => {
+      const onAgentSwitched = vi.fn()
+      renderHook(() =>
+        useChatSocket({
+          apiKey: 'test-api-key',
+          apiBaseUrl: 'http://localhost:3000',
+          ...mockHandlers,
+          onAgentSwitched,
+        })
+      )
+
+      act(() => {
+        getCustomEventHandler()?.({
+          eventName: 'quiz_question',
+          data: { question: 'Q?', buttons: [{ id: 'a', label: 'A' }] },
+        })
+      })
+
+      expect(onAgentSwitched).not.toHaveBeenCalled()
+    })
+
+    it('drops malformed agent_switched payloads (non-string fields)', () => {
+      const onAgentSwitched = vi.fn()
+      renderHook(() =>
+        useChatSocket({
+          apiKey: 'test-api-key',
+          apiBaseUrl: 'http://localhost:3000',
+          ...mockHandlers,
+          onAgentSwitched,
+        })
+      )
+
+      act(() => {
+        getCustomEventHandler()?.({
+          eventName: 'agent_switched',
+          data: { agentId: 123, label: { nope: true } },
+        })
+      })
+
+      expect(onAgentSwitched).not.toHaveBeenCalled()
+    })
+  })
 })

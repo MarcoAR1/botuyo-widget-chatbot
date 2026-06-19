@@ -22,7 +22,12 @@ import { DEFAULT_AVATAR_URL } from '../utils/defaultAssets'
 import {
   ENHANCED_AUDIO_CONSTRAINTS,
   createEnhancementChain,
+  buildVoiceProcessorCode,
+  resolveVoiceGateConfig,
+  type VoiceGateConfig,
+  type VoiceGateSetting,
 } from '../voice/audioEnhancement'
+import { useWakeLock } from '../hooks/useWakeLock'
 
 // Lazy-loaded 3D avatar — separate chunk, 0KB impact on main bundle
 const Avatar3D = lazy(() => import('./Avatar3D'))
@@ -59,6 +64,16 @@ export interface VoiceOverlayConfig {
   thinkingScale?: number
   /** URL to a .vrm/.glb 3D model. When set, replaces 2D avatar with 3D. */
   avatar3dUrl?: string
+  /**
+   * Background-noise gate sensitivity for the live voice call — isolates the
+   * speaker in front of the device by attenuating background ambience/chatter
+   * during their pauses. Higher = filters more background but risks clipping a
+   * soft speaker. Default: 'standard' (recommended).
+   * - `'off' | 'low' | 'standard' | 'high'` presets, or
+   * - `false` to disable / `true` for standard, or
+   * - a partial `VoiceGateConfig` to fine-tune the raw thresholds.
+   */
+  noiseGate?: VoiceGateSetting
 }
 
 interface VoiceCallOverlayProps {
@@ -74,6 +89,12 @@ interface VoiceCallOverlayProps {
   voiceConfig?: VoiceOverlayConfig
   /** Callback to persist voice transcripts to the main chat history */
   onAddMessage?: (message: { sender: 'user' | 'bot'; content: string; timestamp?: Date }) => void
+  /**
+   * Fired when the SERVER ends the call (voice_call_ended), e.g. a recruiting
+   * interview the agent finalized. `reason` carries the backend reason
+   * (e.g. 'interview_completed'). Lets a host (voice-first room) react.
+   */
+  onCallEnded?: (reason?: string) => void
 }
 
 type CallState = 'idle' | 'connecting' | 'listening' | 'speaking' | 'thinking'
@@ -126,42 +147,13 @@ const OUTPUT_SAMPLE_RATE = 24000
 const INACTIVITY_TIMEOUT_SECONDS = 120 // 2 minutes of silence → auto-end
 const INACTIVITY_WARNING_SECONDS = 90  // Warn at 1:30 of silence
 
-// Inline AudioWorklet processor for PCM capture at 16kHz
-// NOTE: No client-side noise gate — Gemini Live has built-in server-side VAD
-// that requires a CONTINUOUS audio stream (including silence) to properly
-// detect speech onset/offset. Client-side gating breaks VAD detection.
-const AUDIO_PROCESSOR_CODE = `
-class VoicePCMProcessor extends AudioWorkletProcessor {
-  constructor() {
-    super();
-    this.buffer = new Float32Array(1600); // 100ms at 16kHz
-    this.bufferIndex = 0;
-  }
-  process(inputs) {
-    const input = inputs[0]?.[0];
-    if (!input) return true;
-    for (let i = 0; i < input.length; i++) {
-      this.buffer[this.bufferIndex++] = input[i];
-      if (this.bufferIndex >= 1600) {
-        // Convert Float32 → Int16 PCM
-        const int16 = new Int16Array(1600);
-        for (let j = 0; j < 1600; j++) {
-          const s = Math.max(-1, Math.min(1, this.buffer[j]));
-          int16[j] = s < 0 ? s * 0x8000 : s * 0x7FFF;
-        }
-
-        // Send ALL chunks — Gemini server-side VAD handles activity detection
-        this.port.postMessage(int16.buffer, [int16.buffer]);
-
-        this.buffer = new Float32Array(1600);
-        this.bufferIndex = 0;
-      }
-    }
-    return true;
-  }
-}
-registerProcessor('voice-pcm-processor', VoicePCMProcessor);
-`
+// The AudioWorklet processor source for PCM capture at 16kHz is built by
+// buildVoiceProcessorCode() (see ../voice/audioEnhancement). It applies a
+// VAD-safe, continuous-stream downward-expander gate: every 100ms frame is
+// STILL posted (so Gemini Live's server-side VAD keeps detecting speech
+// onset/offset), but background ambience/chatter that leaks in during the
+// user's pauses is attenuated toward a low floor instead of being streamed at
+// full level — isolating the speaker in front of the device.
 
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer)
@@ -216,6 +208,7 @@ type Required_VoiceOverlayConfig = {
   speakingScale: number
   thinkingScale: number
   avatar3dUrl?: string
+  voiceGate: VoiceGateConfig
 }
 
 function resolveVoiceConfig(cfg?: VoiceOverlayConfig, primaryColor = '#10b981'): Required_VoiceOverlayConfig {
@@ -235,6 +228,7 @@ function resolveVoiceConfig(cfg?: VoiceOverlayConfig, primaryColor = '#10b981'):
     speakingScale: cfg?.speakingScale ?? 1.08,
     thinkingScale: cfg?.thinkingScale ?? 0.95,
     avatar3dUrl: cfg?.avatar3dUrl,
+    voiceGate: resolveVoiceGateConfig(cfg?.noiseGate),
   }
 }
 
@@ -486,9 +480,15 @@ export function VoiceCallOverlay({
   avatar3dUrl,
   voiceConfig,
   onAddMessage,
+  onCallEnded,
 }: VoiceCallOverlayProps) {
   // Resolve all config defaults once
   const cfg = useMemo(() => resolveVoiceConfig(voiceConfig, primaryColor), [voiceConfig, primaryColor])
+
+  // Keep the screen awake for the whole time the call overlay is open — the user
+  // is watching the screen (avatar, quiz options, transcript) without touching it,
+  // so the device must not dim/blank as it normally would.
+  useWakeLock(isOpen)
 
   const [callState, setCallState] = useState<CallState>('idle')
   const [duration, setDuration] = useState(0)
@@ -852,8 +852,11 @@ export function VoiceCallOverlay({
     socket.on('voice_agent_switched', onVoiceAgentSwitched)
     socket.on('voice_timeout', onVoiceTimeout)
 
-    // Server-initiated call end (e.g., farewell detection auto-hangup)
-    const onVoiceCallEnded = (_data: { reason?: string }) => {
+    // Server-initiated call end (e.g., interview finalized / farewell auto-hangup)
+    const onVoiceCallEnded = (data: { reason?: string }) => {
+      // Notify the host immediately with the backend reason so a voice-first room
+      // can decide its completion UI before the overlay auto-closes.
+      onCallEnded?.(data?.reason)
       setConversation(prev => [...prev, { role: 'bot', text: '📞 Llamada finalizada.' }])
       // Auto-close overlay after a brief delay
       setTimeout(() => { onClose() }, 2500)
@@ -919,7 +922,7 @@ export function VoiceCallOverlay({
 
     // Create processor URL
     if (!processorUrlRef.current) {
-      const blob = new Blob([AUDIO_PROCESSOR_CODE], { type: 'application/javascript' })
+      const blob = new Blob([buildVoiceProcessorCode(cfg.voiceGate)], { type: 'application/javascript' })
       processorUrlRef.current = URL.createObjectURL(blob)
     }
 
@@ -947,7 +950,7 @@ export function VoiceCallOverlay({
       animFrameRef.current = requestAnimationFrame(updateLevel)
     }
     updateLevel()
-  }, [getSocket, isMuted])
+  }, [getSocket, isMuted, cfg.voiceGate])
 
   const stopMicCapture = useCallback(() => {
     cancelAnimationFrame(animFrameRef.current)

@@ -12,6 +12,7 @@ import type {
   ServerToClientEvents,
   BotMessagePayload,
   AuthSuccessPayload,
+  AgentSwitchedData,
 } from '../types/socket'
 import type { ChatMessage, ChatWidgetProps, PageContext, ButtonsMessage } from '../types'
 import { getOrCreateDeviceId } from '../utils/deviceId'
@@ -33,6 +34,17 @@ const BotMessageSchema = z.object({
   sources: z.array(z.string()).optional(),
 })
 
+// Zod schema for the `agent_switched` custom event — mirrors AgentSwitchedData.
+// All fields optional (the backend omits some depending on switch_variant vs.
+// transfer_to_department); safeParse drops malformed payloads.
+const AgentSwitchedSchema = z.object({
+  agentId: z.string().optional(),
+  name: z.string().optional(),
+  label: z.string().optional(),
+  avatarUrl: z.string().optional(),
+  variantKey: z.string().optional(),
+})
+
 export interface UseChatSocketOptions {
   apiKey: string
   apiBaseUrl: string
@@ -51,6 +63,8 @@ export interface UseChatSocketOptions {
   onThemeUpdate?: (theme: any) => void // Callback para recibir tema del servidor
   /** Callback when a quiz button is clicked — sends as user message */
   onQuizAnswer?: (question: string, answer: string) => void
+  /** Callback when the backend switches the active agent/variant (header + system bubble) */
+  onAgentSwitched?: (data: AgentSwitchedData) => void
 }
 
 export function useChatSocket(options: UseChatSocketOptions) {
@@ -266,6 +280,17 @@ export function useChatSocket(options: UseChatSocketOptions) {
             buttons
           }
           handlersRef.current.onMessage(quizMsg)
+        }
+      }
+
+      // Active agent/variant changed (switch_variant or transfer_to_department) →
+      // let the widget update its header (name/avatar) + show a system bubble.
+      if (evt?.eventName === 'agent_switched' && evt?.data) {
+        const parsed = AgentSwitchedSchema.safeParse(evt.data)
+        if (parsed.success) {
+          handlersRef.current.onAgentSwitched?.(parsed.data)
+        } else {
+          logger.debug('ChatSocket: dropped malformed agent_switched payload')
         }
       }
     })

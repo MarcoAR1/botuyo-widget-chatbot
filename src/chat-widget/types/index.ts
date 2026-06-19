@@ -4,6 +4,7 @@
  */
 
 import { BotEmotion, EmotionAvatarMap, PromptStrategy } from '../components/Launcher'
+import type { VoiceGateSetting } from '../voice/audioEnhancement'
 
 /**
  * Configuración de funcionalidades multimedia
@@ -161,6 +162,19 @@ export interface ChatWidgetProps {
 
   /** Hide the floating launcher button entirely (default: false) */
   hideLauncher?: boolean
+
+  /**
+   * Voice-first (kiosk-style) mode. When true the widget renders ONLY a
+   * fullscreen voice-call experience that auto-starts the call as soon as the
+   * socket connects — no launcher, no text chat window. Used by the recruiting
+   * interview room. The host is notified via `onEvent`:
+   *   - `onEvent('voice_call_ended', { reason })` when the SERVER ends the call
+   *     (e.g. reason 'interview_completed' once the agent finalizes).
+   *   - `onEvent('voice_first_ended', {})` when the call overlay closes for any
+   *     reason (server end, candidate hangup, inactivity).
+   * Default: false.
+   */
+  voiceFirst?: boolean
 }
 
 export interface BubbleStyles {
@@ -199,6 +213,12 @@ export interface ChatTheme {
   avatars?: EmotionAvatarMap
   /** URL to a .vrm/.glb 3D model for voice call avatar */
   avatar3dUrl?: string
+  /**
+   * Background-noise gate sensitivity for live voice calls — isolates the
+   * speaker in front of the device. `'off' | 'low' | 'standard' | 'high'`
+   * (default 'standard'), `true`/`false`, or a partial config for fine control.
+   */
+  voiceNoiseGate?: VoiceGateSetting
   /** Posición del launcher */
   position?: 'bottom-right' | 'bottom-left'
 
