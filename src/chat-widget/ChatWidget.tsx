@@ -100,20 +100,6 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
     }
   }, [initialOpen, socketTheme, state.isOpen, actions])
 
-  // Voice transcript persistence — creates ChatMessage objects from voice entries
-  const handleAddVoiceMessage = useCallback(
-    (msg: { sender: 'user' | 'bot'; content: string; timestamp?: Date }) => {
-      actions.addMessage({
-        id: `voice-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        type: 'text',
-        sender: msg.sender,
-        timestamp: msg.timestamp || new Date(),
-        content: msg.content,
-      })
-    },
-    [actions]
-  )
-
   // Voice: merge socketTheme.voiceEnabled into mediaConfig so backend controls the voice toggle
   const effectiveMediaConfig = useMemo(() => {
     const base = { ...(mediaConfig || {}) }
@@ -262,7 +248,6 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
             avatar3dUrl={theme?.avatar3dUrl || (socketTheme as any)?.avatar3dUrl}
             voiceConfig={voiceConfig}
             getSocket={getSocket}
-            onAddMessage={handleAddVoiceMessage}
           />
         </ErrorBoundary>
       </div>
@@ -327,7 +312,6 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
               avatar3dUrl={theme?.avatar3dUrl || (socketTheme as any)?.avatar3dUrl}
               voiceConfig={voiceConfig}
               getSocket={getSocket}
-              onAddVoiceMessage={handleAddVoiceMessage}
               suggestedQuestions={(socketTheme as any)?.suggestedQuestions}
             />
           </ErrorBoundary>

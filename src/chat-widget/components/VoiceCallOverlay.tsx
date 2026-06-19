@@ -87,8 +87,6 @@ interface VoiceCallOverlayProps {
   avatar3dUrl?: string
   /** Voice overlay configuration for full customizability */
   voiceConfig?: VoiceOverlayConfig
-  /** Callback to persist voice transcripts to the main chat history */
-  onAddMessage?: (message: { sender: 'user' | 'bot'; content: string; timestamp?: Date }) => void
   /**
    * Fired when the SERVER ends the call (voice_call_ended), e.g. a recruiting
    * interview the agent finalized. `reason` carries the backend reason
@@ -146,6 +144,9 @@ const INPUT_SAMPLE_RATE = 16000
 const OUTPUT_SAMPLE_RATE = 24000
 const INACTIVITY_TIMEOUT_SECONDS = 120 // 2 minutes of silence → auto-end
 const INACTIVITY_WARNING_SECONDS = 90  // Warn at 1:30 of silence
+// After a call ends, wait briefly for the backend to persist the FINAL voice turn (async),
+// then pull the authoritative transcript (request_history) so the chat reflects the call.
+const HISTORY_REFRESH_DELAY_MS = 1500
 
 // The AudioWorklet processor source for PCM capture at 16kHz is built by
 // buildVoiceProcessorCode() (see ../voice/audioEnhancement). It applies a
@@ -479,7 +480,6 @@ export function VoiceCallOverlay({
   logoUrl,
   avatar3dUrl,
   voiceConfig,
-  onAddMessage,
   onCallEnded,
 }: VoiceCallOverlayProps) {
   // Resolve all config defaults once
@@ -858,6 +858,14 @@ export function VoiceCallOverlay({
       // can decide its completion UI before the overlay auto-closes.
       onCallEnded?.(data?.reason)
       setConversation(prev => [...prev, { role: 'bot', text: '📞 Llamada finalizada.' }])
+      // Pull the authoritative transcript from the server (it persisted the turns) so the
+      // main chat reflects this call — replaces the old local dump that piled up / duplicated.
+      const endedSocket = getSocket?.()
+      if (endedSocket?.connected) {
+        setTimeout(() => {
+          try { endedSocket.emit('request_history') } catch { /* noop */ }
+        }, HISTORY_REFRESH_DELAY_MS)
+      }
       // Auto-close overlay after a brief delay
       setTimeout(() => { onClose() }, 2500)
     }
@@ -1036,22 +1044,16 @@ export function VoiceCallOverlay({
       inactivityRef.current = null
     }
 
-    // Notify backend
+    // Notify backend the call ended, then pull the authoritative transcript once the backend
+    // has persisted the final turn. The chat history now comes from the SERVER (request_history
+    // → chat_history); we no longer dump the local transcript here — that's what caused the
+    // piled-up / duplicated messages (same turns re-added with different ids).
     const socket = getSocket?.()
-    if (socket?.connected) socket.emit('voice_stop')
-
-    // Persist voice transcripts to main chat history
-    // Assign incremental timestamps (1s apart) so the MessageList grouping logic
-    // correctly separates user↔bot turns instead of collapsing them (overlap fix)
-    if (onAddMessage && conversation.length > 0) {
-      const baseTime = Date.now() - conversation.length * 1000
-      conversation.forEach((entry, i) => {
-        onAddMessage({
-          sender: entry.role === 'user' ? 'user' : 'bot',
-          content: entry.text,
-          timestamp: new Date(baseTime + i * 1000),
-        })
-      })
+    if (socket?.connected) {
+      socket.emit('voice_stop')
+      setTimeout(() => {
+        try { socket.emit('request_history') } catch { /* noop */ }
+      }, HISTORY_REFRESH_DELAY_MS)
     }
 
     // Cleanup
@@ -1065,7 +1067,7 @@ export function VoiceCallOverlay({
     setSwitchedAgentName(null)
 
     onClose()
-  }, [getSocket, stopMicCapture, removeSocketListeners, onClose, onAddMessage, conversation])
+  }, [getSocket, stopMicCapture, removeSocketListeners, onClose])
 
   // Keep endCallRef synced so the inactivity timer doesn't capture stale closure
   useEffect(() => {

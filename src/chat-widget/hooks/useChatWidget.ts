@@ -18,6 +18,7 @@ import { useTranslations } from '../i18n'
 import { BotEmotion } from '../components/Launcher'
 import { logger } from '../utils/logger'
 import { composeAgentLabel } from '../utils/agentLabel'
+import { mergeServerHistory } from '../utils/mergeServerHistory'
 import type { AgentSwitchedData } from '../types/socket'
 import { _setInternalSendMessage, _setInternalClearMessages } from '../ChatWidgetProvider'
 
@@ -177,18 +178,13 @@ export function useChatWidget(options: UseChatWidgetOptions) {
     ),
     onHistoryLoaded: useCallback(
       (historyMessages: ChatMessage[]) => {
-        // Merge server history with existing local messages, deduplicating by ID
-        const existingIds = new Set(state.messages.map(m => m.id))
-        const newMessages = historyMessages.filter(m => !existingIds.has(m.id))
-        if (newMessages.length > 0) {
-          // If we have no local messages, replace entirely; otherwise append only new ones
-          if (state.messages.length === 0) {
-            actions.setMessages(historyMessages)
-          } else {
-            // Append only genuinely new messages from history
-            newMessages.forEach(m => actions.addMessage(m))
-          }
-        }
+        // SERVER-AUTHORITATIVE: the backend `chat_history` is the source of truth (text +
+        // persisted voice turns). Replace the local list with it, preserving only genuine
+        // in-flight local messages. This removes the duplication/pile-up that came from the
+        // old client-side voice dump (same turns, different ids). localStorage stays as the
+        // fast-paint cache and is reconciled here on every chat_history.
+        if (historyMessages.length === 0) return
+        actions.setMessages(mergeServerHistory(state.messages, historyMessages))
       },
       [state.messages, actions]
     ),

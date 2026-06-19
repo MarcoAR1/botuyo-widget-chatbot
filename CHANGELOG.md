@@ -12,6 +12,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.3] — 2026-06-19
+
+### Fixed
+- **Voice transcript no longer piles up / duplicates in the chat.** Removed the
+  client-side voice-transcript dump (which re-added the same turns with new ids on
+  call end). The chat transcript is now **server-authoritative**: on the `chat_history`
+  socket event the list is reconciled via the new `mergeServerHistory` util (the server
+  transcript replaces the local list, preserving only genuine in-flight messages).
+  `localStorage` remains a fast-paint cache, reconciled on every `chat_history`.
+
+### Added
+- **Server history sync after a voice call:** when a call ends (user- or server-initiated)
+  the widget requests fresh history (`request_history`) so the just-finished turns —
+  persisted server-side — appear in the chat. This also fixes the transcript being lost
+  when the AGENT ended the call. Pairs with the backend `chat_history` emit on connect.
+
 ## [1.3.2] — 2026-06-18
 
 ### Added

@@ -34,7 +34,6 @@ export interface ChatWindowProps {
   onSendAttachment?: (file: File, type: 'image' | 'audio' | 'file') => void
   onSendLocation?: (location: { latitude: number; longitude: number }) => void
   getSocket?: () => any
-  onAddVoiceMessage?: (message: { sender: 'user' | 'bot'; content: string }) => void
   /** URL to a .vrm/.glb 3D model for voice call avatar */
   avatar3dUrl?: string
   /** Voice call overlay configuration (e.g. background-noise gate sensitivity) */
@@ -61,7 +60,6 @@ export function ChatWindow({
   onSendAttachment,
   onSendLocation,
   getSocket,
-  onAddVoiceMessage,
   avatar3dUrl,
   voiceConfig,
   theme,
@@ -370,7 +368,6 @@ export function ChatWindow({
           avatar3dUrl={avatar3dUrl}
           voiceConfig={voiceConfig}
           getSocket={getSocket}
-          onAddMessage={onAddVoiceMessage}
         />
       </div>
     </>

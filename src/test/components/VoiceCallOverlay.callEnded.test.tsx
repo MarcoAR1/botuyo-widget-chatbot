@@ -94,4 +94,22 @@ describe('VoiceCallOverlay — server-ended call (onCallEnded)', () => {
 
     expect(onCallEnded).toHaveBeenCalledWith(undefined)
   })
+
+  it('requests fresh server history after the call ends (server-authoritative reload, no local dump)', async () => {
+    const socket = await renderOverlay(vi.fn())
+    vi.useFakeTimers()
+    try {
+      act(() => {
+        socket.handlers['voice_call_ended']({ reason: 'done' })
+      })
+      // The history pull is delayed so the backend can persist the final turn first.
+      act(() => {
+        vi.advanceTimersByTime(2000)
+      })
+
+      expect(socket.emit).toHaveBeenCalledWith('request_history')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
 })
