@@ -87,6 +87,18 @@ function chatReducer(
     case 'SET_SESSION_ID':
       return { ...state, sessionId: action.payload }
 
+    case 'ANSWER_QUIZ': {
+      const { messageId, buttonId } = action.payload
+      return {
+        ...state,
+        messages: state.messages.map(m =>
+          m.id === messageId && m.type === 'buttons'
+            ? { ...m, answered: true, ...(buttonId ? { selectedId: buttonId } : {}) }
+            : m
+        ),
+      }
+    }
+
     case 'CLEAR_CHAT':
       return { ...initialState, isOpen: state.isOpen }
 
@@ -231,6 +243,12 @@ export function useChatState(apiKey: string, agentId: string = 'default') {
     dispatch({ type: 'SET_MESSAGES', payload: [] })
   }, [])
 
+  const answerQuiz = useCallback(
+    (messageId: string, buttonId?: string) =>
+      dispatch({ type: 'ANSWER_QUIZ', payload: { messageId, buttonId } }),
+    []
+  )
+
   return {
     state,
     isHydrated,
@@ -246,6 +264,7 @@ export function useChatState(apiKey: string, agentId: string = 'default') {
       setSessionId,
       clearChat,
       clearMessages,
+      answerQuiz,
     },
   }
 }

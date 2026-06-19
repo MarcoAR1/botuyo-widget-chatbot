@@ -314,6 +314,77 @@ describe('useChatState', () => {
     })
   })
 
+  describe('Quiz', () => {
+    const makeQuiz = (id: string): ChatMessage => ({
+      id,
+      type: 'buttons',
+      sender: 'bot',
+      timestamp: new Date(),
+      content: 'Pick one',
+      buttons: [
+        { id: 'a', label: 'Option A' },
+        { id: 'b', label: 'Option B' },
+      ],
+    })
+
+    it('marks a quiz answered and records the selected button id', () => {
+      const { result } = renderHook(() => useChatState())
+
+      act(() => {
+        result.current.actions.addMessage(makeQuiz('q1'))
+      })
+      act(() => {
+        result.current.actions.answerQuiz('q1', 'b')
+      })
+
+      const m = result.current.state.messages[0] as ChatMessage & {
+        answered?: boolean
+        selectedId?: string
+      }
+      expect(m.answered).toBe(true)
+      expect(m.selectedId).toBe('b')
+    })
+
+    it('marks a quiz answered without a selection (dismiss) when no button id is given', () => {
+      const { result } = renderHook(() => useChatState())
+
+      act(() => {
+        result.current.actions.addMessage(makeQuiz('q1'))
+      })
+      act(() => {
+        result.current.actions.answerQuiz('q1')
+      })
+
+      const m = result.current.state.messages[0] as ChatMessage & {
+        answered?: boolean
+        selectedId?: string
+      }
+      expect(m.answered).toBe(true)
+      expect(m.selectedId).toBeUndefined()
+    })
+
+    it('leaves other messages untouched', () => {
+      const { result } = renderHook(() => useChatState())
+      const other: ChatMessage = {
+        id: 'm1',
+        type: 'text',
+        sender: 'bot',
+        timestamp: new Date(),
+        content: 'hi',
+      }
+
+      act(() => {
+        result.current.actions.addMessage(other)
+        result.current.actions.addMessage(makeQuiz('q1'))
+      })
+      act(() => {
+        result.current.actions.answerQuiz('q1', 'a')
+      })
+
+      expect(result.current.state.messages[0]).toEqual(other)
+    })
+  })
+
   describe('Error Handling', () => {
     it('should set error message', () => {
       const { result } = renderHook(() => useChatState())

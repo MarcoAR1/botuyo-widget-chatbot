@@ -8,7 +8,7 @@
  *  3. The legacy `voice_tool_visual` path for `present_quiz` early-returns (no double render).
  */
 
-import { render, screen, fireEvent, act } from '@testing-library/react'
+import { render, screen, fireEvent, act, within } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import '@testing-library/jest-dom'
 import { VoiceCallOverlay } from '@/chat-widget/components/VoiceCallOverlay'
@@ -222,5 +222,63 @@ describe('VoiceCallOverlay — interactive quiz', () => {
 
     // Streaming fragments of the same turn coalesce — regression guard for the fix above.
     expect(screen.getByText('Hello there!')).toBeInTheDocument()
+  })
+
+  // ─── Pinned quiz dock ───
+  // The question + options must NOT scroll away with the transcript while the bot keeps
+  // talking — they live in a dock pinned above the controls until the user answers.
+
+  it('pins the quiz in a dock and keeps it visible while the bot keeps talking', async () => {
+    const socket = await renderOverlay()
+
+    act(() => {
+      socket.handlers['custom_event'](QUIZ_EVENT)
+    })
+    // The bot keeps talking AFTER the quiz was shown.
+    act(() => {
+      socket.handlers['voice_model_transcript']({ text: 'Take your time to answer.' })
+    })
+
+    const dock = screen.getByTestId('voice-quiz-dock')
+    expect(dock).toBeInTheDocument()
+    expect(dock).toHaveTextContent(/What is the past tense/)
+    expect(within(dock).getByText('went')).toBeInTheDocument()
+    // The later spoken line lives in the transcript, NOT in the pinned dock.
+    expect(dock).not.toHaveTextContent('Take your time')
+    expect(screen.getByText(/Take your time/)).toBeInTheDocument()
+  })
+
+  it('emits voice_text_input and dismisses the dock when a docked option is clicked', async () => {
+    const socket = await renderOverlay()
+
+    act(() => {
+      socket.handlers['custom_event'](QUIZ_EVENT)
+    })
+    socket.emit.mockClear()
+
+    act(() => {
+      fireEvent.click(within(screen.getByTestId('voice-quiz-dock')).getByText('went'))
+    })
+
+    expect(socket.emit).toHaveBeenCalledWith('voice_text_input', { text: 'Answer: went' })
+    // Resolved → the dock is gone and the chosen answer shows as a user turn.
+    expect(screen.queryByTestId('voice-quiz-dock')).not.toBeInTheDocument()
+    expect(screen.getByText('went')).toBeInTheDocument()
+    expect(screen.queryByText('goed')).not.toBeInTheDocument()
+  })
+
+  it('dismisses the pinned quiz when the user answers by voice (final transcript)', async () => {
+    const socket = await renderOverlay()
+
+    act(() => {
+      socket.handlers['custom_event'](QUIZ_EVENT)
+    })
+    expect(screen.getByTestId('voice-quiz-dock')).toBeInTheDocument()
+
+    act(() => {
+      socket.handlers['voice_user_transcript_final']({ text: 'I think it is went' })
+    })
+
+    expect(screen.queryByTestId('voice-quiz-dock')).not.toBeInTheDocument()
   })
 })

@@ -2,11 +2,11 @@
  * @vitest-environment happy-dom
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen } from '@testing-library/react'
+import { screen, fireEvent } from '@testing-library/react'
 import { renderWithI18n } from '../utils/i18n-test-utils'
 import userEvent from '@testing-library/user-event'
 import { ChatWindow } from '../../chat-widget/components/ChatWindow'
-import type { ChatMessage } from '../../chat-widget/types'
+import type { ChatMessage, ButtonsMessage } from '../../chat-widget/types'
 
 // Mock hooks
 vi.mock('../../chat-widget/hooks/useIsMobile', () => ({
@@ -234,6 +234,45 @@ describe('ChatWindow', () => {
       renderWithI18n(<ChatWindow {...defaultProps} onSendLocation={mockOnSendLocation} />)
 
       expect(screen.getByRole('dialog')).toBeInTheDocument()
+    })
+  })
+
+  describe('Quiz Dock', () => {
+    const quiz: ButtonsMessage = {
+      id: 'q1',
+      type: 'buttons',
+      sender: 'bot',
+      timestamp: new Date(),
+      content: 'Pick one',
+      buttons: [
+        { id: 'a', label: 'Option A' },
+        { id: 'b', label: 'Option B' },
+      ],
+    }
+
+    it('pins the active quiz and excludes it from the inline transcript (no duplicate)', () => {
+      renderWithI18n(<ChatWindow {...defaultProps} messages={[quiz]} activeQuiz={quiz} />)
+
+      expect(screen.getByTestId('quiz-dock')).toBeInTheDocument()
+      // The question renders exactly once — only in the dock, not also inline.
+      expect(screen.getAllByText('Pick one')).toHaveLength(1)
+    })
+
+    it('calls onQuizAnswer with the message, label and button id when a docked option is tapped', () => {
+      const onQuizAnswer = vi.fn()
+      renderWithI18n(
+        <ChatWindow {...defaultProps} messages={[quiz]} activeQuiz={quiz} onQuizAnswer={onQuizAnswer} />
+      )
+
+      fireEvent.click(screen.getByText('Option B'))
+
+      expect(onQuizAnswer).toHaveBeenCalledWith(quiz, 'Option B', 'b')
+    })
+
+    it('does not render the dock when there is no active quiz', () => {
+      renderWithI18n(<ChatWindow {...defaultProps} messages={[]} />)
+
+      expect(screen.queryByTestId('quiz-dock')).not.toBeInTheDocument()
     })
   })
 })

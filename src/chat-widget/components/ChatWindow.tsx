@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react'
 import { useTranslations } from '@/chat-widget/i18n'
 import { X, ShieldCheck, Heart, Phone } from './Icons'
 import { cn } from '@/lib/utils'
-import type { BubbleStyles, ChatMessage, MediaConfig } from '../types'
+import type { BubbleStyles, ButtonsMessage, ChatMessage, MediaConfig } from '../types'
 import { MessageList } from './MessageList'
 import { InputArea } from './InputArea'
 import { SuggestedQuestions } from './SuggestedQuestions'
+import { QuizDock } from './QuizDock'
 import { getPrimaryColor } from '../utils/theme'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { useDynamicHeight } from '../hooks/useDynamicHeight'
@@ -41,6 +42,10 @@ export interface ChatWindowProps {
   theme?: import('../types').ChatTheme
   /** Pre-chat suggested questions (shown before first user message) */
   suggestedQuestions?: string[]
+  /** The active (unanswered) quiz to pin in a dock above the input (null/undefined = none). */
+  activeQuiz?: ButtonsMessage | null
+  /** Called when the user answers the pinned quiz (taps an option). */
+  onQuizAnswer?: (message: ButtonsMessage, label: string, buttonId: string) => void
 }
 
 export function ChatWindow({
@@ -64,6 +69,8 @@ export function ChatWindow({
   voiceConfig,
   theme,
   suggestedQuestions,
+  activeQuiz,
+  onQuizAnswer,
 }: ChatWindowProps) {
   const [logoError, setLogoError] = useState(false)
   const [showVoiceOverlay, setShowVoiceOverlay] = useState(false)
@@ -100,6 +107,10 @@ export function ChatWindow({
   if (!isOpen) return null
 
   const isBottomLeft = theme?.position === 'bottom-left'
+  // While a quiz is active it lives ONLY in the pinned dock — drop it from the inline
+  // transcript so the question isn't shown twice. Once answered it is no longer active
+  // and reappears inline as history (with the chosen option highlighted).
+  const inlineMessages = activeQuiz ? messages.filter(m => m.id !== activeQuiz.id) : messages
 
   return (
     <>
@@ -298,7 +309,7 @@ export function ChatWindow({
           }}
         >
           <MessageList
-            messages={messages}
+            messages={inlineMessages}
             isTyping={isTyping}
             welcomeMessage={welcomeMessage}
             primaryColor={themePrimary}
@@ -310,6 +321,15 @@ export function ChatWindow({
           />
           <div className="absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-background/10 to-transparent pointer-events-none" />
         </main>
+
+        {/* --- PINNED QUIZ DOCK (stays on screen until the user answers) --- */}
+        {activeQuiz && (
+          <QuizDock
+            quiz={activeQuiz}
+            primaryColor={themePrimary}
+            onAnswer={(label, buttonId) => onQuizAnswer?.(activeQuiz, label, buttonId)}
+          />
+        )}
 
         {/* --- SUGGESTED QUESTIONS (before first user message) --- */}
         {suggestedQuestions && suggestedQuestions.length > 0 && !messages.some(m => m.sender === 'user') && (

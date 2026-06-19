@@ -75,6 +75,8 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
     handleSendAttachment,
     handleSendLocation,
     getSocket,
+    activeQuiz,
+    handleQuizAnswer,
   } = useChatWidget({
     apiKey,
     apiBaseUrl,
@@ -313,6 +315,8 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
               voiceConfig={voiceConfig}
               getSocket={getSocket}
               suggestedQuestions={(socketTheme as any)?.suggestedQuestions}
+              activeQuiz={activeQuiz}
+              onQuizAnswer={handleQuizAnswer}
             />
           </ErrorBoundary>
         </div>

@@ -6,6 +6,7 @@ import type {
   ImageMessage,
   AudioMessage,
   LocationMessage,
+  ButtonsMessage,
   PageContext,
 } from '../types'
 import { useChatState } from './useChatState'
@@ -19,6 +20,7 @@ import { BotEmotion } from '../components/Launcher'
 import { logger } from '../utils/logger'
 import { composeAgentLabel } from '../utils/agentLabel'
 import { mergeServerHistory } from '../utils/mergeServerHistory'
+import { getActiveQuiz } from '../utils/activeQuiz'
 import type { AgentSwitchedData } from '../types/socket'
 import { _setInternalSendMessage, _setInternalClearMessages } from '../ChatWidgetProvider'
 
@@ -190,6 +192,15 @@ export function useChatWidget(options: UseChatWidgetOptions) {
     ),
   })
 
+  // Active (unanswered) quiz — pinned in a dock above the input so the question + options
+  // never scroll away while the bot keeps talking. Resolved (answered/dismissed) quizzes
+  // are filed back into the transcript as history.
+  const activeQuiz = useMemo(() => getActiveQuiz(state.messages), [state.messages])
+  const activeQuizRef = useRef<ButtonsMessage | null>(activeQuiz)
+  useEffect(() => {
+    activeQuizRef.current = activeQuiz
+  }, [activeQuiz])
+
   const handleToggle = useCallback(() => {
     logger.debug('ChatWidget handleToggle called, current isOpen:', state.isOpen)
     if (!state.isOpen) {
@@ -231,8 +242,23 @@ export function useChatWidget(options: UseChatWidgetOptions) {
 
       // Enviar al servidor
       socket.sendMessage(text, 'text')
+
+      // If the user typed instead of tapping while a quiz was pinned, dismiss it
+      // (they moved on) so the dock clears and the quiz files into history.
+      if (activeQuizRef.current) actions.answerQuiz(activeQuizRef.current.id)
     },
     [actions, socket, rateLimit, analytics, t]
+  )
+
+  // Answer the pinned quiz: mark it answered (highlighting the chosen option) and send the
+  // answer to the backend. No optimistic user bubble — the highlighted quiz is the record.
+  const handleQuizAnswer = useCallback(
+    (message: ButtonsMessage, label: string, buttonId: string) => {
+      actions.answerQuiz(message.id, buttonId)
+      socket.sendMessage(`Answer: ${label}`, 'text')
+      analytics.trackMessageSent('text')
+    },
+    [actions, socket, analytics]
   )
 
   const handleSendAttachment = useCallback(
@@ -367,11 +393,13 @@ export function useChatWidget(options: UseChatWidgetOptions) {
     currentBotEmotion,
     isConnected: socket.isConnected,
     getSocket: socket.getSocket,
+    activeQuiz,
 
     // Handlers
     handleToggle,
     handleSendText,
     handleSendAttachment,
     handleSendLocation,
+    handleQuizAnswer,
   }
 }

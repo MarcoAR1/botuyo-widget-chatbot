@@ -803,15 +803,16 @@ export function VoiceCallOverlay({
     const onVoiceUserTranscriptFinal = (data: { text: string }) => {
       if (!data?.text) return
       setConversation(prev => {
-        // Find the last user entry and replace its text with the clean version
-        const lastUserIdx = prev.map(e => e.role).lastIndexOf('user')
+        // The user answered out loud → dismiss any pinned quiz (clear its buttons) so the
+        // dock disappears, mirroring a tap. Then reconcile the final user transcript.
+        const cleared = prev.map(e => (e.quizButtons ? { ...e, quizButtons: undefined } : e))
+        const lastUserIdx = cleared.map(e => e.role).lastIndexOf('user')
         if (lastUserIdx >= 0) {
-          const updated = [...prev]
-          updated[lastUserIdx] = { ...updated[lastUserIdx], text: data.text }
-          return updated
+          cleared[lastUserIdx] = { ...cleared[lastUserIdx], text: data.text }
+          return cleared
         }
         // If no user entry exists (edge case), add one
-        return [...prev, { role: 'user', text: data.text }]
+        return [...cleared, { role: 'user', text: data.text }]
       })
     }
 
@@ -1335,6 +1336,32 @@ export function VoiceCallOverlay({
   const effectiveAvatar3dUrl =
     (avatarOverridden ? overrideAvatar3dUrl : avatar3dUrl) || cfg.avatar3dUrl
 
+  // Active (unanswered) quiz — pinned in a dock above the controls so the question + options
+  // never scroll away while the bot keeps talking. Resolved on tap, or when the user answers
+  // by voice (the final transcript clears the buttons — see onVoiceUserTranscriptFinal).
+  let activeQuizIndex = -1
+  for (let qi = conversation.length - 1; qi >= 0; qi--) {
+    if (conversation[qi].quizButtons && conversation[qi].quizButtons!.length > 0) {
+      activeQuizIndex = qi
+      break
+    }
+  }
+  const activeQuiz = activeQuizIndex >= 0 ? conversation[activeQuizIndex] : null
+
+  const answerVoiceQuiz = (entryIndex: number, btn: { id: string; label: string }) => {
+    const sock = getSocket?.()
+    if (sock?.connected) {
+      sock.emit('voice_text_input', { text: `Answer: ${btn.label}` })
+    }
+    // Remove the buttons from this entry (resolved) + show the chosen label as a user turn.
+    setConversation(prev => {
+      const updated = prev.map((e, idx) =>
+        idx === entryIndex ? { ...e, quizButtons: undefined } : e
+      )
+      return [...updated, { role: 'user' as const, text: btn.label }]
+    })
+  }
+
   return (
     <div
       className={cn(
@@ -1517,7 +1544,10 @@ export function VoiceCallOverlay({
         <div className="flex flex-col gap-4 w-full">
           {conversation.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
-              {conversation.map((entry, i) => (
+              {conversation.map((entry, i) => {
+                // The active quiz lives in the pinned dock below — skip it here so it isn't shown twice.
+                if (i === activeQuizIndex) return null
+                return (
                 <div
                   key={i}
                   style={{
@@ -1679,87 +1709,97 @@ export function VoiceCallOverlay({
                       {entry.text}
                     </ReactMarkdown>
                   </div>
-                  {/* Interactive quiz buttons — styled to read unmistakably as tappable options */}
-                  {entry.quizButtons && entry.quizButtons.length > 0 && (
-                    <div
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '10px',
-                        marginTop: '14px',
-                      }}
-                    >
-                      {entry.quizButtons.map((btn, optIdx) => (
-                        <button
-                          key={btn.id}
-                          onClick={() => {
-                            const socket = getSocket?.()
-                            if (socket?.connected) {
-                              socket.emit('voice_text_input', { text: `Answer: ${btn.label}` })
-                            }
-                            // Add as user message + remove buttons from this entry
-                            setConversation(prev => {
-                              const updated = prev.map((e, idx) =>
-                                idx === i ? { ...e, quizButtons: undefined } : e
-                              )
-                              return [...updated, { role: 'user' as const, text: btn.label }]
-                            })
-                          }}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '12px',
-                            width: '100%',
-                            padding: '14px 16px',
-                            borderRadius: '14px',
-                            border: '1px solid rgba(255,255,255,0.18)',
-                            background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}cc)`,
-                            color: 'white',
-                            fontSize: '14px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            textAlign: 'left' as const,
-                            boxShadow: `0 4px 14px ${primaryColor}55, inset 0 1px 0 rgba(255,255,255,0.25)`,
-                            transition: 'all 150ms ease',
-                          }}
-                          onMouseEnter={e => {
-                            e.currentTarget.style.transform = 'translateY(-2px)'
-                            e.currentTarget.style.boxShadow = `0 8px 22px ${primaryColor}77, inset 0 1px 0 rgba(255,255,255,0.3)`
-                          }}
-                          onMouseLeave={e => {
-                            e.currentTarget.style.transform = 'translateY(0)'
-                            e.currentTarget.style.boxShadow = `0 4px 14px ${primaryColor}55, inset 0 1px 0 rgba(255,255,255,0.25)`
-                          }}
-                        >
-                          <span
-                            style={{
-                              flexShrink: 0,
-                              width: '22px',
-                              height: '22px',
-                              borderRadius: '50%',
-                              background: '#ffffff',
-                              color: primaryColor,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: '12px',
-                              fontWeight: 700,
-                            }}
-                          >
-                            {optIdx + 1}
-                          </span>
-                          <span style={{ flex: 1 }}>{btn.label}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
                 </div>
-              ))}
+                )
+              })}
               <div ref={conversationEndRef} />
             </div>
           )}
         </div>
       </div>
+
+      {/* Pinned quiz dock — keeps the question + options on screen (above the controls) so they
+          never scroll away while the bot keeps talking, until the user answers (tap or voice). */}
+      {activeQuiz && activeQuiz.quizButtons && activeQuiz.quizButtons.length > 0 && (
+        <div data-testid="voice-quiz-dock" style={{ flexShrink: 0, padding: '0 20px 10px' }}>
+          <div
+            style={{
+              borderRadius: '18px',
+              padding: '14px 16px',
+              background: 'rgba(255,255,255,0.06)',
+              border: `1px solid ${primaryColor}55`,
+              backdropFilter: 'blur(12px)',
+              boxShadow: '0 6px 24px rgba(0,0,0,0.35)',
+              maxHeight: '42vh',
+              overflowY: 'auto',
+            }}
+          >
+            <div
+              style={{
+                color: 'white',
+                fontSize: '14px',
+                fontWeight: 600,
+                lineHeight: 1.4,
+                marginBottom: '12px',
+              }}
+            >
+              {activeQuiz.text}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {activeQuiz.quizButtons.map((btn, optIdx) => (
+                <button
+                  key={btn.id}
+                  onClick={() => answerVoiceQuiz(activeQuizIndex, btn)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    width: '100%',
+                    padding: '14px 16px',
+                    borderRadius: '14px',
+                    border: '1px solid rgba(255,255,255,0.18)',
+                    background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}cc)`,
+                    color: 'white',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    textAlign: 'left' as const,
+                    boxShadow: `0 4px 14px ${primaryColor}55, inset 0 1px 0 rgba(255,255,255,0.25)`,
+                    transition: 'all 150ms ease',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.transform = 'translateY(-2px)'
+                    e.currentTarget.style.boxShadow = `0 8px 22px ${primaryColor}77, inset 0 1px 0 rgba(255,255,255,0.3)`
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.transform = 'translateY(0)'
+                    e.currentTarget.style.boxShadow = `0 4px 14px ${primaryColor}55, inset 0 1px 0 rgba(255,255,255,0.25)`
+                  }}
+                >
+                  <span
+                    style={{
+                      flexShrink: 0,
+                      width: '22px',
+                      height: '22px',
+                      borderRadius: '50%',
+                      background: '#ffffff',
+                      color: primaryColor,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {optIdx + 1}
+                  </span>
+                  <span style={{ flex: 1 }}>{btn.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Status pill */}
       <div style={{ textAlign: 'center', paddingBottom: '12px' }}>

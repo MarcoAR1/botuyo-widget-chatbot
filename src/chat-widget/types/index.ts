@@ -412,6 +412,12 @@ export interface ButtonsMessage extends BaseMessage {
   buttons: QuizButton[]
   /** Track which button was clicked (set on click, undefined initially) */
   selectedId?: string
+  /**
+   * Whether the quiz has been resolved (answered via a button, or dismissed because
+   * the user moved on by typing). While `false`/undefined it is the "active" quiz —
+   * pinned in a dock above the input so it never scrolls away with the transcript.
+   */
+  answered?: boolean
 }
 
 export type ChatMessage =
@@ -444,3 +450,4 @@ export type ChatAction =
   | { type: 'SET_ERROR'; payload: string | null }
   | { type: 'SET_SESSION_ID'; payload: string }
   | { type: 'CLEAR_CHAT' }
+  | { type: 'ANSWER_QUIZ'; payload: { messageId: string; buttonId?: string } }

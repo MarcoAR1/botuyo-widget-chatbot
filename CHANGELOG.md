@@ -12,6 +12,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.5] — 2026-06-19
+
+### Added
+- **Quiz questions now stay pinned on screen until answered.** When the agent asks a
+  multiple-choice question (`quiz_question`), the question + options are pinned in a dock
+  just above the input (text chat) or above the call controls (voice), so they no longer
+  scroll away with the transcript while the agent keeps talking. The pinned quiz is
+  dismissed as soon as the user answers — tapping an option (text or voice), answering by
+  voice (final transcript) in a call, or typing another message in text chat. Once
+  resolved, the quiz files back into the transcript as history (the chosen option stays
+  highlighted in text chat). Applies to BOTH text and voice modes.
+
 ## [1.3.4] — 2026-06-19
 
 ### Fixed
