@@ -5,13 +5,23 @@
  * Real-time voice call overlay using Gemini Live API via Socket.IO.
  * Sends raw PCM 16kHz audio chunks and receives PCM 24kHz audio responses.
  *
- * Flow: User Mic (PCM 16kHz) → Socket.IO → Backend → Gemini Live API → 
+ * Flow: User Mic (PCM 16kHz) → Socket.IO → Backend → Gemini Live API →
  *       PCM 24kHz audio → Socket.IO → Web Audio API playback
  */
 
 'use client'
 
-import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense, Component, type ReactNode } from 'react'
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+  lazy,
+  Suspense,
+  Component,
+  type ReactNode,
+} from 'react'
 import { cn } from '@/lib/utils'
 import { PhoneOff, Mic, MicOff, Volume2, Keyboard, Send } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
@@ -111,10 +121,31 @@ interface VoiceEntry {
   standalone?: boolean
 }
 
+/**
+ * Active-agent avatar identity carried by `voice_ready` (every call start) and
+ * `voice_agent_switched` (live transfer). Mirrors the backend VoiceSessionConfig.agentAvatar
+ * and the connection_ack avatar fields, so the overlay can show the ACTIVE agent's avatar
+ * independently of the (possibly stale) connect-time props.
+ */
+interface VoiceAgentAvatar {
+  avatars?: EmotionAvatarMap | null
+  logoUrl?: string | null
+  avatar3dUrl?: string | null
+}
+
 const DEFAULT_EMOTION_EMOJIS: Record<string, string> = {
-  happy: '😊', wink: '😉', thinking: '🤔', sad: '😢', excited: '🤩',
-  love: '❤️', laugh: '😄', surprised: '😲', angry: '😠', confused: '😕',
-  sorry: '😔', default: '💬',
+  happy: '😊',
+  wink: '😉',
+  thinking: '🤔',
+  sad: '😢',
+  excited: '🤩',
+  love: '❤️',
+  laugh: '😄',
+  surprised: '😲',
+  angry: '😠',
+  confused: '😕',
+  sorry: '😔',
+  default: '💬',
 }
 
 const DEFAULT_STATUS_LABELS: Record<CallState, string> = {
@@ -143,7 +174,7 @@ const voiceSanitizeSchema = {
 const INPUT_SAMPLE_RATE = 16000
 const OUTPUT_SAMPLE_RATE = 24000
 const INACTIVITY_TIMEOUT_SECONDS = 120 // 2 minutes of silence → auto-end
-const INACTIVITY_WARNING_SECONDS = 90  // Warn at 1:30 of silence
+const INACTIVITY_WARNING_SECONDS = 90 // Warn at 1:30 of silence
 // After a call ends, wait briefly for the backend to persist the FINAL voice turn (async),
 // then pull the authoritative transcript (request_history) so the chat reflects the call.
 const HISTORY_REFRESH_DELAY_MS = 1500
@@ -212,7 +243,10 @@ type Required_VoiceOverlayConfig = {
   voiceGate: VoiceGateConfig
 }
 
-function resolveVoiceConfig(cfg?: VoiceOverlayConfig, primaryColor = '#10b981'): Required_VoiceOverlayConfig {
+function resolveVoiceConfig(
+  cfg?: VoiceOverlayConfig,
+  primaryColor = '#10b981'
+): Required_VoiceOverlayConfig {
   return {
     backgroundColor: cfg?.backgroundColor ?? '#0a0a0a',
     listeningColor: cfg?.listeningColor ?? '#10b981',
@@ -223,8 +257,14 @@ function resolveVoiceConfig(cfg?: VoiceOverlayConfig, primaryColor = '#10b981'):
     showWaveform: cfg?.showWaveform ?? true,
     showBadge: cfg?.showBadge ?? false,
     badgeText: cfg?.badgeText ?? '',
-    emotionEmojis: { ...DEFAULT_EMOTION_EMOJIS, ...(cfg?.emotionEmojis as Record<string, string> | undefined) },
-    statusLabels: { ...DEFAULT_STATUS_LABELS, ...(cfg?.statusLabels as Record<CallState, string> | undefined) },
+    emotionEmojis: {
+      ...DEFAULT_EMOTION_EMOJIS,
+      ...(cfg?.emotionEmojis as Record<string, string> | undefined),
+    },
+    statusLabels: {
+      ...DEFAULT_STATUS_LABELS,
+      ...(cfg?.statusLabels as Record<CallState, string> | undefined),
+    },
     orbSize: cfg?.orbSize ?? 128,
     speakingScale: cfg?.speakingScale ?? 1.08,
     thinkingScale: cfg?.thinkingScale ?? 0.95,
@@ -255,7 +295,15 @@ class Avatar3DErrorBoundary extends Component<
   }
 }
 
-function AvatarOrb({ avatars, logoUrl, avatar3dUrl, emotion, callState, audioLevel, config }: AvatarOrbProps) {
+function AvatarOrb({
+  avatars,
+  logoUrl,
+  avatar3dUrl,
+  emotion,
+  callState,
+  audioLevel,
+  config,
+}: AvatarOrbProps) {
   const hasAvatars = avatars && Object.keys(avatars).length > 0
   const hasLogo = !!logoUrl
   const [avatar3dFailed, setAvatar3dFailed] = useState(false)
@@ -272,14 +320,21 @@ function AvatarOrb({ avatars, logoUrl, avatar3dUrl, emotion, callState, audioLev
   }, [hasAvatars, hasLogo, avatars, emotion, logoUrl])
 
   const isActive = callState === 'listening' || callState === 'speaking'
-  const glowColor = callState === 'speaking' ? config.speakingColor
-    : callState === 'thinking' ? config.thinkingColor
-    : callState === 'listening' ? config.listeningColor
-    : '#ffffff20'
+  const glowColor =
+    callState === 'speaking'
+      ? config.speakingColor
+      : callState === 'thinking'
+        ? config.thinkingColor
+        : callState === 'listening'
+          ? config.listeningColor
+          : '#ffffff20'
 
-  const scale = callState === 'speaking' ? config.speakingScale
-    : callState === 'thinking' ? config.thinkingScale
-    : 1
+  const scale =
+    callState === 'speaking'
+      ? config.speakingScale
+      : callState === 'thinking'
+        ? config.thinkingScale
+        : 1
 
   const orbPx = config.orbSize
 
@@ -315,7 +370,13 @@ function AvatarOrb({ avatars, logoUrl, avatar3dUrl, emotion, callState, audioLev
           <WaveformBars
             isActive={callState === 'listening' || callState === 'speaking'}
             audioLevel={audioLevel}
-            color={callState === 'speaking' ? config.speakingColor : callState === 'thinking' ? config.thinkingColor : config.listeningColor}
+            color={
+              callState === 'speaking'
+                ? config.speakingColor
+                : callState === 'thinking'
+                  ? config.thinkingColor
+                  : config.listeningColor
+            }
           />
         )}
       </div>
@@ -371,23 +432,24 @@ function AvatarOrb({ avatars, logoUrl, avatar3dUrl, emotion, callState, audioLev
             />
           </div>
           {/* Orbiting dots */}
-          {isActive && [0, 1, 2].map(i => (
-            <div
-              key={i}
-              className="absolute rounded-full"
-              style={{
-                width: '4px',
-                height: '4px',
-                backgroundColor: glowColor,
-                opacity: 0.6,
-                top: '50%',
-                left: '50%',
-                transform: `rotate(${i * 120}deg) translateX(${(orbPx + 48) / 2}px)`,
-                animation: `spin ${6 + i * 2}s linear infinite`,
-                boxShadow: `0 0 6px ${glowColor}`,
-              }}
-            />
-          ))}
+          {isActive &&
+            [0, 1, 2].map(i => (
+              <div
+                key={i}
+                className="absolute rounded-full"
+                style={{
+                  width: '4px',
+                  height: '4px',
+                  backgroundColor: glowColor,
+                  opacity: 0.6,
+                  top: '50%',
+                  left: '50%',
+                  transform: `rotate(${i * 120}deg) translateX(${(orbPx + 48) / 2}px)`,
+                  animation: `spin ${6 + i * 2}s linear infinite`,
+                  boxShadow: `0 0 6px ${glowColor}`,
+                }}
+              />
+            ))}
         </div>
         {/* Waveform bars */}
         {config.showWaveform && (
@@ -404,7 +466,7 @@ function AvatarOrb({ avatars, logoUrl, avatar3dUrl, emotion, callState, audioLev
       <div
         className={cn(
           'relative rounded-full flex items-center justify-center',
-          'transition-all duration-500 ease-out',
+          'transition-all duration-500 ease-out'
         )}
         style={{
           width: `${orbPx}px`,
@@ -422,14 +484,15 @@ function AvatarOrb({ avatars, logoUrl, avatar3dUrl, emotion, callState, audioLev
           className={cn(
             'h-full w-full rounded-full object-cover',
             'transition-all duration-300',
-            callState === 'thinking' && 'opacity-80',
+            callState === 'thinking' && 'opacity-80'
           )}
           style={{
-            boxShadow: callState === 'listening'
-              ? `0 0 0 2px ${config.listeningColor}80`
-              : callState === 'speaking'
-                ? `0 0 0 2px ${config.speakingColor}80`
-                : 'none',
+            boxShadow:
+              callState === 'listening'
+                ? `0 0 0 2px ${config.listeningColor}80`
+                : callState === 'speaking'
+                  ? `0 0 0 2px ${config.speakingColor}80`
+                  : 'none',
           }}
         />
         {/* Emotion label overlay */}
@@ -448,7 +511,15 @@ function AvatarOrb({ avatars, logoUrl, avatar3dUrl, emotion, callState, audioLev
 }
 
 /** Reusable waveform bars component — premium style */
-function WaveformBars({ isActive, audioLevel, color }: { isActive: boolean; audioLevel: number; color: string }) {
+function WaveformBars({
+  isActive,
+  audioLevel,
+  color,
+}: {
+  isActive: boolean
+  audioLevel: number
+  color: string
+}) {
   return (
     <div className="flex items-center gap-[3px] h-10">
       {Array.from({ length: 12 }).map((_, i) => {
@@ -458,13 +529,16 @@ function WaveformBars({ isActive, audioLevel, color }: { isActive: boolean; audi
           ? Math.max(4, audioLevel * 40 * (1 - dist * 0.5) * (0.5 + Math.sin(i * 0.8) * 0.5))
           : 4
         return (
-          <div key={i} className="rounded-full transition-all duration-100"
+          <div
+            key={i}
+            className="rounded-full transition-all duration-100"
             style={{
               width: '3px',
               height: `${h}px`,
               backgroundColor: color,
               opacity: isActive ? 0.7 - dist * 0.3 : 0.2,
-            }} />
+            }}
+          />
         )
       })}
     </div>
@@ -483,7 +557,10 @@ export function VoiceCallOverlay({
   onCallEnded,
 }: VoiceCallOverlayProps) {
   // Resolve all config defaults once
-  const cfg = useMemo(() => resolveVoiceConfig(voiceConfig, primaryColor), [voiceConfig, primaryColor])
+  const cfg = useMemo(
+    () => resolveVoiceConfig(voiceConfig, primaryColor),
+    [voiceConfig, primaryColor]
+  )
 
   // Keep the screen awake for the whole time the call overlay is open — the user
   // is watching the screen (avatar, quiz options, transcript) without touching it,
@@ -501,6 +578,15 @@ export function VoiceCallOverlay({
   const [timeoutWarning, setTimeoutWarning] = useState(false)
   /** Display name of the agent after an in-call transfer (transfer_to_department in voice) */
   const [switchedAgentName, setSwitchedAgentName] = useState<string | null>(null)
+  // ── Active-agent avatar identity (hardening) ──
+  // Seeded from the connect-time props (connection_ack), but OVERRIDDEN by the avatar the server
+  // sends in voice_ready / voice_agent_switched so the orb always reflects the ACTIVE agent —
+  // even after a mid-session switch + re-call without a page reload. `avatarOverridden` flips on
+  // the first server-provided identity; until then the (correct, on first connect) props win.
+  const [overrideAvatars, setOverrideAvatars] = useState<EmotionAvatarMap | undefined>(undefined)
+  const [overrideLogoUrl, setOverrideLogoUrl] = useState<string | undefined>(undefined)
+  const [overrideAvatar3dUrl, setOverrideAvatar3dUrl] = useState<string | undefined>(undefined)
+  const [avatarOverridden, setAvatarOverridden] = useState(false)
 
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const analyserRef = useRef<AnalyserNode | null>(null)
@@ -572,7 +658,7 @@ export function VoiceCallOverlay({
         // When the last source finishes and no more queued → back to listening
         if (activeSourcesRef.current.length === 0 && audioQueueRef.current.length === 0) {
           isPlayingRef.current = false
-          setCallState(prev => prev === 'speaking' ? 'listening' : prev)
+          setCallState(prev => (prev === 'speaking' ? 'listening' : prev))
         }
       }
 
@@ -606,19 +692,44 @@ export function VoiceCallOverlay({
     const socket = getSocket?.()
     if (!socket || socketListenersRef.current) return
 
-    const onVoiceReady = () => {
+    // Apply the ACTIVE agent's avatar identity sent by the server. Replaces ALL three avatar
+    // fields together (the payload is the full identity for the active agent) and flips
+    // avatarOverridden so the effective avatar stops reading the (stale) connect-time props.
+    const applyAgentAvatar = (payload?: VoiceAgentAvatar | null) => {
+      if (!payload) return
+      setOverrideAvatars(payload.avatars || undefined)
+      setOverrideLogoUrl(payload.logoUrl || undefined)
+      setOverrideAvatar3dUrl(payload.avatar3dUrl || undefined)
+      setAvatarOverridden(true)
+    }
+
+    // voice_ready fires on every call start carrying the ACTIVE agent's identity. On a resume the
+    // call starts already on the active agent (no agent_switched fires), so this is what keeps the
+    // orb on the active agent instead of the connect-time entry agent.
+    const onVoiceReady = (data?: { agentName?: string; agentAvatar?: VoiceAgentAvatar }) => {
       setCallState('listening')
+      applyAgentAvatar(data?.agentAvatar)
     }
 
     // Live agent switch (transfer_to_department in voice): the backend re-composed the
     // session with a new agent — reflect it (header pill + transcript continuity cue).
-    const onVoiceAgentSwitched = (data: { agentId?: string; agentName?: string; voice?: string }) => {
+    const onVoiceAgentSwitched = (data: {
+      agentId?: string
+      agentName?: string
+      voice?: string
+      agentAvatar?: VoiceAgentAvatar
+    }) => {
       resetInactivityTimer()
       const name = (data?.agentName || '').toString().trim()
       setSwitchedAgentName(name || 'Nuevo agente')
+      applyAgentAvatar(data?.agentAvatar)
       setConversation(prev => [
         ...prev,
-        { role: 'bot', text: name ? `🔄 Continuás con ${name}.` : '🔄 Te derivé con el área correspondiente.', standalone: true },
+        {
+          role: 'bot',
+          text: name ? `🔄 Continuás con ${name}.` : '🔄 Te derivé con el área correspondiente.',
+          standalone: true,
+        },
       ])
     }
 
@@ -634,7 +745,13 @@ export function VoiceCallOverlay({
 
     const onVoiceInterrupted = () => {
       // Barge-in: stop all scheduled sources + clear queue
-      activeSourcesRef.current.forEach(s => { try { s.stop() } catch { /* already stopped */ } })
+      activeSourcesRef.current.forEach(s => {
+        try {
+          s.stop()
+        } catch {
+          /* already stopped */
+        }
+      })
       activeSourcesRef.current = []
       audioQueueRef.current.length = 0
       nextPlayTimeRef.current = 0
@@ -658,7 +775,7 @@ export function VoiceCallOverlay({
     const onVoiceEmotion = (data: { emotion: string }) => {
       if (data?.emotion) {
         setCurrentEmotion(data.emotion)
-        setTimeout(() => setCurrentEmotion(prev => prev === data.emotion ? null : prev), 4000)
+        setTimeout(() => setCurrentEmotion(prev => (prev === data.emotion ? null : prev)), 4000)
       }
     }
 
@@ -670,8 +787,12 @@ export function VoiceCallOverlay({
           const updated = [...prev]
           const existing = updated[updated.length - 1].text
           // Add space between fragments if neither ends/starts with one
-          const needsSpace = existing.length > 0 && !existing.endsWith(' ') && !data.text.startsWith(' ')
-          updated[updated.length - 1] = { ...updated[updated.length - 1], text: existing + (needsSpace ? ' ' : '') + data.text }
+          const needsSpace =
+            existing.length > 0 && !existing.endsWith(' ') && !data.text.startsWith(' ')
+          updated[updated.length - 1] = {
+            ...updated[updated.length - 1],
+            text: existing + (needsSpace ? ' ' : '') + data.text,
+          }
           return updated
         }
         return [...prev, { role: 'user', text: data.text }]
@@ -727,8 +848,12 @@ export function VoiceCallOverlay({
           const updated = [...prev]
           const existing = last.text
           // Add space between fragments if neither ends/starts with one
-          const needsSpace = existing.length > 0 && !existing.endsWith(' ') && !data.text.startsWith(' ')
-          updated[updated.length - 1] = { ...last, text: existing + (needsSpace ? ' ' : '') + data.text }
+          const needsSpace =
+            existing.length > 0 && !existing.endsWith(' ') && !data.text.startsWith(' ')
+          updated[updated.length - 1] = {
+            ...last,
+            text: existing + (needsSpace ? ' ' : '') + data.text,
+          }
           return updated
         }
         return [...prev, { role: 'bot', text: data.text }]
@@ -753,11 +878,14 @@ export function VoiceCallOverlay({
 
       // ─── Generic show_content (from voice virtual tools) ───
       if (data.tool === 'show_content') {
-        const content = data.items.map((item: any) => {
-          if (item.type === 'link') return `[${item.label || item.url}](${item.url})`
-          if (item.type === 'image') return `![${item.label || ''}](${item.url})`
-          return item.label || ''
-        }).filter(Boolean).join('\n')
+        const content = data.items
+          .map((item: any) => {
+            if (item.type === 'link') return `[${item.label || item.url}](${item.url})`
+            if (item.type === 'image') return `![${item.label || ''}](${item.url})`
+            return item.label || ''
+          })
+          .filter(Boolean)
+          .join('\n')
         if (content) {
           setConversation(prev => [...prev, { role: 'bot', text: content, standalone: true }])
         }
@@ -765,42 +893,59 @@ export function VoiceCallOverlay({
       }
 
       // ─── Domain-specific tool visual handlers ───
-      const cardText = data.items.map((item: any) => {
-        if (data.tool === 'search_accommodations') {
-          const opt = item.options?.[0]
-          const price = opt ? `${opt.totalPrice} ${opt.currency}` : ''
-          const features = (item.features || []).slice(0, 3).join(' • ')
-          const cover = item.cover ? `![${item.title}](${item.cover})` : ''
-          const link = opt?.link ? `[Ver detalles](${opt.link})` : ''
-          return `${cover}\n**${item.index}. ${item.title}**\n📍 ${item.location} ${item.rating ? `⭐ ${item.rating}` : ''}\n💰 ${price}\n${features}\n${link}`
-        }
-        if (data.tool === 'get_accommodation_details') {
-          const images = (item.images || []).slice(0, 4).map((url: string) => `![](${url})`).join('\n')
-          const specs = item.specs ? Object.entries(item.specs).map(([k, v]) => `${k}: ${v}`).join(' • ') : ''
-          const rooms = (item.rooms || []).map((r: any) => `• ${r.name}: ${r.price}`).join('\n')
-          const rules = item.rules ? `🕐 Check-in: ${item.rules.checkIn || '-'} | Check-out: ${item.rules.checkOut || '-'} | Mascotas: ${item.rules.pets || '-'}` : ''
-          const link = item.seeMoreLink ? `[Ver más detalles](${item.seeMoreLink})` : ''
-          return `${images}\n**${item.title || item.name}**\n${item.description || ''}\n${specs}\n${rooms}\n${rules}\n${link}`
-        }
+      const cardText = data.items
+        .map((item: any) => {
+          if (data.tool === 'search_accommodations') {
+            const opt = item.options?.[0]
+            const price = opt ? `${opt.totalPrice} ${opt.currency}` : ''
+            const features = (item.features || []).slice(0, 3).join(' • ')
+            const cover = item.cover ? `![${item.title}](${item.cover})` : ''
+            const link = opt?.link ? `[Ver detalles](${opt.link})` : ''
+            return `${cover}\n**${item.index}. ${item.title}**\n📍 ${item.location} ${item.rating ? `⭐ ${item.rating}` : ''}\n💰 ${price}\n${features}\n${link}`
+          }
+          if (data.tool === 'get_accommodation_details') {
+            const images = (item.images || [])
+              .slice(0, 4)
+              .map((url: string) => `![](${url})`)
+              .join('\n')
+            const specs = item.specs
+              ? Object.entries(item.specs)
+                  .map(([k, v]) => `${k}: ${v}`)
+                  .join(' • ')
+              : ''
+            const rooms = (item.rooms || []).map((r: any) => `• ${r.name}: ${r.price}`).join('\n')
+            const rules = item.rules
+              ? `🕐 Check-in: ${item.rules.checkIn || '-'} | Check-out: ${item.rules.checkOut || '-'} | Mascotas: ${item.rules.pets || '-'}`
+              : ''
+            const link = item.seeMoreLink ? `[Ver más detalles](${item.seeMoreLink})` : ''
+            return `${images}\n**${item.title || item.name}**\n${item.description || ''}\n${specs}\n${rooms}\n${rules}\n${link}`
+          }
 
-        // ─── Structured items from extractVisualData (card, link, image) ───
-        if (item.type === 'card' && item.content) return item.content
-        if (item.type === 'link' && item.url) return `🔗 [${item.label || item.url}](${item.url})`
-        if (item.type === 'image' && item.url) return `![${item.label || ''}](${item.url})`
+          // ─── Structured items from extractVisualData (card, link, image) ───
+          if (item.type === 'card' && item.content) return item.content
+          if (item.type === 'link' && item.url) return `🔗 [${item.label || item.url}](${item.url})`
+          if (item.type === 'image' && item.url) return `![${item.label || ''}](${item.url})`
 
-        // ─── Generic fallback for unknown tool results ───
-        if (item.systemInstruction && typeof item.systemInstruction === 'string') {
-          return item.systemInstruction
-        }
-        const urlField = item.signupUrl || item.url || item.link || item.redirectUrl
-            || item.actionPayload?.signupUrl || item.actionPayload?.url
-        if (urlField) {
-          const label = item.label || item.title || data.tool.replace(/_/g, ' ')
-          return `🔗 [${label}](${urlField})`
-        }
-        if (item.status === 'error') return item.error || 'Error al ejecutar la acción'
-        return ''
-      }).filter(Boolean).join('\n\n---\n\n')
+          // ─── Generic fallback for unknown tool results ───
+          if (item.systemInstruction && typeof item.systemInstruction === 'string') {
+            return item.systemInstruction
+          }
+          const urlField =
+            item.signupUrl ||
+            item.url ||
+            item.link ||
+            item.redirectUrl ||
+            item.actionPayload?.signupUrl ||
+            item.actionPayload?.url
+          if (urlField) {
+            const label = item.label || item.title || data.tool.replace(/_/g, ' ')
+            return `🔗 [${label}](${urlField})`
+          }
+          if (item.status === 'error') return item.error || 'Error al ejecutar la acción'
+          return ''
+        })
+        .filter(Boolean)
+        .join('\n\n---\n\n')
 
       if (cardText) {
         setConversation(prev => [...prev, { role: 'bot', text: cardText, standalone: true }])
@@ -811,10 +956,16 @@ export function VoiceCallOverlay({
     // event used in text mode, carrying explicit buttons (no markdown parsing).
     const onVoiceCustomEvent = (evt: any) => {
       if (evt?.eventName === 'quiz_question' && evt?.data) {
-        const { question, buttons } = evt.data as { question: string; buttons: { id: string; label: string }[] }
+        const { question, buttons } = evt.data as {
+          question: string
+          buttons: { id: string; label: string }[]
+        }
         if (question && buttons?.length) {
           resetInactivityTimer()
-          setConversation(prev => [...prev, { role: 'bot', text: `📝 ${question}`, quizButtons: buttons, standalone: true }])
+          setConversation(prev => [
+            ...prev,
+            { role: 'bot', text: `📝 ${question}`, quizButtons: buttons, standalone: true },
+          ])
         }
       }
     }
@@ -863,11 +1014,17 @@ export function VoiceCallOverlay({
       const endedSocket = getSocket?.()
       if (endedSocket?.connected) {
         setTimeout(() => {
-          try { endedSocket.emit('request_history') } catch { /* noop */ }
+          try {
+            endedSocket.emit('request_history')
+          } catch {
+            /* noop */
+          }
         }, HISTORY_REFRESH_DELAY_MS)
       }
       // Auto-close overlay after a brief delay
-      setTimeout(() => { onClose() }, 2500)
+      setTimeout(() => {
+        onClose()
+      }, 2500)
     }
     socket.on('voice_call_ended', onVoiceCallEnded)
     voiceListenersRef.current.voiceCallEnded = onVoiceCallEnded
@@ -887,8 +1044,10 @@ export function VoiceCallOverlay({
     if (l.voiceError) socket.off('voice_error', l.voiceError)
     if (l.voiceEmotion) socket.off('voice_emotion', l.voiceEmotion)
     if (l.voiceUserTranscript) socket.off('voice_user_transcript', l.voiceUserTranscript)
-    if (l.voiceUserTranscriptFinal) socket.off('voice_user_transcript_final', l.voiceUserTranscriptFinal)
-    if (l.voiceUserTranscriptCorrected) socket.off('voice_user_transcript_corrected', l.voiceUserTranscriptCorrected)
+    if (l.voiceUserTranscriptFinal)
+      socket.off('voice_user_transcript_final', l.voiceUserTranscriptFinal)
+    if (l.voiceUserTranscriptCorrected)
+      socket.off('voice_user_transcript_corrected', l.voiceUserTranscriptCorrected)
     if (l.voiceModelTranscript) socket.off('voice_model_transcript', l.voiceModelTranscript)
     if (l.voiceModelThinking) socket.off('voice_model_thinking', l.voiceModelThinking)
     if (l.voiceToolVisual) socket.off('voice_tool_visual', l.voiceToolVisual)
@@ -930,7 +1089,9 @@ export function VoiceCallOverlay({
 
     // Create processor URL
     if (!processorUrlRef.current) {
-      const blob = new Blob([buildVoiceProcessorCode(cfg.voiceGate)], { type: 'application/javascript' })
+      const blob = new Blob([buildVoiceProcessorCode(cfg.voiceGate)], {
+        type: 'application/javascript',
+      })
       processorUrlRef.current = URL.createObjectURL(blob)
     }
 
@@ -986,6 +1147,11 @@ export function VoiceCallOverlay({
     setDuration(0)
     setConversation([])
     setCurrentEmotion(null)
+    // Fresh call: drop any prior override so we re-seed from props until voice_ready arrives.
+    setOverrideAvatars(undefined)
+    setOverrideLogoUrl(undefined)
+    setOverrideAvatar3dUrl(undefined)
+    setAvatarOverridden(false)
     audioQueueRef.current = []
 
     // Setup listeners first
@@ -1025,7 +1191,13 @@ export function VoiceCallOverlay({
     stopMicCapture()
 
     // Stop all scheduled audio sources
-    activeSourcesRef.current.forEach(s => { try { s.stop() } catch { /* already stopped */ } })
+    activeSourcesRef.current.forEach(s => {
+      try {
+        s.stop()
+      } catch {
+        /* already stopped */
+      }
+    })
     activeSourcesRef.current = []
     audioQueueRef.current = []
     nextPlayTimeRef.current = 0
@@ -1052,7 +1224,11 @@ export function VoiceCallOverlay({
     if (socket?.connected) {
       socket.emit('voice_stop')
       setTimeout(() => {
-        try { socket.emit('request_history') } catch { /* noop */ }
+        try {
+          socket.emit('request_history')
+        } catch {
+          /* noop */
+        }
       }, HISTORY_REFRESH_DELAY_MS)
     }
 
@@ -1065,6 +1241,10 @@ export function VoiceCallOverlay({
     setConversation([])
     setTimeoutWarning(false)
     setSwitchedAgentName(null)
+    setOverrideAvatars(undefined)
+    setOverrideLogoUrl(undefined)
+    setOverrideAvatar3dUrl(undefined)
+    setAvatarOverridden(false)
 
     onClose()
   }, [getSocket, stopMicCapture, removeSocketListeners, onClose])
@@ -1139,10 +1319,21 @@ export function VoiceCallOverlay({
   if (!isOpen) return null
 
   // Derive state-based colors
-  const stateColor = callState === 'speaking' ? cfg.speakingColor
-    : callState === 'thinking' ? cfg.thinkingColor
-    : callState === 'listening' ? cfg.listeningColor
-    : primaryColor
+  const stateColor =
+    callState === 'speaking'
+      ? cfg.speakingColor
+      : callState === 'thinking'
+        ? cfg.thinkingColor
+        : callState === 'listening'
+          ? cfg.listeningColor
+          : primaryColor
+
+  // The orb shows the ACTIVE agent: server-provided identity (voice_ready / agent switch) wins
+  // over the connect-time props, which go stale after a mid-session switch + re-call w/o reload.
+  const effectiveAvatars = avatarOverridden ? overrideAvatars : avatars
+  const effectiveLogoUrl = avatarOverridden ? overrideLogoUrl : logoUrl
+  const effectiveAvatar3dUrl =
+    (avatarOverridden ? overrideAvatar3dUrl : avatar3dUrl) || cfg.avatar3dUrl
 
   return (
     <div
@@ -1213,7 +1404,14 @@ export function VoiceCallOverlay({
               }}
             />
           </div>
-          <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '13px', fontWeight: 500, letterSpacing: '-0.01em' }}>
+          <span
+            style={{
+              color: 'rgba(255,255,255,0.8)',
+              fontSize: '13px',
+              fontWeight: 500,
+              letterSpacing: '-0.01em',
+            }}
+          >
             {cfg.statusLabels[callState] || callState}
           </span>
         </div>
@@ -1234,58 +1432,67 @@ export function VoiceCallOverlay({
             </span>
           )}
           {switchedAgentName && (
-            <span style={{
-              fontSize: '11px',
-              padding: '2px 10px',
-              borderRadius: '20px',
-              background: `${primaryColor}22`,
-              border: `1px solid ${primaryColor}44`,
-              color: '#fff',
-              fontWeight: 600,
-            }}>
+            <span
+              style={{
+                fontSize: '11px',
+                padding: '2px 10px',
+                borderRadius: '20px',
+                background: `${primaryColor}22`,
+                border: `1px solid ${primaryColor}44`,
+                color: '#fff',
+                fontWeight: 600,
+              }}
+            >
               🔄 {switchedAgentName}
             </span>
           )}
-          <span style={{
-            fontSize: '13px',
-            fontFamily: 'ui-monospace, monospace',
-            color: 'rgba(255,255,255,0.4)',
-            fontVariantNumeric: 'tabular-nums',
-          }}>
+          <span
+            style={{
+              fontSize: '13px',
+              fontFamily: 'ui-monospace, monospace',
+              color: 'rgba(255,255,255,0.4)',
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
             {formatDuration(duration)}
           </span>
-          {timeoutWarning && (() => {
-            const remaining = INACTIVITY_TIMEOUT_SECONDS - inactivitySecondsRef.current
-            const isUrgent = remaining <= 15
-            return (
-              <span style={{
-                fontSize: '10px',
-                padding: '2px 8px',
-                borderRadius: '12px',
-                backgroundColor: isUrgent ? 'rgba(239,68,68,0.2)' : 'rgba(245,158,11,0.15)',
-                color: isUrgent ? '#ef4444' : '#f59e0b',
-                fontWeight: 700,
-                fontVariantNumeric: 'tabular-nums',
-                animation: isUrgent ? 'pulse 1s ease-in-out infinite' : 'none',
-              }}>
-                ⏸ Inactivo — {remaining > 0 ? remaining : 0}s
-              </span>
-            )
-          })()}
+          {timeoutWarning &&
+            (() => {
+              const remaining = INACTIVITY_TIMEOUT_SECONDS - inactivitySecondsRef.current
+              const isUrgent = remaining <= 15
+              return (
+                <span
+                  style={{
+                    fontSize: '10px',
+                    padding: '2px 8px',
+                    borderRadius: '12px',
+                    backgroundColor: isUrgent ? 'rgba(239,68,68,0.2)' : 'rgba(245,158,11,0.15)',
+                    color: isUrgent ? '#ef4444' : '#f59e0b',
+                    fontWeight: 700,
+                    fontVariantNumeric: 'tabular-nums',
+                    animation: isUrgent ? 'pulse 1s ease-in-out infinite' : 'none',
+                  }}
+                >
+                  ⏸ Inactivo — {remaining > 0 ? remaining : 0}s
+                </span>
+              )
+            })()}
         </div>
       </div>
 
       {/* Badge — only if explicitly enabled */}
       {cfg.showBadge && cfg.badgeText && (
         <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
-          <span style={{
-            padding: '4px 14px',
-            borderRadius: '20px',
-            fontSize: '11px',
-            fontWeight: 700,
-            background: `linear-gradient(135deg, ${primaryColor}, ${cfg.thinkingColor})`,
-            color: 'white',
-          }}>
+          <span
+            style={{
+              padding: '4px 14px',
+              borderRadius: '20px',
+              fontSize: '11px',
+              fontWeight: 700,
+              background: `linear-gradient(135deg, ${primaryColor}, ${cfg.thinkingColor})`,
+              color: 'white',
+            }}
+          >
             {cfg.badgeText}
           </span>
         </div>
@@ -1295,9 +1502,9 @@ export function VoiceCallOverlay({
       {/* Avatar — fixed/sticky, always visible above scroll */}
       <div className="relative shrink-0 flex justify-center" style={{ padding: '16px 20px 8px' }}>
         <AvatarOrb
-          avatars={avatars}
-          logoUrl={logoUrl}
-          avatar3dUrl={avatar3dUrl || cfg.avatar3dUrl}
+          avatars={effectiveAvatars}
+          logoUrl={effectiveLogoUrl}
+          avatar3dUrl={effectiveAvatar3dUrl}
           emotion={currentEmotion}
           callState={callState}
           audioLevel={audioLevel}
@@ -1316,22 +1523,26 @@ export function VoiceCallOverlay({
                   style={{
                     maxWidth: '85%',
                     padding: '10px 14px',
-                    borderRadius: entry.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                    borderRadius:
+                      entry.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
                     fontSize: '13.5px',
                     lineHeight: 1.5,
                     color: 'white',
                     marginLeft: entry.role === 'user' ? 'auto' : '0',
                     marginRight: entry.role === 'user' ? '0' : 'auto',
-                    backgroundColor: entry.role === 'user'
-                      ? 'rgba(255,255,255,0.08)'
-                      : `${primaryColor}25`,
+                    backgroundColor:
+                      entry.role === 'user' ? 'rgba(255,255,255,0.08)' : `${primaryColor}25`,
                     backdropFilter: 'blur(8px)',
-                    border: entry.role === 'user'
-                      ? '1px solid rgba(255,255,255,0.08)'
-                      : `1px solid ${primaryColor}20`,
+                    border:
+                      entry.role === 'user'
+                        ? '1px solid rgba(255,255,255,0.08)'
+                        : `1px solid ${primaryColor}20`,
                   }}
                 >
-                  <div className="prose prose-sm prose-invert max-w-none break-words leading-relaxed" style={{ fontSize: '13.5px' }}>
+                  <div
+                    className="prose prose-sm prose-invert max-w-none break-words leading-relaxed"
+                    style={{ fontSize: '13.5px' }}
+                  >
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
                       rehypePlugins={[[rehypeSanitize, voiceSanitizeSchema]]}
@@ -1340,12 +1551,36 @@ export function VoiceCallOverlay({
                         a: ({ href, children }) => {
                           if (!href) return null
                           const textContent = String(children).toLowerCase()
-                          const isCTA = textContent.includes('reservar') || textContent.includes('ver') || textContent.includes('pagar')
-                          const isGoogleMaps = href.includes('maps.google') || href.includes('goo.gl') || href.includes('google.com/maps')
+                          const isCTA =
+                            textContent.includes('reservar') ||
+                            textContent.includes('ver') ||
+                            textContent.includes('pagar')
+                          const isGoogleMaps =
+                            href.includes('maps.google') ||
+                            href.includes('goo.gl') ||
+                            href.includes('google.com/maps')
 
                           if (isGoogleMaps) {
                             return (
-                              <a href={href} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', margin: '6px 0', borderRadius: '10px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: primaryColor, textDecoration: 'none', fontSize: '12px', fontWeight: 700 }}>
+                              <a
+                                href={href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '8px',
+                                  padding: '8px 12px',
+                                  margin: '6px 0',
+                                  borderRadius: '10px',
+                                  background: 'rgba(255,255,255,0.06)',
+                                  border: '1px solid rgba(255,255,255,0.1)',
+                                  color: primaryColor,
+                                  textDecoration: 'none',
+                                  fontSize: '12px',
+                                  fontWeight: 700,
+                                }}
+                              >
                                 📍 Ver ubicación
                               </a>
                             )
@@ -1353,29 +1588,89 @@ export function VoiceCallOverlay({
 
                           if (isCTA) {
                             return (
-                              <a href={href} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '8px 16px', margin: '6px 0', borderRadius: '10px', background: primaryColor, color: 'white', textDecoration: 'none', fontSize: '11px', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' as const, width: '100%', textAlign: 'center' as const }}>
+                              <a
+                                href={href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '6px',
+                                  padding: '8px 16px',
+                                  margin: '6px 0',
+                                  borderRadius: '10px',
+                                  background: primaryColor,
+                                  color: 'white',
+                                  textDecoration: 'none',
+                                  fontSize: '11px',
+                                  fontWeight: 800,
+                                  letterSpacing: '0.05em',
+                                  textTransform: 'uppercase' as const,
+                                  width: '100%',
+                                  textAlign: 'center' as const,
+                                }}
+                              >
                                 {children} →
                               </a>
                             )
                           }
 
                           return (
-                            <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: primaryColor, textDecoration: 'underline', fontWeight: 600 }}>
+                            <a
+                              href={href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                color: primaryColor,
+                                textDecoration: 'underline',
+                                fontWeight: 600,
+                              }}
+                            >
                               {children}
                             </a>
                           )
                         },
-                        strong: ({ children }) => <strong style={{ fontWeight: 700, color: 'rgba(255,255,255,0.95)' }}>{children}</strong>,
-                        em: ({ children }) => <em style={{ color: 'rgba(255,255,255,0.8)' }}>{children}</em>,
-                        ul: ({ children }) => <ul style={{ margin: '4px 0', paddingLeft: '18px' }}>{children}</ul>,
-                        ol: ({ children }) => <ol style={{ margin: '4px 0', paddingLeft: '18px' }}>{children}</ol>,
+                        strong: ({ children }) => (
+                          <strong style={{ fontWeight: 700, color: 'rgba(255,255,255,0.95)' }}>
+                            {children}
+                          </strong>
+                        ),
+                        em: ({ children }) => (
+                          <em style={{ color: 'rgba(255,255,255,0.8)' }}>{children}</em>
+                        ),
+                        ul: ({ children }) => (
+                          <ul style={{ margin: '4px 0', paddingLeft: '18px' }}>{children}</ul>
+                        ),
+                        ol: ({ children }) => (
+                          <ol style={{ margin: '4px 0', paddingLeft: '18px' }}>{children}</ol>
+                        ),
                         li: ({ children }) => <li style={{ marginBottom: '2px' }}>{children}</li>,
-                        hr: () => <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.1)', margin: '8px 0' }} />,
+                        hr: () => (
+                          <hr
+                            style={{
+                              border: 'none',
+                              borderTop: '1px solid rgba(255,255,255,0.1)',
+                              margin: '8px 0',
+                            }}
+                          />
+                        ),
                         img: ({ src, alt }) => (
-                          <img src={src} alt={alt || ''} style={{ maxWidth: '100%', borderRadius: '8px', margin: '6px 0' }} />
+                          <img
+                            src={src}
+                            alt={alt || ''}
+                            style={{ maxWidth: '100%', borderRadius: '8px', margin: '6px 0' }}
+                          />
                         ),
                         code: ({ children }) => (
-                          <code style={{ background: 'rgba(255,255,255,0.1)', padding: '1px 5px', borderRadius: '4px', fontSize: '12px' }}>
+                          <code
+                            style={{
+                              background: 'rgba(255,255,255,0.1)',
+                              padding: '1px 5px',
+                              borderRadius: '4px',
+                              fontSize: '12px',
+                            }}
+                          >
                             {children}
                           </code>
                         ),
@@ -1386,7 +1681,14 @@ export function VoiceCallOverlay({
                   </div>
                   {/* Interactive quiz buttons — styled to read unmistakably as tappable options */}
                   {entry.quizButtons && entry.quizButtons.length > 0 && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '14px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '10px',
+                        marginTop: '14px',
+                      }}
+                    >
                       {entry.quizButtons.map((btn, optIdx) => (
                         <button
                           key={btn.id}
@@ -1420,11 +1722,11 @@ export function VoiceCallOverlay({
                             boxShadow: `0 4px 14px ${primaryColor}55, inset 0 1px 0 rgba(255,255,255,0.25)`,
                             transition: 'all 150ms ease',
                           }}
-                          onMouseEnter={(e) => {
+                          onMouseEnter={e => {
                             e.currentTarget.style.transform = 'translateY(-2px)'
                             e.currentTarget.style.boxShadow = `0 8px 22px ${primaryColor}77, inset 0 1px 0 rgba(255,255,255,0.3)`
                           }}
-                          onMouseLeave={(e) => {
+                          onMouseLeave={e => {
                             e.currentTarget.style.transform = 'translateY(0)'
                             e.currentTarget.style.boxShadow = `0 4px 14px ${primaryColor}55, inset 0 1px 0 rgba(255,255,255,0.25)`
                           }}
@@ -1461,25 +1763,31 @@ export function VoiceCallOverlay({
 
       {/* Status pill */}
       <div style={{ textAlign: 'center', paddingBottom: '12px' }}>
-        <span style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '6px',
-          padding: '4px 16px',
-          borderRadius: '20px',
-          fontSize: '11px',
-          fontWeight: 500,
-          color: 'rgba(255,255,255,0.35)',
-          background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(255,255,255,0.06)',
-          letterSpacing: '0.02em',
-        }}>
+        <span
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '4px 16px',
+            borderRadius: '20px',
+            fontSize: '11px',
+            fontWeight: 500,
+            color: 'rgba(255,255,255,0.35)',
+            background: 'rgba(255,255,255,0.04)',
+            border: '1px solid rgba(255,255,255,0.06)',
+            letterSpacing: '0.02em',
+          }}
+        >
           {isMuted ? (
-            <><MicOff style={{ width: '12px', height: '12px' }} /> Micrófono silenciado</>
+            <>
+              <MicOff style={{ width: '12px', height: '12px' }} /> Micrófono silenciado
+            </>
           ) : callState === 'thinking' ? (
             'Procesando...'
           ) : callState === 'speaking' ? (
-            <><Volume2 style={{ width: '12px', height: '12px' }} /> Respuesta de voz</>
+            <>
+              <Volume2 style={{ width: '12px', height: '12px' }} /> Respuesta de voz
+            </>
           ) : (
             'Habla cuando quieras'
           )}
@@ -1516,7 +1824,11 @@ export function VoiceCallOverlay({
           }}
           aria-label={isMuted ? 'Activar micrófono' : 'Silenciar micrófono'}
         >
-          {isMuted ? <MicOff style={{ width: '22px', height: '22px' }} /> : <Mic style={{ width: '22px', height: '22px' }} />}
+          {isMuted ? (
+            <MicOff style={{ width: '22px', height: '22px' }} />
+          ) : (
+            <Mic style={{ width: '22px', height: '22px' }} />
+          )}
         </button>
 
         {/* End call button — prominent red */}
@@ -1550,7 +1862,8 @@ export function VoiceCallOverlay({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: callState === 'speaking' ? `${cfg.listeningColor}15` : 'rgba(255,255,255,0.08)',
+            backgroundColor:
+              callState === 'speaking' ? `${cfg.listeningColor}15` : 'rgba(255,255,255,0.08)',
             color: callState === 'speaking' ? cfg.listeningColor : 'rgba(255,255,255,0.5)',
             border: `1px solid ${callState === 'speaking' ? `${cfg.listeningColor}25` : 'rgba(255,255,255,0.08)'}`,
             transition: 'all 0.3s',
@@ -1583,12 +1896,14 @@ export function VoiceCallOverlay({
 
       {/* Text input fallback — for structured data */}
       {showTextInput && (
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          padding: '8px 20px 20px',
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 20px 20px',
+          }}
+        >
           <input
             type="text"
             value={textInputValue}

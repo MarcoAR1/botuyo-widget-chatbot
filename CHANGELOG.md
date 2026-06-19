@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.4] — 2026-06-19
+
+### Fixed
+- **Call overlay now shows the ACTIVE agent's avatar after a mid-session transfer + re-call (no page reload needed).** `VoiceCallOverlay` applies the agent avatar identity the backend now sends in `voice_ready` (every call start) and `voice_agent_switched` (live transfer), overriding the connect-time `logoUrl` / `avatars` props which go stale after an in-call agent switch. Works for any agent family (e.g. Ms. Ellis Nivelador → B1); falls back to the connect-time props when the server sends no avatar. Requires backend `v2.2.123`.
+
 ## [1.3.3] — 2026-06-19
 
 ### Fixed
