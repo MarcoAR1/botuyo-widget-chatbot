@@ -1,4 +1,4 @@
-# @botuyo/chat-widget
+# @botuyo/chat-widget-standalone
 
 > AI-powered chat widget with Shadow DOM isolation, dark mode, voice chat, and full white-labeling. Works as a CDN script tag or NPM React component.
 
