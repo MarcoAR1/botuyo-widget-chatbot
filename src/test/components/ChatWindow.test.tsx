@@ -2,7 +2,7 @@
  * @vitest-environment happy-dom
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, fireEvent } from '@testing-library/react'
+import { screen, fireEvent, act } from '@testing-library/react'
 import { renderWithI18n } from '../utils/i18n-test-utils'
 import userEvent from '@testing-library/user-event'
 import { ChatWindow } from '../../chat-widget/components/ChatWindow'
@@ -19,6 +19,13 @@ vi.mock('../../chat-widget/hooks/useDynamicHeight', () => ({
 
 vi.mock('../../chat-widget/hooks/useFocusTrap', () => ({
   useFocusTrap: () => ({ current: null }),
+}))
+
+// The real overlay opens an AudioContext / socket — stub it to a marker so we can
+// assert whether ChatWindow opened the voice call.
+vi.mock('../../chat-widget/components/VoiceCallOverlay', () => ({
+  VoiceCallOverlay: ({ isOpen }: { isOpen: boolean }) =>
+    isOpen ? <div data-testid="voice-overlay" /> : null,
 }))
 
 describe('ChatWindow', () => {
@@ -273,6 +280,33 @@ describe('ChatWindow', () => {
       renderWithI18n(<ChatWindow {...defaultProps} messages={[]} />)
 
       expect(screen.queryByTestId('quiz-dock')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('Voice call (programmatic startCall)', () => {
+    it('opens the voice overlay on botuyo-chat:start-call when connected and voice is enabled', () => {
+      renderWithI18n(
+        <ChatWindow {...defaultProps} isConnected={true} mediaConfig={{ enableVoice: true }} />
+      )
+      expect(screen.queryByTestId('voice-overlay')).not.toBeInTheDocument()
+
+      act(() => {
+        window.dispatchEvent(new CustomEvent('botuyo-chat:start-call'))
+      })
+
+      expect(screen.getByTestId('voice-overlay')).toBeInTheDocument()
+    })
+
+    it('does NOT open the overlay when the backend has voice disabled', () => {
+      renderWithI18n(
+        <ChatWindow {...defaultProps} isConnected={true} mediaConfig={{ enableVoice: false }} />
+      )
+
+      act(() => {
+        window.dispatchEvent(new CustomEvent('botuyo-chat:start-call'))
+      })
+
+      expect(screen.queryByTestId('voice-overlay')).not.toBeInTheDocument()
     })
   })
 })

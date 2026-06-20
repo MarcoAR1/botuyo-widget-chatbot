@@ -37,6 +37,14 @@ import {
   type VoiceGateConfig,
   type VoiceGateSetting,
 } from '../voice/audioEnhancement'
+import {
+  VadGate,
+  resolveVadGateConfig,
+  resolveVadInput,
+  type VadGateConfig,
+  type VadGateSetting,
+} from '../voice/vadGate'
+import { createSpeechDetector, type ISpeechDetector } from '../voice/speechDetector'
 import { useWakeLock } from '../hooks/useWakeLock'
 
 // Lazy-loaded 3D avatar — separate chunk, 0KB impact on main bundle
@@ -84,6 +92,20 @@ export interface VoiceOverlayConfig {
    * - a partial `VoiceGateConfig` to fine-tune the raw thresholds.
    */
   noiseGate?: VoiceGateSetting
+  /**
+   * Client-side voice activity detection (Silero VAD) — provider-agnostic. The
+   * gate streams ONLY a real, near-field ("clear & frontal") voice to the
+   * provider, so background noise and distant chatter never trigger it, while the
+   * user can always barge in over the bot with a clear voice. Silero loads lazily
+   * at call time; on any failure it degrades to the near-field energy gate.
+   * - omit / `'standard'` → on, balanced thresholds (recommended)
+   * - `'low'` | `'high'` → sensitivity preset
+   * - a partial `VadGateConfig` → fine-tune raw thresholds
+   * - `false` → disable VAD (near-field energy gate only)
+   */
+  vad?: false | VadGateSetting
+  /** Override the Silero model/runtime asset base URL (strict CSP / self-host). */
+  vadAssetBaseUrl?: string
 }
 
 interface VoiceCallOverlayProps {
@@ -241,6 +263,8 @@ type Required_VoiceOverlayConfig = {
   thinkingScale: number
   avatar3dUrl?: string
   voiceGate: VoiceGateConfig
+  vad: false | VadGateConfig
+  vadAssetBaseUrl?: string
 }
 
 function resolveVoiceConfig(
@@ -270,6 +294,8 @@ function resolveVoiceConfig(
     thinkingScale: cfg?.thinkingScale ?? 0.95,
     avatar3dUrl: cfg?.avatar3dUrl,
     voiceGate: resolveVoiceGateConfig(cfg?.noiseGate),
+    vad: cfg?.vad === false ? false : resolveVadGateConfig(cfg?.vad),
+    vadAssetBaseUrl: cfg?.vadAssetBaseUrl,
   }
 }
 
@@ -608,6 +634,16 @@ export function VoiceCallOverlay({
   const nextPlayTimeRef = useRef(0) // Schedule cursor for gapless playback
   const activeSourcesRef = useRef<AudioBufferSourceNode[]>([])
 
+  // ── Client-side VAD (Silero) — provider-agnostic speech gate ──
+  // The pure speech/noise + barge-in policy lives in VadGate; the detector lazily
+  // loads Silero and feeds per-frame probabilities into latestSpeechProbRef.
+  const vadGateRef = useRef<VadGate | null>(null)
+  const speechDetectorRef = useRef<ISpeechDetector | null>(null)
+  // 1 = "assume speech": BEFORE Silero loads (or if it never loads / goes stale)
+  // the gate degrades to a pure near-field energy gate instead of muting the user.
+  const latestSpeechProbRef = useRef(1)
+  const lastVadFrameAtRef = useRef(0)
+
   // Format duration as MM:SS
   const formatDuration = useCallback((seconds: number): string => {
     const mins = Math.floor(seconds / 60)
@@ -665,6 +701,25 @@ export function VoiceCallOverlay({
       // Advance cursor by chunk duration (samples / sampleRate)
       nextPlayTimeRef.current += float32Data.length / OUTPUT_SAMPLE_RATE
     }
+  }, [])
+
+  // Stop + clear ALL bot playback immediately. Shared by the provider-driven
+  // interrupt (voice_interrupted) and client-side barge-in: when VadGate detects
+  // a clear, frontal voice over the bot we cut playback locally for instant
+  // feedback instead of waiting for the provider round-trip.
+  const flushPlayback = useCallback(() => {
+    activeSourcesRef.current.forEach(s => {
+      try {
+        s.stop()
+      } catch {
+        /* already stopped */
+      }
+    })
+    activeSourcesRef.current = []
+    audioQueueRef.current.length = 0
+    nextPlayTimeRef.current = 0
+    isPlayingRef.current = false
+    setCallState('listening')
   }, [])
 
   // ═══════════════════════════════════════
@@ -744,19 +799,8 @@ export function VoiceCallOverlay({
     }
 
     const onVoiceInterrupted = () => {
-      // Barge-in: stop all scheduled sources + clear queue
-      activeSourcesRef.current.forEach(s => {
-        try {
-          s.stop()
-        } catch {
-          /* already stopped */
-        }
-      })
-      activeSourcesRef.current = []
-      audioQueueRef.current.length = 0
-      nextPlayTimeRef.current = 0
-      isPlayingRef.current = false
-      setCallState('listening')
+      // Barge-in confirmed by the provider — stop playback.
+      flushPlayback()
     }
 
     const onVoiceTurnComplete = () => {
@@ -1031,7 +1075,7 @@ export function VoiceCallOverlay({
     voiceListenersRef.current.voiceCallEnded = onVoiceCallEnded
 
     socketListenersRef.current = true
-  }, [getSocket, scheduleChunks])
+  }, [getSocket, scheduleChunks, flushPlayback])
 
   const removeSocketListeners = useCallback(() => {
     const socket = getSocket?.()
@@ -1073,6 +1117,40 @@ export function VoiceCallOverlay({
     })
     streamRef.current = stream
 
+    // ── Client-side VAD: build the pure gate, then lazily load Silero. ──
+    // The gate runs on every captured frame (see worklet handler below) and
+    // decides what reaches the provider; Silero only supplies the probability.
+    const vadEnabled = cfg.vad !== false
+    vadGateRef.current = new VadGate(vadEnabled ? (cfg.vad as VadGateConfig) : { energyOnly: true })
+    latestSpeechProbRef.current = 1
+    lastVadFrameAtRef.current = 0
+    if (vadEnabled) {
+      // Fire-and-forget: the call works immediately on the energy gate and
+      // upgrades to full speech detection the moment Silero is ready. Shares the
+      // capture stream so the VAD analyses exactly what we transmit.
+      void createSpeechDetector({
+        stream,
+        assetBaseUrl: cfg.vadAssetBaseUrl,
+        onFrame: ({ speechProb }) => {
+          latestSpeechProbRef.current = speechProb
+          lastVadFrameAtRef.current = performance.now()
+        },
+      })
+        .then(detector => {
+          if (!detector) return
+          if (!streamRef.current) {
+            // Call already ended while the model was loading.
+            detector.destroy()
+            return
+          }
+          speechDetectorRef.current = detector
+          return detector.start()
+        })
+        .catch(() => {
+          /* energy-gate fallback already active */
+        })
+    }
+
     const ctx = new AudioContext({ sampleRate: INPUT_SAMPLE_RATE })
     audioCtxRef.current = ctx
     // Resume mic AudioContext — required by some browsers
@@ -1100,11 +1178,31 @@ export function VoiceCallOverlay({
     const workletNode = new AudioWorkletNode(ctx, 'voice-pcm-processor')
     workletNodeRef.current = workletNode
 
-    // Send PCM chunks to Socket.IO
-    workletNode.port.onmessage = (e: MessageEvent<ArrayBuffer>) => {
-      if (socket.connected && !isMuted) {
-        const base64 = arrayBufferToBase64(e.data)
-        socket.emit('voice_audio_chunk', { data: base64 })
+    // Gate + send PCM chunks to Socket.IO. Each ~100ms frame carries its PCM and
+    // its near-field RMS; VadGate combines that RMS with the latest Silero
+    // probability (or 1 = energy-only when Silero is absent/stale) and whether the
+    // bot is speaking, then decides whether this frame reaches the provider.
+    const VAD_STALE_MS = 600
+    workletNode.port.onmessage = (e: MessageEvent<{ pcm: ArrayBuffer; rms: number }>) => {
+      const gate = vadGateRef.current
+      if (!gate) return
+      const vadFresh = performance.now() - lastVadFrameAtRef.current < VAD_STALE_MS
+      // Echo safety: without a fresh real-VAD signal, stay half-duplex over the bot
+      // (silent frame) so the bot's own audio leaking into the mic can't self-interrupt.
+      const { frame, confirmedSpeech } = resolveVadInput({
+        botSpeaking: isPlayingRef.current,
+        vadFresh,
+        speechProb: latestSpeechProbRef.current,
+        rms: e.data.rms,
+      })
+      const { shouldStream, event } = gate.process(frame)
+      // Clear, frontal voice over the bot → cut playback locally for instant feedback.
+      // (barge_in only fires with a fresh real-VAD signal, so echo won't trip it.)
+      if (event === 'barge_in') flushPlayback()
+      if (shouldStream && socket.connected && !isMuted) {
+        // `speech: true` only when Silero confirms real speech — the backend greeting
+        // gate uses it to allow barge-in and drops unmarked audio during the greeting.
+        socket.emit('voice_audio_chunk', { data: arrayBufferToBase64(e.data.pcm), speech: confirmedSpeech })
       }
     }
 
@@ -1120,10 +1218,15 @@ export function VoiceCallOverlay({
       animFrameRef.current = requestAnimationFrame(updateLevel)
     }
     updateLevel()
-  }, [getSocket, isMuted, cfg.voiceGate])
+  }, [getSocket, isMuted, cfg.voiceGate, cfg.vad, cfg.vadAssetBaseUrl, flushPlayback])
 
   const stopMicCapture = useCallback(() => {
     cancelAnimationFrame(animFrameRef.current)
+    speechDetectorRef.current?.destroy()
+    speechDetectorRef.current = null
+    vadGateRef.current = null
+    latestSpeechProbRef.current = 1
+    lastVadFrameAtRef.current = 0
     workletNodeRef.current?.disconnect()
     workletNodeRef.current = null
     streamRef.current?.getTracks().forEach(t => t.stop())

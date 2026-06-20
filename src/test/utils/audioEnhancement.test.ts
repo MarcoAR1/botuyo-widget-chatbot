@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import {
   ENHANCED_AUDIO_CONSTRAINTS,
   NOISE_GATE_THRESHOLD,
@@ -195,6 +195,12 @@ describe('audioEnhancement', () => {
       expect(code).toContain('postMessage')
       // must NOT use the chunk-dropping hold counter (would break server-side VAD)
       expect(code).not.toContain('holdCounter')
+    })
+
+    it('posts the per-frame RMS alongside the PCM (for the client VAD gate)', () => {
+      const code = buildVoiceProcessorCode()
+      expect(code).toContain('pcm: int16.buffer')
+      expect(code).toContain('rms: rms')
     })
 
     it('computes RMS and applies a smoothed per-sample gain ramp', () => {

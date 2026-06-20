@@ -30,6 +30,13 @@ export interface ChatWidgetContextValue {
   close: () => void
   /** Toggle abrir/cerrar */
   toggle: () => void
+  /**
+   * Abrir el widget e iniciar una llamada de voz automáticamente.
+   * Requiere que el agente tenga la voz habilitada (el backend la activa vía
+   * connection_ack); si no, simplemente abre el chat. La llamada arranca apenas
+   * el socket conecta.
+   */
+  startCall: () => void
   /** Enviar un mensaje programáticamente */
   sendMessage: (text: string) => void
   /** Limpiar el historial de chat */
@@ -124,6 +131,15 @@ export function ChatWidgetProvider({
     window.dispatchEvent(new CustomEvent('botuyo-chat:toggle'))
   }, [onStateChange])
 
+  const startCall = useCallback(() => {
+    setIsOpen(true)
+    setUnreadCount(0)
+    onStateChange?.(true)
+    // The internal widget hook opens the window and ChatWindow opens the voice
+    // overlay (which auto-starts the call) once the socket is connected.
+    window.dispatchEvent(new CustomEvent('botuyo-chat:start-call'))
+  }, [onStateChange])
+
   const sendMessage = useCallback((text: string) => {
     if (_internalSendMessage) {
       _internalSendMessage(text)
@@ -147,6 +163,7 @@ export function ChatWidgetProvider({
     open,
     close,
     toggle,
+    startCall,
     sendMessage,
     clearMessages,
     unreadCount,

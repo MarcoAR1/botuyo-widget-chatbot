@@ -322,7 +322,9 @@ export function computeExpanderGain(
  *
  * Captures mic input as PCM 16-bit, computes per-frame RMS, applies the
  * downward-expander gain (smoothed per-sample to avoid clicks) and posts EVERY
- * frame so the upstream server-side VAD keeps a continuous stream.
+ * frame — as `{ pcm, rms }` — to the main thread. The client-side VAD gate (see
+ * VoiceCallOverlay) decides, per frame, what is forwarded to the voice provider,
+ * using the RMS as the near-field energy signal.
  *
  * @param config - gate tuning (defaults to VOICE_GATE_CONFIG)
  * @param processorName - registered worklet name (default 'voice-pcm-processor')
@@ -372,8 +374,9 @@ class VoicePCMProcessor extends AudioWorkletProcessor {
         }
         this.gain = nextGain;
 
-        // 4. ALWAYS post — a continuous stream keeps server-side VAD accurate
-        this.port.postMessage(int16.buffer, [int16.buffer]);
+        // 4. ALWAYS post PCM + this frame's RMS. The client VAD gate decides
+        //    per frame what actually reaches the provider.
+        this.port.postMessage({ pcm: int16.buffer, rms: rms }, [int16.buffer]);
 
         this.buffer = new Float32Array(${chunkSize});
         this.bufferIndex = 0;

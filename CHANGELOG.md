@@ -12,6 +12,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] — 2026-06-20
+
+### Added
+- **Client-side Voice Activity Detection (Silero VAD) — a provider-agnostic speech gate
+  for voice calls.** The widget now decides locally what audio reaches the voice provider
+  instead of relying on the provider's server-side VAD. It combines a real speech-vs-noise
+  probability (Silero, via `@ricky0123/vad-web`) with a near-field energy check, so only a
+  **clear, frontal** voice is streamed — background noise, fans/keyboards and distant
+  chatter/TV no longer trigger or interrupt the bot.
+  - **Barge-in preserved:** the detector runs continuously (even while the bot is speaking),
+    so the user can always interrupt with a clear, frontal voice; playback is cut locally for
+    instant feedback rather than waiting for the provider round-trip.
+  - **Zero bundle impact, fully transparent:** Silero loads lazily from a pinned CDN only when
+    a call starts (no npm dependency, no config required). On any failure — offline, strict
+    CSP, unsupported browser — it **degrades gracefully** to the near-field energy gate, so a
+    call never breaks.
+  - **New config (all optional):** `voiceConfig.vad` (`'low' | 'standard' | 'high'`, a partial
+    threshold object, or `false` to use the energy gate only) and `voiceConfig.vadAssetBaseUrl`
+    to self-host the Silero/ONNX assets for strict-CSP tenants. Defaults to on (`'standard'`);
+    the existing `noiseGate` setting is still honored.
+- **Greeting barge-in coordination (pairs with backend ≥ v2.2.140).** During the bot's
+  greeting the mic stays **half-duplex** unless Silero confirms a real, near-field voice — so
+  the bot's own audio leaking into the mic can't self-interrupt the greeting — and the widget
+  marks confirmed-speech chunks with `voice_audio_chunk.speech: true` so the backend lets a
+  genuine barge-in through while dropping ambient noise during the greeting.
+- **`startCall()` — open the widget straight into a voice call.** New programmatic API on both
+  surfaces: `useChatWidget().startCall()` (React) and `window.BotUyoChat.startCall()`
+  (standalone), plus a `botuyo-chat:start-call` window event. It opens the widget and
+  auto-starts the voice call as soon as the socket connects (and the agent has voice enabled),
+  so a host page's "start a class / call" button goes straight to the call instead of the text
+  chat. No-ops gracefully to the text chat when voice is disabled.
+
 ## [1.3.5] — 2026-06-19
 
 ### Added

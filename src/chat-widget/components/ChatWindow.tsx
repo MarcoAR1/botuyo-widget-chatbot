@@ -75,6 +75,9 @@ export function ChatWindow({
   const [logoError, setLogoError] = useState(false)
   const [showVoiceOverlay, setShowVoiceOverlay] = useState(false)
   const [showCallConfirm, setShowCallConfirm] = useState(false)
+  // Programmatic voice call request (chat.startCall()/BotUyoChat.startCall()), latched
+  // until the socket is connected AND voice is enabled by the backend.
+  const [pendingCall, setPendingCall] = useState(false)
   const { t } = useTranslations()
   const isMobile = useIsMobile()
   const themePrimary = getPrimaryColor({ cssVariables: theme?.cssVariables })
@@ -103,6 +106,22 @@ export function ChatWindow({
       document.body.style.overflow = ''
     }
   }, [isOpen, isMobile])
+
+  // Programmatic "start a voice call" (chat.startCall()). ChatWindow's hooks run even
+  // while closed, so we latch the request here and open the voice overlay (which
+  // auto-starts the call) once the socket is connected AND the backend enabled voice.
+  useEffect(() => {
+    const onStartCall = () => setPendingCall(true)
+    window.addEventListener('botuyo-chat:start-call', onStartCall)
+    return () => window.removeEventListener('botuyo-chat:start-call', onStartCall)
+  }, [])
+
+  useEffect(() => {
+    if (pendingCall && isConnected && mediaConfig?.enableVoice && !showVoiceOverlay) {
+      setPendingCall(false)
+      setShowVoiceOverlay(true)
+    }
+  }, [pendingCall, isConnected, mediaConfig?.enableVoice, showVoiceOverlay])
 
   if (!isOpen) return null
 

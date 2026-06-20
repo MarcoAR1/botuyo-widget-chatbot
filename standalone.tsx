@@ -416,6 +416,16 @@ class BotUyoChatWidget {
   }
 
   /**
+   * Open the widget and start a voice call programmatically.
+   * Requires the agent to have voice enabled (toggled by the backend via
+   * connection_ack); otherwise it just opens the chat. The call auto-starts as
+   * soon as the socket connects.
+   */
+  startCall(): void {
+    window.dispatchEvent(new CustomEvent('botuyo-chat:start-call'));
+  }
+
+  /**
    * Send a message programmatically
    * @param message - Message text
    */

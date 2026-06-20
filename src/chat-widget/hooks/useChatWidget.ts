@@ -344,15 +344,23 @@ export function useChatWidget(options: UseChatWidgetOptions) {
       }
     }
 
+    // Programmatic voice call (chat.startCall() / BotUyoChat.startCall()): open the
+    // window — ChatWindow opens the voice overlay (auto-starting the call) once connected.
+    const handleStartCall = () => {
+      if (!state.isOpen) actions.openWindow()
+    }
+
     window.addEventListener('botuyo-chat:open', handleOpen)
     window.addEventListener('botuyo-chat:close', handleClose)
     window.addEventListener('botuyo-chat:toggle', handleToggleEvent)
+    window.addEventListener('botuyo-chat:start-call', handleStartCall)
     window.addEventListener('botuyo-chat:send-message', handleSendMessageEvent as EventListener)
 
     return () => {
       window.removeEventListener('botuyo-chat:open', handleOpen)
       window.removeEventListener('botuyo-chat:close', handleClose)
       window.removeEventListener('botuyo-chat:toggle', handleToggleEvent)
+      window.removeEventListener('botuyo-chat:start-call', handleStartCall)
       window.removeEventListener('botuyo-chat:send-message', handleSendMessageEvent as EventListener)
     }
   }, [state.isOpen, actions, handleSendText])
