@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.2] — 2026-06-21
+
+### Fixed
+- **Voice: while it's the user's turn, the mic is ALWAYS streamed — the client VAD can no longer silence a real voice.** v1.4.0's near-field energy gate (`nearFieldRms`) decided locally whether each frame was "speech", but that energy threshold is unreliable across microphones and input gains — a normal/quiet mic (or a tenant whose Silero model is blocked by a strict network, so the gate runs energy-only) could sit below the bar and have **100% of its audio dropped before it ever left the browser**, so the bot greeted/answered text but never heard speech. The widget now **defers to the provider's server-side VAD while the bot is idle** (`resolveShouldStream` — stream every frame on the user's turn), the pre-VAD "as it was" behavior, so being heard never depends on a client-side threshold. **Echo/greeting protection is unchanged:** while the bot is *speaking* the `VadGate` stays authoritative (only a clear, frontal barge-in streams; otherwise half-duplex), so the bot can't self-interrupt its greeting. Pairs with the backend greeting-gate (≥ v2.2.161).
+
 ## [1.4.1] — 2026-06-21
 
 ### Fixed

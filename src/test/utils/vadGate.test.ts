@@ -5,6 +5,7 @@ import {
   resolveVadGateConfig,
   resolveVadInput,
   resolveSpeechFlag,
+  resolveShouldStream,
   type VadFrame,
 } from '../../chat-widget/voice/vadGate'
 
@@ -247,6 +248,23 @@ describe('vadGate', () => {
     it('does NOT mark speech when VAD is fresh but Silero did not confirm it', () => {
       // With a live Silero signal we trust its confirmation only — no over-marking.
       expect(resolveSpeechFlag({ confirmedSpeech: false, vadFresh: true })).toBe(false)
+    })
+  })
+
+  describe('resolveShouldStream (defer to server VAD while the bot is idle)', () => {
+    it('streams EVERY frame while the bot is idle, even if the client gate would close it', () => {
+      // The user's turn to talk: a client near-field energy threshold (or a failed Silero
+      // load behind a strict network) must never silence a real, normal-volume voice — being
+      // heard cannot depend on it, so when the bot is idle we always reach the server-side VAD.
+      expect(resolveShouldStream({ gateShouldStream: false, botSpeaking: false })).toBe(true)
+      expect(resolveShouldStream({ gateShouldStream: true, botSpeaking: false })).toBe(true)
+    })
+
+    it('keeps the gate authoritative while the bot is speaking (echo / greeting protection)', () => {
+      // Over the bot only a gate-confirmed barge-in streams; otherwise stay half-duplex so the
+      // bot's own audio leaking into the mic cannot self-interrupt the greeting.
+      expect(resolveShouldStream({ gateShouldStream: false, botSpeaking: true })).toBe(false)
+      expect(resolveShouldStream({ gateShouldStream: true, botSpeaking: true })).toBe(true)
     })
   })
 })

@@ -42,6 +42,7 @@ import {
   resolveVadGateConfig,
   resolveVadInput,
   resolveSpeechFlag,
+  resolveShouldStream,
   type VadGateConfig,
   type VadGateSetting,
 } from '../voice/vadGate'
@@ -1196,10 +1197,14 @@ export function VoiceCallOverlay({
         speechProb: latestSpeechProbRef.current,
         rms: e.data.rms,
       })
-      const { shouldStream, event } = gate.process(frame)
+      const { shouldStream: gateShouldStream, event } = gate.process(frame)
       // Clear, frontal voice over the bot → cut playback locally for instant feedback.
       // (barge_in only fires with a fresh real-VAD signal, so echo won't trip it.)
       if (event === 'barge_in') flushPlayback()
+      // While the bot is idle (the user's turn) defer to the server-side VAD and stream every
+      // frame — the client energy gate is unreliable across mics/gains and was silencing real
+      // users. While the bot speaks the gate stays authoritative (echo / greeting protection).
+      const shouldStream = resolveShouldStream({ gateShouldStream, botSpeaking: isPlayingRef.current })
       if (shouldStream && socket.connected && !isMuted) {
         // The backend greeting-gate drops UNMARKED mic audio during the greeting. Mark a
         // streamed frame as speech when Silero confirms it OR — in the energy-only fallback

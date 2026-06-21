@@ -174,6 +174,27 @@ export function resolveSpeechFlag(ctx: { confirmedSpeech: boolean; vadFresh: boo
 }
 
 /**
+ * Final upstream decision for a captured frame — combines the {@link VadGate} verdict with
+ * a deliberate "defer to the server-side VAD while the bot is idle" rule.
+ *
+ * WHILE THE BOT IS SPEAKING the gate is authoritative: that is exactly when echo / ambient
+ * noise must NOT self-interrupt the greeting, so we trust the gate's barge-in bar (plus the
+ * silent frame {@link resolveVadInput} feeds when there is no fresh real-VAD signal) to keep
+ * the half-duplex protection.
+ *
+ * WHILE THE BOT IS IDLE (the user's turn to talk) we stream EVERY frame and let the
+ * provider's own server-side VAD decide where speech starts/ends — the pre-VAD, "as it was"
+ * behavior. A client-side near-field energy threshold is unreliable across microphones and
+ * input gains (and is bypassed entirely when the Silero model can't load behind a strict
+ * network), and it was silently dropping the audio of legitimate, normal-volume users. Being
+ * heard must never depend on it, so when it's the user's turn the mic always reaches upstream.
+ */
+export function resolveShouldStream(ctx: { gateShouldStream: boolean; botSpeaking: boolean }): boolean {
+  if (!ctx.botSpeaking) return true
+  return ctx.gateShouldStream
+}
+
+/**
  * Stateful speech gate. Feed it one analysed frame at a time via {@link process};
  * it returns whether to stream the frame plus any transition event.
  */
