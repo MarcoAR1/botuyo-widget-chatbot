@@ -41,6 +41,7 @@ import {
   VadGate,
   resolveVadGateConfig,
   resolveVadInput,
+  resolveSpeechFlag,
   type VadGateConfig,
   type VadGateSetting,
 } from '../voice/vadGate'
@@ -1200,9 +1201,12 @@ export function VoiceCallOverlay({
       // (barge_in only fires with a fresh real-VAD signal, so echo won't trip it.)
       if (event === 'barge_in') flushPlayback()
       if (shouldStream && socket.connected && !isMuted) {
-        // `speech: true` only when Silero confirms real speech — the backend greeting
-        // gate uses it to allow barge-in and drops unmarked audio during the greeting.
-        socket.emit('voice_audio_chunk', { data: arrayBufferToBase64(e.data.pcm), speech: confirmedSpeech })
+        // The backend greeting-gate drops UNMARKED mic audio during the greeting. Mark a
+        // streamed frame as speech when Silero confirms it OR — in the energy-only fallback
+        // (Silero/ONNX CDN unreachable) — because the energy gate already deemed it
+        // near-field speech. This keeps the user audible without depending on the VAD CDN.
+        const speech = resolveSpeechFlag({ confirmedSpeech, vadFresh })
+        socket.emit('voice_audio_chunk', { data: arrayBufferToBase64(e.data.pcm), speech })
       }
     }
 

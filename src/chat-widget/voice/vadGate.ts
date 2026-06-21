@@ -156,6 +156,24 @@ export function resolveVadInput(ctx: VadInputContext): { frame: VadFrame; confir
 }
 
 /**
+ * Resolves the `speech` flag carried with a STREAMED audio chunk (i.e. one the
+ * {@link VadGate} already decided to forward). The server's greeting audio-gate drops
+ * unmarked mic audio while the greeting plays, so this flag is what lets the user be heard.
+ *
+ * - A fresh Silero confirmation (`confirmedSpeech`) is the strong signal — trust it.
+ * - Otherwise we are in the energy-only fallback (Silero/ONNX could not load — offline,
+ *   CSP, or a network that blocks the CDN). There, a frame the energy gate chose to stream
+ *   IS itself the near-field-speech decision, so we mark it as speech. This keeps the voice
+ *   INPUT path working WITHOUT depending on the third-party VAD CDN being reachable.
+ *
+ * Echo safety is unaffected: while the bot speaks with no fresh VAD, {@link resolveVadInput}
+ * feeds a silent frame so the gate never streams — those frames never reach this function.
+ */
+export function resolveSpeechFlag(ctx: { confirmedSpeech: boolean; vadFresh: boolean }): boolean {
+  return ctx.confirmedSpeech || !ctx.vadFresh
+}
+
+/**
  * Stateful speech gate. Feed it one analysed frame at a time via {@link process};
  * it returns whether to stream the frame plus any transition event.
  */

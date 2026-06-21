@@ -12,6 +12,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.1] — 2026-06-21
+
+### Fixed
+- **Voice: the user is heard even when the Silero VAD assets can't load.** On a network or
+  CSP that blocks the VAD CDN (e.g. corporate networks / strict embeds), Silero never loaded,
+  so mic chunks were never marked `voice_audio_chunk.speech: true` and the backend
+  greeting-gate dropped all of them — the bot greeted and answered typed text but **ignored
+  the user's voice**. In the energy-only fallback the widget now marks streamed near-field
+  frames as `speech`, so being heard no longer depends on the third-party VAD CDN being
+  reachable. Echo safety during the greeting is unchanged: while the bot speaks without a
+  fresh VAD signal the gate still stays half-duplex (silent frame), so the bot can't
+  self-interrupt and ambient noise can't cut the greeting.
+
 ## [1.4.0] — 2026-06-20
 
 ### Added

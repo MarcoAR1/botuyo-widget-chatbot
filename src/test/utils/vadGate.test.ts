@@ -4,6 +4,7 @@ import {
   VAD_GATE_PRESETS,
   resolveVadGateConfig,
   resolveVadInput,
+  resolveSpeechFlag,
   type VadFrame,
 } from '../../chat-widget/voice/vadGate'
 
@@ -228,6 +229,24 @@ describe('vadGate', () => {
       })
       expect(frame.speechProb).toBeCloseTo(0.8, 6)
       expect(confirmedSpeech).toBe(true)
+    })
+  })
+
+  describe('resolveSpeechFlag (wire `speech` flag — CDN-independent input path)', () => {
+    it('marks speech when Silero confirmed it (fresh VAD)', () => {
+      expect(resolveSpeechFlag({ confirmedSpeech: true, vadFresh: true })).toBe(true)
+    })
+
+    it('marks speech in the energy-only fallback so being heard never depends on the VAD CDN', () => {
+      // Silero unavailable (no fresh VAD) → a frame the energy gate chose to stream IS
+      // the near-field-speech decision. Mark it so the server greeting-gate lets the
+      // user through even when the Silero/ONNX CDN is blocked (corporate net / CSP).
+      expect(resolveSpeechFlag({ confirmedSpeech: false, vadFresh: false })).toBe(true)
+    })
+
+    it('does NOT mark speech when VAD is fresh but Silero did not confirm it', () => {
+      // With a live Silero signal we trust its confirmation only — no over-marking.
+      expect(resolveSpeechFlag({ confirmedSpeech: false, vadFresh: true })).toBe(false)
     })
   })
 })
