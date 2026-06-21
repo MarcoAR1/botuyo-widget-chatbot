@@ -6,6 +6,7 @@ import {
   resolveVadInput,
   resolveSpeechFlag,
   resolveShouldStream,
+  resolveBotSpeaking,
   type VadFrame,
 } from '../../chat-widget/voice/vadGate'
 
@@ -265,6 +266,34 @@ describe('vadGate', () => {
       // bot's own audio leaking into the mic cannot self-interrupt the greeting.
       expect(resolveShouldStream({ gateShouldStream: false, botSpeaking: true })).toBe(false)
       expect(resolveShouldStream({ gateShouldStream: true, botSpeaking: true })).toBe(true)
+    })
+  })
+
+  describe('resolveBotSpeaking (audio-clock ground truth, immune to a stuck isPlaying flag)', () => {
+    it('is true only while the playback cursor is still ahead of the audio clock', () => {
+      expect(
+        resolveBotSpeaking({ isPlaying: true, contextRunning: true, nextPlayTime: 5, currentTime: 4.5 })
+      ).toBe(true)
+    })
+
+    it('is false once the clock has passed the cursor — the bot finished, so the user is heard', () => {
+      // The KEY regression guard: isPlaying may still be true (its onended never fired), but the
+      // schedule cursor is in the past → no audio is actually playing → do NOT keep gating.
+      expect(
+        resolveBotSpeaking({ isPlaying: true, contextRunning: true, nextPlayTime: 4, currentTime: 4 })
+      ).toBe(false)
+      expect(
+        resolveBotSpeaking({ isPlaying: true, contextRunning: true, nextPlayTime: 3, currentTime: 9 })
+      ).toBe(false)
+    })
+
+    it('is false when nothing is playing or the AudioContext is not running (e.g. suspended/closed)', () => {
+      expect(
+        resolveBotSpeaking({ isPlaying: false, contextRunning: true, nextPlayTime: 5, currentTime: 1 })
+      ).toBe(false)
+      expect(
+        resolveBotSpeaking({ isPlaying: true, contextRunning: false, nextPlayTime: 5, currentTime: 1 })
+      ).toBe(false)
     })
   })
 })

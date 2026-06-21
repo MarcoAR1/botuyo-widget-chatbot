@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.3] — 2026-06-21
+
+### Fixed
+- **Voice: the mic can no longer be silenced by a "stuck" bot-speaking flag.** Half-duplex gating keyed off `isPlayingRef`, which is only cleared by the last audio source's `onended` callback. If that callback never fires — a suspended/closed `AudioContext`, a stalled or stopped source, network jitter — the flag stayed `true`, so the gate stayed authoritative **forever** and dropped the user's mic even though the bot had long finished talking (the reported "the bot greets/speaks but never hears me"). Bot-speaking is now derived from the **audio clock** (`resolveBotSpeaking`): the bot is treated as speaking only while the gapless schedule cursor (`nextPlayTime`) is still ahead of the `AudioContext` clock; once the clock passes it (or the context isn't running) the user is heard again regardless of the flag. Builds on v1.4.2 (`resolveShouldStream` defers to the server-side VAD while the bot is idle).
+
 ## [1.4.2] — 2026-06-21
 
 ### Fixed

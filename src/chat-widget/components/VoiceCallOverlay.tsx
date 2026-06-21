@@ -43,6 +43,7 @@ import {
   resolveVadInput,
   resolveSpeechFlag,
   resolveShouldStream,
+  resolveBotSpeaking,
   type VadGateConfig,
   type VadGateSetting,
 } from '../voice/vadGate'
@@ -1189,10 +1190,20 @@ export function VoiceCallOverlay({
       const gate = vadGateRef.current
       if (!gate) return
       const vadFresh = performance.now() - lastVadFrameAtRef.current < VAD_STALE_MS
+      // Ground-truth "bot is audibly speaking" from the audio CLOCK, not just the isPlaying
+      // flag — that flag only clears on a source's onended, which can fail to fire (suspended
+      // AudioContext, stalled source) and get stuck true, silencing the user forever.
+      const playbackCtx = playbackCtxRef.current
+      const botSpeaking = resolveBotSpeaking({
+        isPlaying: isPlayingRef.current,
+        contextRunning: playbackCtx?.state === 'running',
+        nextPlayTime: nextPlayTimeRef.current,
+        currentTime: playbackCtx?.currentTime ?? 0,
+      })
       // Echo safety: without a fresh real-VAD signal, stay half-duplex over the bot
       // (silent frame) so the bot's own audio leaking into the mic can't self-interrupt.
       const { frame, confirmedSpeech } = resolveVadInput({
-        botSpeaking: isPlayingRef.current,
+        botSpeaking,
         vadFresh,
         speechProb: latestSpeechProbRef.current,
         rms: e.data.rms,
@@ -1204,7 +1215,7 @@ export function VoiceCallOverlay({
       // While the bot is idle (the user's turn) defer to the server-side VAD and stream every
       // frame — the client energy gate is unreliable across mics/gains and was silencing real
       // users. While the bot speaks the gate stays authoritative (echo / greeting protection).
-      const shouldStream = resolveShouldStream({ gateShouldStream, botSpeaking: isPlayingRef.current })
+      const shouldStream = resolveShouldStream({ gateShouldStream, botSpeaking })
       if (shouldStream && socket.connected && !isMuted) {
         // The backend greeting-gate drops UNMARKED mic audio during the greeting. Mark a
         // streamed frame as speech when Silero confirms it OR — in the energy-only fallback

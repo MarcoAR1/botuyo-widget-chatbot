@@ -195,6 +195,33 @@ export function resolveShouldStream(ctx: { gateShouldStream: boolean; botSpeakin
 }
 
 /**
+ * Ground-truth "is the bot AUDIBLY speaking right now?" used to drive the half-duplex
+ * gating. We deliberately do NOT rely solely on the `isPlaying` flag: that flag is only
+ * cleared by an `onended` callback on the last scheduled audio source, and if that callback
+ * never fires (a suspended/closed `AudioContext`, a stalled or stopped source, jitter) the
+ * flag gets STUCK at `true` — which would keep the gate authoritative forever and silence
+ * the user even though the bot has long finished. Instead we cross-check the playback
+ * schedule against the audio clock:
+ *
+ * - If nothing is playing (`isPlaying` false) → not speaking.
+ * - If there is no running `AudioContext` → nothing can be audible → not speaking.
+ * - Otherwise the bot is speaking only while the gapless schedule cursor (`nextPlayTime`)
+ *   is still AHEAD of the context clock (`currentTime`). Once the clock passes the cursor,
+ *   every scheduled chunk has elapsed → the bot is done and the user must be heard again,
+ *   regardless of whether `onended` fired.
+ */
+export function resolveBotSpeaking(ctx: {
+  isPlaying: boolean
+  contextRunning: boolean
+  nextPlayTime: number
+  currentTime: number
+}): boolean {
+  if (!ctx.isPlaying) return false
+  if (!ctx.contextRunning) return false
+  return ctx.nextPlayTime > ctx.currentTime
+}
+
+/**
  * Stateful speech gate. Feed it one analysed frame at a time via {@link process};
  * it returns whether to stream the frame plus any transition event.
  */
