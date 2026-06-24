@@ -267,7 +267,12 @@ describe('VoiceCallOverlay — interactive quiz', () => {
     expect(screen.queryByText('goed')).not.toBeInTheDocument()
   })
 
-  it('dismisses the pinned quiz when the user answers by voice (final transcript)', async () => {
+  // ─── Give the student time to think ───
+  // Previously the quiz was dismissed the instant ANY final user transcript arrived, so
+  // thinking out loud / background noise made the question vanish before they could answer.
+  // The quiz now stays pinned until the bot actually responds (or the user taps an option).
+
+  it('keeps the pinned quiz visible after the user speaks (so they get time to think)', async () => {
     const socket = await renderOverlay()
 
     act(() => {
@@ -275,10 +280,45 @@ describe('VoiceCallOverlay — interactive quiz', () => {
     })
     expect(screen.getByTestId('voice-quiz-dock')).toBeInTheDocument()
 
+    // The student thinks out loud / starts answering — the dock must NOT vanish immediately.
+    act(() => {
+      socket.handlers['voice_user_transcript_final']({ text: 'hmm, let me think... maybe went' })
+    })
+
+    expect(screen.getByTestId('voice-quiz-dock')).toBeInTheDocument()
+  })
+
+  it('dismisses the pinned quiz once the bot responds after the student answered', async () => {
+    const socket = await renderOverlay()
+
+    act(() => {
+      socket.handlers['custom_event'](QUIZ_EVENT)
+    })
     act(() => {
       socket.handlers['voice_user_transcript_final']({ text: 'I think it is went' })
     })
+    // Still pinned while waiting for Ms. Ellis to react.
+    expect(screen.getByTestId('voice-quiz-dock')).toBeInTheDocument()
+
+    // Ms. Ellis responds (new spoken turn) → the quiz turn is over → dock dismissed.
+    act(() => {
+      socket.handlers['voice_model_transcript']({ text: 'Correct! "went" is the past tense.' })
+    })
 
     expect(screen.queryByTestId('voice-quiz-dock')).not.toBeInTheDocument()
+  })
+
+  it('does NOT dismiss the quiz while the bot is still reading the options (no answer yet)', async () => {
+    const socket = await renderOverlay()
+
+    act(() => {
+      socket.handlers['custom_event'](QUIZ_EVENT)
+    })
+    // Bot narrates the options right after presenting (no user turn in between).
+    act(() => {
+      socket.handlers['voice_model_transcript']({ text: 'Option 1 goed, option 2 went, option 3 gone.' })
+    })
+
+    expect(screen.getByTestId('voice-quiz-dock')).toBeInTheDocument()
   })
 })

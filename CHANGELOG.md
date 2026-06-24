@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.4] — 2026-06-24
+
+### Fixed
+- **Voice: the "Próxima clase" card is now shown DURING a voice call.** On `suggest_next_class` the next-class card was only rendered on the host page's hero, which sits *behind* the fullscreen voice overlay — so while on a call the student heard "te agendo la próxima clase" but saw nothing. `VoiceCallOverlay` now renders the card inline (date + title/detail) as part of the in-call transcript. The actionable "Activar recordatorio" button stays on the hero card and is visible as soon as the call closes.
+- **Voice: the interactive quiz no longer vanishes while the student thinks out loud.** The pinned quiz used to clear on *any* final user transcript, so background noise or thinking aloud dismissed it before the student could answer. The quiz now stays pinned until the bot starts its next spoken turn after the student answered (or the student taps an option), giving them time to respond.
+
 ## [1.4.3] — 2026-06-21
 
 ### Fixed

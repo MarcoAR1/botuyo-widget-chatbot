@@ -846,20 +846,22 @@ export function VoiceCallOverlay({
       })
     }
 
-    // Final consolidated user transcript — replaces the streaming fragments with clean text
+    // Final consolidated user transcript — replaces the streaming fragments with clean text.
+    // NOTE: we deliberately do NOT dismiss a pinned quiz here. The student may be thinking out
+    // loud (or there's background noise); clearing on the raw transcript gave them no time to
+    // answer. The quiz is dismissed only when the bot actually responds (see onVoiceModelTranscript)
+    // or when the user taps an option (answerVoiceQuiz).
     const onVoiceUserTranscriptFinal = (data: { text: string }) => {
       if (!data?.text) return
       setConversation(prev => {
-        // The user answered out loud → dismiss any pinned quiz (clear its buttons) so the
-        // dock disappears, mirroring a tap. Then reconcile the final user transcript.
-        const cleared = prev.map(e => (e.quizButtons ? { ...e, quizButtons: undefined } : e))
-        const lastUserIdx = cleared.map(e => e.role).lastIndexOf('user')
+        const lastUserIdx = prev.map(e => e.role).lastIndexOf('user')
         if (lastUserIdx >= 0) {
-          cleared[lastUserIdx] = { ...cleared[lastUserIdx], text: data.text }
-          return cleared
+          const updated = [...prev]
+          updated[lastUserIdx] = { ...updated[lastUserIdx], text: data.text }
+          return updated
         }
         // If no user entry exists (edge case), add one
-        return [...cleared, { role: 'user', text: data.text }]
+        return [...prev, { role: 'user', text: data.text }]
       })
     }
 
@@ -890,21 +892,39 @@ export function VoiceCallOverlay({
       resetInactivityTimer() // Agent is responding
       setConversation(prev => {
         const last = prev[prev.length - 1]
+        const isContinuation = !!last && last.role === 'bot' && !last.standalone
+        // When the bot STARTS a new spoken turn AFTER the student has responded to a pinned quiz
+        // (i.e. a user turn exists after the quiz), the quiz turn is over → dismiss the dock now.
+        // This replaces the old "clear on raw transcript" behavior that gave no time to think.
+        let base = prev
+        if (!isContinuation) {
+          let quizIdx = -1
+          for (let i = prev.length - 1; i >= 0; i--) {
+            if (prev[i].quizButtons && prev[i].quizButtons!.length > 0) {
+              quizIdx = i
+              break
+            }
+          }
+          if (quizIdx >= 0 && prev.slice(quizIdx + 1).some(e => e.role === 'user')) {
+            base = prev.map((e, i) => (i === quizIdx ? { ...e, quizButtons: undefined } : e))
+          }
+        }
+        const lastBase = base[base.length - 1]
         // Append to the active spoken bubble — but NEVER onto a tool render or system
         // notice (standalone), so the agent's transcript stays in its own bubble.
-        if (last && last.role === 'bot' && !last.standalone) {
-          const updated = [...prev]
-          const existing = last.text
+        if (lastBase && lastBase.role === 'bot' && !lastBase.standalone) {
+          const updated = [...base]
+          const existing = lastBase.text
           // Add space between fragments if neither ends/starts with one
           const needsSpace =
             existing.length > 0 && !existing.endsWith(' ') && !data.text.startsWith(' ')
           updated[updated.length - 1] = {
-            ...last,
+            ...lastBase,
             text: existing + (needsSpace ? ' ' : '') + data.text,
           }
           return updated
         }
-        return [...prev, { role: 'bot', text: data.text }]
+        return [...base, { role: 'bot', text: data.text }]
       })
     }
 
@@ -1014,6 +1034,31 @@ export function VoiceCallOverlay({
             ...prev,
             { role: 'bot', text: `📝 ${question}`, quizButtons: buttons, standalone: true },
           ])
+        }
+      }
+
+      // ─── Próxima clase (suggest_next_class) ───
+      // Ms. Ellis proposes the next class. The hero page renders the actionable card (with the
+      // "Activar recordatorio" button) from the same event, but during a fullscreen voice call
+      // that card is hidden behind the overlay — so we ALSO show a "Próxima clase" card here so
+      // the student sees the proposal in-call. Reminder activation happens on the hero card once
+      // the call closes (it requires a notification-permission gesture that suits a calmer moment).
+      if (evt?.eventName === 'suggest_next_class' && evt?.data) {
+        const { scheduledAt, title, body } = evt.data as {
+          scheduledAt?: string
+          title?: string
+          body?: string
+        }
+        if (typeof scheduledAt === 'string' && scheduledAt.trim() !== '') {
+          const when = new Date(scheduledAt)
+          const whenLabel = Number.isNaN(when.getTime())
+            ? scheduledAt
+            : new Intl.DateTimeFormat(undefined, { dateStyle: 'full', timeStyle: 'short' }).format(when)
+          const lines = [`📅 **Próxima clase** — ${whenLabel}`]
+          if (typeof title === 'string' && title.trim() !== '') lines.push(`**${title.trim()}**`)
+          if (typeof body === 'string' && body.trim() !== '') lines.push(body.trim())
+          resetInactivityTimer()
+          setConversation(prev => [...prev, { role: 'bot', text: lines.join('\n\n'), standalone: true }])
         }
       }
     }
