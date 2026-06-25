@@ -35,6 +35,17 @@ export const translations = {
     file_too_large: 'Archivo demasiado grande',
     invalid_file: 'Tipo de archivo no válido',
 
+    // Tool approval (authenticated agents)
+    copilot: {
+      proposalLabel: 'Acción propuesta',
+      confirm: 'Confirmar',
+      cancel: 'Cancelar',
+      confirmed: 'Confirmado',
+      cancelled: 'Cancelado',
+      expired: 'Expirada',
+      ownerOnly: 'Solo administrador',
+    },
+
     // Extracted (común)
     extracted: {
       assistant: 'Asistente',
@@ -94,6 +105,17 @@ export const translations = {
     connection_error: 'Connection error',
     file_too_large: 'File too large',
     invalid_file: 'Invalid file type',
+
+    // Tool approval (authenticated agents)
+    copilot: {
+      proposalLabel: 'Proposed action',
+      confirm: 'Confirm',
+      cancel: 'Cancel',
+      confirmed: 'Confirmed',
+      cancelled: 'Cancelled',
+      expired: 'Expired',
+      ownerOnly: 'Admin only',
+    },
 
     // Extracted (common)
     extracted: {
@@ -155,6 +177,17 @@ export const translations = {
     file_too_large: 'Arquivo muito grande',
     invalid_file: 'Tipo de arquivo inválido',
 
+    // Tool approval (authenticated agents)
+    copilot: {
+      proposalLabel: 'Ação proposta',
+      confirm: 'Confirmar',
+      cancel: 'Cancelar',
+      confirmed: 'Confirmado',
+      cancelled: 'Cancelado',
+      expired: 'Expirada',
+      ownerOnly: 'Apenas administrador',
+    },
+
     // Extraído (comum)
     extracted: {
       assistant: 'Assistente',
@@ -214,6 +247,17 @@ export const translations = {
     connection_error: 'Erreur de connexion',
     file_too_large: 'Fichier trop volumineux',
     invalid_file: 'Type de fichier invalide',
+
+    // Tool approval (authenticated agents)
+    copilot: {
+      proposalLabel: 'Action proposée',
+      confirm: 'Confirmer',
+      cancel: 'Annuler',
+      confirmed: 'Confirmé',
+      cancelled: 'Annulé',
+      expired: 'Expirée',
+      ownerOnly: 'Administrateur uniquement',
+    },
 
     // Extrait (commun)
     extracted: {

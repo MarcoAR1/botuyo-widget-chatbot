@@ -44,4 +44,8 @@ export {
   ExternalLink,
   ArrowRight,
   Download,
+
+  // ToolProposalCard icons (tool approval)
+  Check,
+  Sparkles,
 } from 'lucide-react'

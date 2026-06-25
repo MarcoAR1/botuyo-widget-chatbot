@@ -35,6 +35,8 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
     onNavigate,
     onEvent,
     onStateChange,
+    getUserToken,
+    onAuthRequired,
     initialOpen = false,
     hideLauncher = false,
     voiceFirst = false,
@@ -77,6 +79,8 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
     getSocket,
     activeQuiz,
     handleQuizAnswer,
+    handleConfirmProposal,
+    handleCancelProposal,
   } = useChatWidget({
     apiKey,
     apiBaseUrl,
@@ -90,6 +94,8 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
     onNavigate,
     onEvent,
     onStateChange,
+    getUserToken,
+    onAuthRequired,
     onThemeUpdate: setSocketTheme, // Callback para recibir tema del socket
   })
 
@@ -317,6 +323,11 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
               suggestedQuestions={(socketTheme as any)?.suggestedQuestions}
               activeQuiz={activeQuiz}
               onQuizAnswer={handleQuizAnswer}
+              onProposalAction={(proposalId, action) =>
+                action === 'confirm'
+                  ? handleConfirmProposal(proposalId)
+                  : handleCancelProposal(proposalId)
+              }
             />
           </ErrorBoundary>
         </div>

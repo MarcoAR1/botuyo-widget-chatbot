@@ -4,7 +4,7 @@
  */
 
 import React, { useReducer, useCallback, useEffect, useState } from 'react'
-import type { ChatState, ChatAction, ChatMessage } from '../types'
+import type { ChatState, ChatAction, ChatMessage, ToolProposalCardStatus } from '../types'
 import { logger } from '../utils/logger'
 import { getChatStorage } from '../utils/storage'
 
@@ -95,6 +95,16 @@ function chatReducer(
           m.id === messageId && m.type === 'buttons'
             ? { ...m, answered: true, ...(buttonId ? { selectedId: buttonId } : {}) }
             : m
+        ),
+      }
+    }
+
+    case 'RESOLVE_PROPOSAL': {
+      const { proposalId, status } = action.payload
+      return {
+        ...state,
+        messages: state.messages.map(m =>
+          m.type === 'tool_proposal' && m.proposalId === proposalId ? { ...m, status } : m
         ),
       }
     }
@@ -249,6 +259,12 @@ export function useChatState(apiKey: string, agentId: string = 'default') {
     []
   )
 
+  const resolveProposal = useCallback(
+    (proposalId: string, status: ToolProposalCardStatus) =>
+      dispatch({ type: 'RESOLVE_PROPOSAL', payload: { proposalId, status } }),
+    []
+  )
+
   return {
     state,
     isHydrated,
@@ -265,6 +281,7 @@ export function useChatState(apiKey: string, agentId: string = 'default') {
       clearChat,
       clearMessages,
       answerQuiz,
+      resolveProposal,
     },
   }
 }

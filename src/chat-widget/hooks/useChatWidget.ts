@@ -8,6 +8,7 @@ import type {
   LocationMessage,
   ButtonsMessage,
   PageContext,
+  ToolProposalCardStatus,
 } from '../types'
 import { useChatState } from './useChatState'
 import { useChatSocket } from './useChatSocket'
@@ -46,6 +47,8 @@ interface UseChatWidgetOptions {
   onNavigate?: ChatWidgetProps['onNavigate']
   onEvent?: ChatWidgetProps['onEvent']
   onStateChange?: ChatWidgetProps['onStateChange']
+  getUserToken?: ChatWidgetProps['getUserToken']
+  onAuthRequired?: ChatWidgetProps['onAuthRequired']
   onThemeUpdate?: (theme: any) => void // Callback para tema del socket
 }
 
@@ -67,6 +70,8 @@ export function useChatWidget(options: UseChatWidgetOptions) {
     onNavigate,
     onEvent,
     onStateChange,
+    getUserToken,
+    onAuthRequired,
     onThemeUpdate,
   } = options
 
@@ -190,6 +195,14 @@ export function useChatWidget(options: UseChatWidgetOptions) {
       },
       [state.messages, actions]
     ),
+    // Authenticated agents: supply/refresh the user token in the handshake + prompt re-auth.
+    getUserToken,
+    onAuthRequired,
+    // A tool proposal resolved server-side (confirmed/cancelled) or expired → update its card.
+    onToolProposalResolved: useCallback(
+      (proposalId: string, status: ToolProposalCardStatus) => actions.resolveProposal(proposalId, status),
+      [actions]
+    ),
   })
 
   // Active (unanswered) quiz — pinned in a dock above the input so the question + options
@@ -259,6 +272,24 @@ export function useChatWidget(options: UseChatWidgetOptions) {
       analytics.trackMessageSent('text')
     },
     [actions, socket, analytics]
+  )
+
+  // Tool approval: confirm/cancel a pending proposal. Optimistically mark the card resolved
+  // (instant feedback) and emit to the backend, which re-validates + executes with STORED args.
+  const handleConfirmProposal = useCallback(
+    (proposalId: string) => {
+      actions.resolveProposal(proposalId, 'confirmed')
+      socket.confirmProposal(proposalId)
+    },
+    [actions, socket]
+  )
+
+  const handleCancelProposal = useCallback(
+    (proposalId: string) => {
+      actions.resolveProposal(proposalId, 'cancelled')
+      socket.rejectProposal(proposalId)
+    },
+    [actions, socket]
   )
 
   const handleSendAttachment = useCallback(
@@ -409,5 +440,7 @@ export function useChatWidget(options: UseChatWidgetOptions) {
     handleSendAttachment,
     handleSendLocation,
     handleQuizAnswer,
+    handleConfirmProposal,
+    handleCancelProposal,
   }
 }

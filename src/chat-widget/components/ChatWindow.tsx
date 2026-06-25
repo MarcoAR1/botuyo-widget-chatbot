@@ -46,6 +46,8 @@ export interface ChatWindowProps {
   activeQuiz?: ButtonsMessage | null
   /** Called when the user answers the pinned quiz (taps an option). */
   onQuizAnswer?: (message: ButtonsMessage, label: string, buttonId: string) => void
+  /** Called when the user confirms/cancels an inline tool-approval proposal card. */
+  onProposalAction?: (proposalId: string, action: 'confirm' | 'reject') => void
 }
 
 export function ChatWindow({
@@ -71,6 +73,7 @@ export function ChatWindow({
   suggestedQuestions,
   activeQuiz,
   onQuizAnswer,
+  onProposalAction,
 }: ChatWindowProps) {
   const [logoError, setLogoError] = useState(false)
   const [showVoiceOverlay, setShowVoiceOverlay] = useState(false)
@@ -337,6 +340,7 @@ export function ChatWindow({
             bubbleStyles={bubbleStyles}
             avatars={avatars}
             onButtonClick={(label) => onSendMessage(`Answer: ${label}`)}
+            onProposalAction={onProposalAction}
           />
           <div className="absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-background/10 to-transparent pointer-events-none" />
         </main>

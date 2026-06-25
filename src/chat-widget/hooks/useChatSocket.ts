@@ -13,8 +13,16 @@ import type {
   BotMessagePayload,
   AuthSuccessPayload,
   AgentSwitchedData,
+  ToolProposalStatus,
 } from '../types/socket'
-import type { ChatMessage, ChatWidgetProps, PageContext, ButtonsMessage } from '../types'
+import { ToolProposalSchema, ToolProposalResolvedSchema } from '../types/socket'
+import type {
+  ChatMessage,
+  ChatWidgetProps,
+  PageContext,
+  ButtonsMessage,
+  ToolProposalMessage,
+} from '../types'
 import { getOrCreateDeviceId } from '../utils/deviceId'
 import { logger } from '../utils/logger'
 import { throttle } from '../utils/performance'
@@ -65,7 +73,16 @@ export interface UseChatSocketOptions {
   onQuizAnswer?: (question: string, answer: string) => void
   /** Callback when the backend switches the active agent/variant (header + system bubble) */
   onAgentSwitched?: (data: AgentSwitchedData) => void
+  /** Resolve a (fresh) user JWT for the handshake (authenticated agents); refreshed on auth errors. */
+  getUserToken?: ChatWidgetProps['getUserToken']
+  /** Fired when the server rejects/expires the user token so the host can prompt re-auth. */
+  onAuthRequired?: ChatWidgetProps['onAuthRequired']
+  /** A pending tool proposal was resolved server-side (confirmed/cancelled) or expired. */
+  onToolProposalResolved?: (proposalId: string, status: ToolProposalStatus) => void
 }
+
+/** Connect-error reasons that mean "the user token is missing/expired/invalid" → re-auth. */
+const AUTH_ERROR_PATTERN = /USER_IDENTITY_REQUIRED|AUTH_EXPIRED|AUTH_INVALID|AUTH_REQUIRED|unauthorized/i
 
 export function useChatSocket(options: UseChatSocketOptions) {
   const { apiKey, apiBaseUrl, agentId, pageContext, userContext } = options
@@ -164,152 +181,241 @@ export function useChatSocket(options: UseChatSocketOptions) {
     if (socketRef.current?.connected) return
     setIsConnecting(true)
 
-    const socket = io(`${apiBaseUrl}/webchat`, {
-      // Namespace is specified in URL, path stays default '/socket.io'
-      auth: {
-        apiKey,
-        deviceId: deviceIdRef.current,
-        agentId,
-        token: userContext?.token,
-        metadata: userContext?.metadata,
-      },
-      transports: ['websocket', 'polling'], // Allow fallback to polling
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-      extraHeaders: {
-        'bypass-tunnel-reminder': 'true',
-        'X-Tunnel-Skip-Anti-Phishing-Page': 'true',
-      },
-    }) as Socket<ServerToClientEvents, ClientToServerEvents>
+    // Build + wire the socket with a resolved handshake `token`. Extracted so the token can be
+    // supplied synchronously (anonymous / pre-supplied `userContext.token` — UNCHANGED behavior)
+    // OR resolved asynchronously via `getUserToken()` (authenticated agents) before the `/webchat`
+    // handshake — same route, no reconnection-to-a-different-namespace logic.
+    const buildSocket = (token: string | undefined) => {
+      const socket = io(`${apiBaseUrl}/webchat`, {
+        // Namespace is specified in URL, path stays default '/socket.io'
+        auth: {
+          apiKey,
+          deviceId: deviceIdRef.current,
+          agentId,
+          token,
+          metadata: userContext?.metadata,
+        },
+        transports: ['websocket', 'polling'], // Allow fallback to polling
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+        extraHeaders: {
+          'bypass-tunnel-reminder': 'true',
+          'X-Tunnel-Skip-Anti-Phishing-Page': 'true',
+        },
+      }) as Socket<ServerToClientEvents, ClientToServerEvents>
 
-    socket.on('connect', () => {
-      setIsConnecting(false)
-      setIsConnected(true)
-      // Call onConnected immediately with a temporary sessionId
-      // This ensures the widget shows as connected even if server doesn't send connection_ack
-      handlersRef.current.onConnected(`temp-${Date.now()}`, undefined)
-    })
+      socket.on('connect', () => {
+        setIsConnecting(false)
+        setIsConnected(true)
+        // Call onConnected immediately with a temporary sessionId
+        // This ensures the widget shows as connected even if server doesn't send connection_ack
+        handlersRef.current.onConnected(`temp-${Date.now()}`, undefined)
+      })
 
-    socket.on('disconnect', _reason => {
-      setIsConnecting(false)
-      setIsConnected(false)
-      handlersRef.current.onDisconnected()
-    })
+      socket.on('disconnect', _reason => {
+        setIsConnecting(false)
+        setIsConnected(false)
+        handlersRef.current.onDisconnected()
+      })
 
-    socket.on('connect_error', error => {
-      setIsConnecting(false)
-      handlersRef.current.onError(`Error de conexión: ${error.message}`)
-    })
+      socket.on('connect_error', error => {
+        setIsConnecting(false)
+        // Authenticated agents: a missing/expired/invalid user token surfaces as a connect_error.
+        // Notify the host (so it can prompt sign-in) and refresh the token so Socket.IO's own
+        // auto-reconnect retries with a fresh credential (we never manually reconnect — RULE 6).
+        const reason = String(
+          (error as { data?: { code?: string } | string })?.data instanceof Object
+            ? (error as { data?: { code?: string } })?.data?.code
+            : ((error as { data?: string })?.data ?? error?.message ?? '')
+        )
+        if (AUTH_ERROR_PATTERN.test(reason) || AUTH_ERROR_PATTERN.test(error?.message ?? '')) {
+          handlersRef.current.onAuthRequired?.()
+          const refresh = handlersRef.current.getUserToken
+          if (refresh) {
+            refresh()
+              .then(fresh => {
+                if (socketRef.current) {
+                  ;(socketRef.current as unknown as { auth: Record<string, unknown> }).auth = {
+                    apiKey,
+                    deviceId: deviceIdRef.current,
+                    agentId,
+                    token: fresh,
+                    metadata: userContext?.metadata,
+                  }
+                }
+              })
+              .catch(e => logger.error('[useChatSocket] Token refresh failed:', e))
+          }
+        }
+        handlersRef.current.onError(`Error de conexión: ${error.message}`)
+      })
 
-    socket.on('connection_ack', data => {
-      handlersRef.current.onConnected(data.sessionId, data.config)
-    })
+      socket.on('connection_ack', data => {
+        handlersRef.current.onConnected(data.sessionId, data.config)
+      })
 
-    socket.on('bot_message', (data: BotMessagePayload) => {
-      try {
-        handlersRef.current.onMessage(sanitizeIncomingMessage(data))
-      } catch (e) {
-        logger.error('ChatSocket Error processing bot_message:', e)
-      }
-    })
+      socket.on('bot_message', (data: BotMessagePayload) => {
+        try {
+          handlersRef.current.onMessage(sanitizeIncomingMessage(data))
+        } catch (e) {
+          logger.error('ChatSocket Error processing bot_message:', e)
+        }
+      })
 
-    socket.on('chat_history', data => {
-      if (data.messages && Array.isArray(data.messages)) {
-        // Use batch handler if available, otherwise fallback to individual messages
-        if (handlersRef.current.onHistoryLoaded) {
-          const sanitizedMessages = data.messages
-            .map(msg => {
+      socket.on('chat_history', data => {
+        if (data.messages && Array.isArray(data.messages)) {
+          // Use batch handler if available, otherwise fallback to individual messages
+          if (handlersRef.current.onHistoryLoaded) {
+            const sanitizedMessages = data.messages
+              .map(msg => {
+                try {
+                  return sanitizeIncomingMessage(msg)
+                } catch (e) {
+                  logger.debug('Error processing history message:', e)
+                  return null
+                }
+              })
+              .filter((m): m is ChatMessage => m !== null)
+            handlersRef.current.onHistoryLoaded(sanitizedMessages)
+          } else {
+            data.messages.forEach(msg => {
               try {
-                return sanitizeIncomingMessage(msg)
+                handlersRef.current.onMessage(sanitizeIncomingMessage(msg))
               } catch (e) {
                 logger.debug('Error processing history message:', e)
-                return null
               }
             })
-            .filter((m): m is ChatMessage => m !== null)
-          handlersRef.current.onHistoryLoaded(sanitizedMessages)
-        } else {
-          data.messages.forEach(msg => {
-            try {
-              handlersRef.current.onMessage(sanitizeIncomingMessage(msg))
-            } catch (e) {
-              logger.debug('Error processing history message:', e)
-            }
-          })
-        }
-      }
-      if (handlersRef.current.onEvent) handlersRef.current.onEvent('history_loaded', data)
-    })
-
-    socket.on('bot_typing', isTyping => handlersRef.current.onTyping(isTyping))
-
-    // ── Form Bridge: bidirectional page ↔ agent communication ──────────
-    // Forward agent commands to the parent page
-    const forwardToPage = (data: any) => {
-      try { window.parent.postMessage(data, '*') } catch (_e) { window.postMessage(data, '*') }
-    }
-    socket.on('onboarding:command' as any, (data: any) => forwardToPage(data))
-    socket.on('form:command' as any, (data: any) => forwardToPage(data))
-    // Agent requests current form state — ask page to broadcast it
-    socket.on('request_form_state' as any, () => {
-      forwardToPage({ type: 'botuyo-request-form-state' })
-    })
-    socket.on('auth_success', (data: AuthSuccessPayload) => {
-      if (handlersRef.current.onLogin) handlersRef.current.onLogin(data)
-      // Si el servidor envía un tema, notificarlo
-      if (data.theme && handlersRef.current.onThemeUpdate) {
-        handlersRef.current.onThemeUpdate(data.theme)
-      }
-    })
-
-    // ── Custom Events: interactive buttons + dashboard updates ──────────
-    socket.on('custom_event' as any, (evt: any) => {
-      // Forward ALL custom events to the host page for external listeners
-      forwardToPage({ type: 'botuyo-custom-event', ...evt })
-
-      if (evt?.eventName === 'quiz_question' && evt?.data) {
-        const { question, buttons } = evt.data as { question: string; buttons: Array<{ id: string; label: string }> }
-        if (question && buttons?.length) {
-          const quizMsg: ButtonsMessage = {
-            id: `quiz-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-            type: 'buttons',
-            sender: 'bot',
-            timestamp: new Date(),
-            content: question,
-            buttons
           }
-          handlersRef.current.onMessage(quizMsg)
+        }
+        if (handlersRef.current.onEvent) handlersRef.current.onEvent('history_loaded', data)
+      })
+
+      socket.on('bot_typing', isTyping => handlersRef.current.onTyping(isTyping))
+
+      // ── Form Bridge: bidirectional page ↔ agent communication ──────────
+      // Forward agent commands to the parent page
+      const forwardToPage = (data: any) => {
+        try { window.parent.postMessage(data, '*') } catch (_e) { window.postMessage(data, '*') }
+      }
+      socket.on('onboarding:command' as any, (data: any) => forwardToPage(data))
+      socket.on('form:command' as any, (data: any) => forwardToPage(data))
+      // Agent requests current form state — ask page to broadcast it
+      socket.on('request_form_state' as any, () => {
+        forwardToPage({ type: 'botuyo-request-form-state' })
+      })
+      socket.on('auth_success', (data: AuthSuccessPayload) => {
+        if (handlersRef.current.onLogin) handlersRef.current.onLogin(data)
+        // Si el servidor envía un tema, notificarlo
+        if (data.theme && handlersRef.current.onThemeUpdate) {
+          handlersRef.current.onThemeUpdate(data.theme)
+        }
+      })
+
+      // ── Custom Events: interactive buttons + dashboard updates ──────────
+      socket.on('custom_event' as any, (evt: any) => {
+        // Forward ALL custom events to the host page for external listeners
+        forwardToPage({ type: 'botuyo-custom-event', ...evt })
+
+        if (evt?.eventName === 'quiz_question' && evt?.data) {
+          const { question, buttons } = evt.data as { question: string; buttons: Array<{ id: string; label: string }> }
+          if (question && buttons?.length) {
+            const quizMsg: ButtonsMessage = {
+              id: `quiz-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+              type: 'buttons',
+              sender: 'bot',
+              timestamp: new Date(),
+              content: question,
+              buttons
+            }
+            handlersRef.current.onMessage(quizMsg)
+          }
+        }
+
+        // Active agent/variant changed (switch_variant or transfer_to_department) →
+        // let the widget update its header (name/avatar) + show a system bubble.
+        if (evt?.eventName === 'agent_switched' && evt?.data) {
+          const parsed = AgentSwitchedSchema.safeParse(evt.data)
+          if (parsed.success) {
+            handlersRef.current.onAgentSwitched?.(parsed.data)
+          } else {
+            logger.debug('ChatSocket: dropped malformed agent_switched payload')
+          }
+        }
+
+        // Tool approval (authenticated agents): the agent proposes a mutating tool call that the
+        // user must confirm. Surface it as an inline ToolProposalCard message (Zod-validated;
+        // malformed payloads are dropped — RULE 8). The id is derived from the proposalId so a
+        // duplicate emit (e.g. reconnect) de-dupes via ADD_MESSAGE.
+        if (evt?.eventName === 'tool_proposal' && evt?.data) {
+          const parsed = ToolProposalSchema.safeParse(evt.data)
+          if (parsed.success) {
+            const p = parsed.data
+            const proposalMsg: ToolProposalMessage = {
+              id: `proposal-${p.proposalId}`,
+              type: 'tool_proposal',
+              sender: 'bot',
+              timestamp: new Date(),
+              proposalId: p.proposalId,
+              toolName: p.tool,
+              title: p.title,
+              summary: p.summary,
+              ownerOnly: p.ownerOnly,
+              status: 'pending',
+            }
+            handlersRef.current.onMessage(proposalMsg)
+          } else {
+            logger.debug('ChatSocket: dropped malformed tool_proposal payload')
+          }
+        }
+
+        // A proposal was resolved server-side (confirmed/cancelled) or expired → update its card.
+        if (
+          (evt?.eventName === 'tool_proposal_resolved' || evt?.eventName === 'tool_proposal_expired') &&
+          evt?.data
+        ) {
+          const parsed = ToolProposalResolvedSchema.safeParse(evt.data)
+          if (parsed.success) {
+            const status: ToolProposalStatus =
+              evt.eventName === 'tool_proposal_expired' ? 'expired' : (parsed.data.status ?? 'confirmed')
+            handlersRef.current.onToolProposalResolved?.(parsed.data.proposalId, status)
+          } else {
+            logger.debug('ChatSocket: dropped malformed tool_proposal_resolved payload')
+          }
+        }
+      })
+
+      // ── Form State Relay: page → backend ──────────────────────
+      // Listen for form state broadcasts from the host page and relay to backend
+      const formStateHandler = (event: MessageEvent) => {
+        const { type } = event.data || {}
+        if (type === 'botuyo-onboarding-state' || type === 'botuyo-form-state') {
+          socket.emit('form_state' as any, event.data)
         }
       }
+      window.addEventListener('message', formStateHandler)
 
-      // Active agent/variant changed (switch_variant or transfer_to_department) →
-      // let the widget update its header (name/avatar) + show a system bubble.
-      if (evt?.eventName === 'agent_switched' && evt?.data) {
-        const parsed = AgentSwitchedSchema.safeParse(evt.data)
-        if (parsed.success) {
-          handlersRef.current.onAgentSwitched?.(parsed.data)
-        } else {
-          logger.debug('ChatSocket: dropped malformed agent_switched payload')
-        }
-      }
-    })
+      socketRef.current = socket
 
-    // ── Form State Relay: page → backend ──────────────────────
-    // Listen for form state broadcasts from the host page and relay to backend
-    const formStateHandler = (event: MessageEvent) => {
-      const { type } = event.data || {}
-      if (type === 'botuyo-onboarding-state' || type === 'botuyo-form-state') {
-        socket.emit('form_state' as any, event.data)
-      }
+      // Cleanup form state listener when socket reconnects
+      const prevCleanup = () => window.removeEventListener('message', formStateHandler)
+      ;(socket as any).__formCleanup = prevCleanup
     }
-    window.addEventListener('message', formStateHandler)
 
-    socketRef.current = socket
-
-    // Cleanup form state listener when socket reconnects
-    const prevCleanup = () => window.removeEventListener('message', formStateHandler)
-    ;(socket as any).__formCleanup = prevCleanup
+    // Authenticated agents resolve a fresh token before connecting; everyone else connects
+    // synchronously with the (optional) pre-supplied `userContext.token` — unchanged behavior.
+    const getUserToken = handlersRef.current.getUserToken
+    if (getUserToken) {
+      getUserToken()
+        .then(token => buildSocket(token))
+        .catch(err => {
+          logger.error('[useChatSocket] getUserToken failed:', err)
+          handlersRef.current.onAuthRequired?.()
+          buildSocket(userContext?.token)
+        })
+    } else {
+      buildSocket(userContext?.token)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- Deliberately minimal deps to prevent reconnection loops
   }, [apiKey, apiBaseUrl])
 
@@ -483,5 +589,13 @@ export function useChatSocket(options: UseChatSocketOptions) {
     }, []),
     reconnect: connect,
     disconnect,
+    /** Confirm a pending tool proposal — server re-validates + executes with its STORED args. */
+    confirmProposal: useCallback((proposalId: string) => {
+      socketRef.current?.emit('tool_confirm', { proposalId })
+    }, []),
+    /** Reject a pending tool proposal — server injects a rejection result + resumes. */
+    rejectProposal: useCallback((proposalId: string) => {
+      socketRef.current?.emit('tool_reject', { proposalId })
+    }, []),
   }
 }

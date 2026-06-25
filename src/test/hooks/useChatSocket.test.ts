@@ -921,4 +921,217 @@ describe('useChatSocket', () => {
       expect(onAgentSwitched).not.toHaveBeenCalled()
     })
   })
+
+  describe('Authenticated agents — getUserToken / onAuthRequired (OC-WD-02)', () => {
+    const findHandler = (event: string) =>
+      mockSocket.on.mock.calls.find((call: any[]) => call[0] === event)?.[1]
+
+    it('supplies the resolved getUserToken in the handshake auth', async () => {
+      const getUserToken = vi.fn().mockResolvedValue('fresh-jwt')
+      renderHook(() =>
+        useChatSocket({
+          apiKey: 'test-api-key',
+          apiBaseUrl: 'http://localhost:3000',
+          getUserToken,
+          ...mockHandlers,
+        })
+      )
+
+      await waitFor(() => {
+        expect(io).toHaveBeenCalledWith(
+          'http://localhost:3000/webchat',
+          expect.objectContaining({ auth: expect.objectContaining({ token: 'fresh-jwt' }) })
+        )
+      })
+      expect(getUserToken).toHaveBeenCalledTimes(1)
+    })
+
+    it('keeps the anonymous handshake synchronous (no getUserToken → token undefined, io called immediately)', () => {
+      renderHook(() =>
+        useChatSocket({ apiKey: 'k', apiBaseUrl: 'http://localhost:3000', ...mockHandlers })
+      )
+
+      // No await: with no getUserToken the socket is built synchronously on mount (unchanged path).
+      expect(io).toHaveBeenCalledWith(
+        'http://localhost:3000/webchat',
+        expect.objectContaining({ auth: expect.objectContaining({ token: undefined }) })
+      )
+    })
+
+    it('falls back to userContext.token and fires onAuthRequired if getUserToken rejects', async () => {
+      const getUserToken = vi.fn().mockRejectedValue(new Error('no session'))
+      const onAuthRequired = vi.fn()
+      renderHook(() =>
+        useChatSocket({
+          apiKey: 'k',
+          apiBaseUrl: 'http://localhost:3000',
+          userContext: { token: 'stale-token' },
+          getUserToken,
+          onAuthRequired,
+          ...mockHandlers,
+        })
+      )
+
+      await waitFor(() => expect(io).toHaveBeenCalled())
+      expect(onAuthRequired).toHaveBeenCalled()
+      expect(io).toHaveBeenCalledWith(
+        'http://localhost:3000/webchat',
+        expect.objectContaining({ auth: expect.objectContaining({ token: 'stale-token' }) })
+      )
+    })
+
+    it('fires onAuthRequired + refreshes the token on an auth-coded connect_error', async () => {
+      const getUserToken = vi.fn().mockResolvedValue('jwt-1')
+      const onAuthRequired = vi.fn()
+      renderHook(() =>
+        useChatSocket({
+          apiKey: 'k',
+          apiBaseUrl: 'http://localhost:3000',
+          getUserToken,
+          onAuthRequired,
+          ...mockHandlers,
+        })
+      )
+
+      await waitFor(() => expect(io).toHaveBeenCalled())
+      const errorHandler = findHandler('connect_error')
+      expect(errorHandler).toBeDefined()
+
+      getUserToken.mockResolvedValue('jwt-2')
+      act(() => {
+        errorHandler?.({ message: 'AUTH_EXPIRED', data: { code: 'AUTH_EXPIRED' } })
+      })
+
+      expect(onAuthRequired).toHaveBeenCalled()
+      // initial handshake (1) + refresh after the auth error (2)
+      await waitFor(() => expect(getUserToken).toHaveBeenCalledTimes(2))
+    })
+
+    it('does NOT fire onAuthRequired on a generic connect_error', async () => {
+      const getUserToken = vi.fn().mockResolvedValue('jwt')
+      const onAuthRequired = vi.fn()
+      renderHook(() =>
+        useChatSocket({
+          apiKey: 'k',
+          apiBaseUrl: 'http://localhost:3000',
+          getUserToken,
+          onAuthRequired,
+          ...mockHandlers,
+        })
+      )
+
+      await waitFor(() => expect(io).toHaveBeenCalled())
+      const errorHandler = findHandler('connect_error')
+      act(() => {
+        errorHandler?.(new Error('network down'))
+      })
+
+      expect(onAuthRequired).not.toHaveBeenCalled()
+      expect(mockHandlers.onError).toHaveBeenCalledWith('Error de conexión: network down')
+    })
+
+    it('confirmProposal emits tool_confirm; rejectProposal emits tool_reject (proposalId only)', () => {
+      mockSocket.connected = true
+      const { result } = renderHook(() =>
+        useChatSocket({ apiKey: 'k', apiBaseUrl: 'http://localhost:3000', ...mockHandlers })
+      )
+
+      act(() => {
+        ;(result.current as any).confirmProposal('prop-1')
+      })
+      expect(mockSocket.emit).toHaveBeenCalledWith('tool_confirm', { proposalId: 'prop-1' })
+
+      act(() => {
+        ;(result.current as any).rejectProposal('prop-2')
+      })
+      expect(mockSocket.emit).toHaveBeenCalledWith('tool_reject', { proposalId: 'prop-2' })
+    })
+  })
+
+  describe('Custom Events — tool_proposal (OC-WD-03)', () => {
+    const getCustomEventHandler = () =>
+      mockSocket.on.mock.calls.find((call: any[]) => call[0] === 'custom_event')?.[1]
+
+    it('surfaces a valid tool_proposal as a ToolProposalMessage via onMessage', () => {
+      renderHook(() =>
+        useChatSocket({ apiKey: 'k', apiBaseUrl: 'http://localhost:3000', ...mockHandlers })
+      )
+
+      act(() => {
+        getCustomEventHandler()?.({
+          eventName: 'tool_proposal',
+          data: {
+            proposalId: 'p1',
+            tool: 'create_vacancy',
+            title: 'Crear vacante',
+            summary: 'Se creará la vacante.',
+            ownerOnly: true,
+          },
+        })
+      })
+
+      expect(mockHandlers.onMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'proposal-p1',
+          type: 'tool_proposal',
+          proposalId: 'p1',
+          toolName: 'create_vacancy',
+          title: 'Crear vacante',
+          ownerOnly: true,
+          status: 'pending',
+        })
+      )
+    })
+
+    it('drops a malformed tool_proposal (missing proposalId)', () => {
+      renderHook(() =>
+        useChatSocket({ apiKey: 'k', apiBaseUrl: 'http://localhost:3000', ...mockHandlers })
+      )
+
+      act(() => {
+        getCustomEventHandler()?.({ eventName: 'tool_proposal', data: { tool: 'create_vacancy' } })
+      })
+
+      expect(mockHandlers.onMessage).not.toHaveBeenCalled()
+    })
+
+    it('routes tool_proposal_resolved to onToolProposalResolved with the status', () => {
+      const onToolProposalResolved = vi.fn()
+      renderHook(() =>
+        useChatSocket({
+          apiKey: 'k',
+          apiBaseUrl: 'http://localhost:3000',
+          ...mockHandlers,
+          onToolProposalResolved,
+        })
+      )
+
+      act(() => {
+        getCustomEventHandler()?.({
+          eventName: 'tool_proposal_resolved',
+          data: { proposalId: 'p1', status: 'cancelled' },
+        })
+      })
+
+      expect(onToolProposalResolved).toHaveBeenCalledWith('p1', 'cancelled')
+    })
+
+    it('maps tool_proposal_expired to an expired status', () => {
+      const onToolProposalResolved = vi.fn()
+      renderHook(() =>
+        useChatSocket({
+          apiKey: 'k',
+          apiBaseUrl: 'http://localhost:3000',
+          ...mockHandlers,
+          onToolProposalResolved,
+        })
+      )
+
+      act(() => {
+        getCustomEventHandler()?.({ eventName: 'tool_proposal_expired', data: { proposalId: 'p1' } })
+      })
+
+      expect(onToolProposalResolved).toHaveBeenCalledWith('p1', 'expired')
+    })
+  })
 })

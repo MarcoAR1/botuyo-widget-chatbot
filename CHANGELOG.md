@@ -12,6 +12,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] — 2026-06-25
+
+### Added
+- **Authenticated agents + inline tool approval.** The widget can now back an authenticated
+  "operator copilot" agent: it forwards the host's verified user identity and renders a native
+  confirmation card for mutating tool calls — no bespoke per-host chat UI required.
+  - **New `getUserToken?: () => Promise<string>` prop.** The widget calls it during the socket
+    handshake and again to refresh after the server reports the token expired/invalid. Preferred
+    over `userContext.token` because it is refreshable; same `/webchat` connection, no route change.
+  - **New `onAuthRequired?: () => void` prop.** Fired when the agent needs a verified identity and
+    the presented token is missing/expired/invalid, so the host app can prompt the user to (re-)authenticate.
+  - **New `ToolProposalCard` + `tool_proposal` message type.** When an agent wants to run a mutating
+    tool that needs human confirmation, the widget renders a localized title/summary with Confirm/Cancel
+    actions. The client echoes **only** the opaque `proposalId` on the `tool_confirm` / `tool_reject`
+    socket events — the server re-derives the args (never trusts the client) and re-validates `ownerOnly`.
+    Owner-only proposals show a badge and can be pre-disabled with `canConfirm={false}`.
+  - **Server-driven resolution.** `tool_proposal_resolved` / `tool_proposal_expired` custom events mark
+    an in-flight card as confirmed/cancelled/expired (e.g. on server-side expiry or history restore).
+  - **i18n.** New `copilot` namespace (`proposalLabel`, `confirm`, `cancel`, `confirmed`, `cancelled`,
+    `expired`, `ownerOnly`) in all four languages (es/en/pt/fr).
+  - **Public API.** Exports `ToolProposalCard`, `ToolProposalCardProps`, `ToolProposalMessage`,
+    `ToolProposalCardStatus`. Fully backward-compatible — all new props are optional.
+
 ## [1.4.4] — 2026-06-24
 
 ### Fixed

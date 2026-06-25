@@ -23,6 +23,8 @@ export interface MessageListProps {
   avatars?: EmotionAvatarMap
   /** Callback when a quiz/interactive button is clicked */
   onButtonClick?: (buttonLabel: string, message: ChatMessage) => void
+  /** Callback when the user confirms/cancels an inline tool-approval proposal card. */
+  onProposalAction?: (proposalId: string, action: 'confirm' | 'reject') => void
 }
 
 export const MessageList = memo(
@@ -36,6 +38,7 @@ export const MessageList = memo(
     bubbleStyles,
     avatars,
     onButtonClick,
+    onProposalAction,
   }: MessageListProps) {
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -161,6 +164,7 @@ export const MessageList = memo(
                     isFirst={!isSameAsPrev}
                     isLast={!isSameAsNext}
                     onButtonClick={onButtonClick}
+                    onProposalAction={onProposalAction}
                   />
                 </div>
               )
@@ -275,6 +279,7 @@ export const MessageList = memo(
                     isFirst={!isSameAsPrev}
                     isLast={!isSameAsNext}
                     onButtonClick={onButtonClick}
+                    onProposalAction={onProposalAction}
                   />
                 </React.Fragment>
               )

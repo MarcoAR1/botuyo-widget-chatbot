@@ -18,9 +18,11 @@ import type {
   LocationMessage,
   FileMessage,
   ButtonsMessage,
+  ToolProposalMessage,
 } from '../types'
 import type { EmotionAvatarMap } from './Launcher'
 import { SourcesCitation } from './SourcesCitation'
+import { ToolProposalCard } from './ToolProposalCard'
 
 // Lazy load componentes pesados
 const AudioPlayer = lazy(() => import('./AudioPlayer').then(m => ({ default: m.AudioPlayer })))
@@ -38,6 +40,8 @@ export interface MessageBubbleProps {
   index?: number // For stagger animation
   /** Callback when a quiz/interactive button is clicked */
   onButtonClick?: (buttonLabel: string, message: ChatMessage) => void
+  /** Callback when the user confirms/cancels an inline tool-approval proposal card. */
+  onProposalAction?: (proposalId: string, action: 'confirm' | 'reject') => void
 }
 
 interface MessageButtonsProps {
@@ -145,6 +149,7 @@ export const MessageBubble = memo(
     isLast = true,
     index = 0,
     onButtonClick,
+    onProposalAction,
   }: MessageBubbleProps) {
     const { t } = useTranslations('extracted')
     const isUser = message.sender === 'user'
@@ -480,6 +485,18 @@ export const MessageBubble = memo(
       }
     }
 
+    // Inline tool-approval card (authenticated agents) — rendered full-width, not as a chat bubble.
+    if (message.type === 'tool_proposal') {
+      return (
+        <ToolProposalCard
+          message={message as ToolProposalMessage}
+          primaryColor={primaryColor}
+          onConfirm={proposalId => onProposalAction?.(proposalId, 'confirm')}
+          onCancel={proposalId => onProposalAction?.(proposalId, 'reject')}
+        />
+      )
+    }
+
     if (isSystem) {
       return (
         <div className="flex justify-center my-4 animate-in fade-in zoom-in-95 w-full">
@@ -602,6 +619,12 @@ export const MessageBubble = memo(
     // Custom comparator: solo re-render si cambió algo relevante
     if (prevProps.message.id !== nextProps.message.id) return false
     if (prevProps.message.timestamp !== nextProps.message.timestamp) return false
+    // Tool-approval cards mutate their status in place (server resolve/expire) — re-render on change.
+    if (
+      (prevProps.message as ToolProposalMessage).status !==
+      (nextProps.message as ToolProposalMessage).status
+    )
+      return false
     if (prevProps.primaryColor !== nextProps.primaryColor) return false
     if (prevProps.botAvatar !== nextProps.botAvatar) return false
     if (prevProps.botName !== nextProps.botName) return false

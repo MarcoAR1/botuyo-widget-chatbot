@@ -12,6 +12,8 @@ export { ChatWidgetProvider, useChatWidget } from './ChatWidgetProvider'
 export type { ChatWidgetContextValue } from './ChatWidgetProvider'
 
 export { Avatar3DPreview } from './components/Avatar3DPreview'
+export { ToolProposalCard } from './components/ToolProposalCard'
+export type { ToolProposalCardProps } from './components/ToolProposalCard'
 
 // ========== Tipos ==========
 export type {
@@ -26,6 +28,8 @@ export type {
   PageContext,
   BubbleStyles,
   AuthenticatedUser,
+  ToolProposalMessage,
+  ToolProposalCardStatus,
 } from './types'
 
 export type { ChatWidgetProviderProps } from './ChatWidgetProvider'

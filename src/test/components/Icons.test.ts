@@ -52,6 +52,11 @@ describe('Icons', () => {
       expect(Icons.Download).toBeDefined()
     })
 
+    it('should export ToolProposalCard icons', () => {
+      expect(Icons.Check).toBeDefined()
+      expect(Icons.Sparkles).toBeDefined()
+    })
+
     it('should export all icons as objects (React components)', () => {
       const iconNames = [
         'X',
@@ -82,6 +87,8 @@ describe('Icons', () => {
         'Phone',
         'AlertCircle',
         'RotateCw',
+        'Check',
+        'Sparkles',
       ]
 
       iconNames.forEach(iconName => {
@@ -99,9 +106,9 @@ describe('Icons', () => {
       expect(Icons.MapPin).toBe(Icons.MapPinBubble)
     })
 
-    it('should export 28 unique icon references', () => {
+    it('should export 30 unique icon references', () => {
       const exportedKeys = Object.keys(Icons)
-      expect(exportedKeys.length).toBe(28)
+      expect(exportedKeys.length).toBe(30)
     })
   })
 

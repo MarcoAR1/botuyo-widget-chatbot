@@ -143,6 +143,19 @@ export interface ChatWidgetProps {
   /** Context del usuario si ya está autenticado en la app host */
   userContext?: UserContext
 
+  /**
+   * Resolve a (fresh) user JWT for an authenticated agent. Called before the `/webchat`
+   * handshake and again to refresh after the server reports the token expired/invalid.
+   * Preferred over `userContext.token` because it is refreshable. Same `/webchat`, no route change.
+   */
+  getUserToken?: () => Promise<string>
+
+  /**
+   * Fired when the agent requires a verified user identity and the presented token is
+   * missing/expired/invalid, so the host app can prompt the user to (re-)authenticate.
+   */
+  onAuthRequired?: () => void
+
   // ========== Callbacks / Bridge hacia App Padre ==========
   /** Se ejecuta cuando el bot completa un login/autenticación */
   onLogin?: (userData: AuthenticatedUser) => void
@@ -347,7 +360,7 @@ export interface AuthenticatedUser {
 }
 
 // ========== Tipos de Mensajes ==========
-export type MessageType = 'text' | 'image' | 'location' | 'system' | 'audio' | 'location' | 'file' | 'buttons'
+export type MessageType = 'text' | 'image' | 'location' | 'system' | 'audio' | 'location' | 'file' | 'buttons' | 'tool_proposal'
 
 // 🔥 CORRECCIÓN 1: Agregamos 'system' a los senders permitidos
 export type MessageSender = 'user' | 'bot' | 'system'
@@ -420,6 +433,30 @@ export interface ButtonsMessage extends BaseMessage {
   answered?: boolean
 }
 
+/** Lifecycle of a tool-approval proposal card (authenticated agents). */
+export type ToolProposalCardStatus = 'pending' | 'confirmed' | 'cancelled' | 'expired'
+
+/**
+ * An inline tool-approval card: the agent wants to run a mutating tool and the user must
+ * confirm/cancel. Created from a `tool_proposal` custom event (see useChatSocket). The client
+ * echoes ONLY `proposalId` on confirm/reject — the server re-derives the args (never trust the
+ * client) and re-validates `ownerOnly`.
+ */
+export interface ToolProposalMessage extends BaseMessage {
+  type: 'tool_proposal'
+  /** Opaque proposal id echoed back on confirm/reject. */
+  proposalId: string
+  /** Tool name (informational + fallback label when no title is provided). */
+  toolName: string
+  /** Localized, human-readable title + summary (server-provided). */
+  title?: string
+  summary?: string
+  /** True when only an owner-role identity may confirm (server re-validates at confirm). */
+  ownerOnly?: boolean
+  /** Pending until confirmed/cancelled (user) or expired (server). */
+  status?: ToolProposalCardStatus
+}
+
 export type ChatMessage =
   | TextMessage
   | ImageMessage
@@ -428,6 +465,7 @@ export type ChatMessage =
   | AudioMessage
   | FileMessage
   | ButtonsMessage
+  | ToolProposalMessage
 
 // ========== Estado del Widget ==========
 export interface ChatState {
@@ -451,3 +489,4 @@ export type ChatAction =
   | { type: 'SET_SESSION_ID'; payload: string }
   | { type: 'CLEAR_CHAT' }
   | { type: 'ANSWER_QUIZ'; payload: { messageId: string; buttonId?: string } }
+  | { type: 'RESOLVE_PROPOSAL'; payload: { proposalId: string; status: ToolProposalCardStatus } }
