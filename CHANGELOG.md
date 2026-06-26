@@ -12,6 +12,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.2] — 2026-06-26
+
+### Fixed
+- **Chat transcript no longer corrupts when a message id repeats.** A `chat_history`
+  transcript carrying the same message `id` twice produced duplicate React keys, which
+  corrupted list reconciliation — a single bot reply rendered visually **split around the
+  user's message** with crossed timestamps. Bulk message loads now de-duplicate by id
+  (`SET_MESSAGES` history merge + `RESTORE_SESSION` hydration), and the message list builds
+  **collision-proof render keys** (a per-occurrence suffix) so two messages can never share a
+  React key even if an id is repeated.
+
 ## [1.5.1] — 2026-06-26
 
 ### Fixed

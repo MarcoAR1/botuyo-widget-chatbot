@@ -187,6 +187,14 @@ export const MessageList = memo(
     }
 
     // Renderizado tradicional para listas pequeñas
+    const seenKeys = new Map<string, number>()
+    const keyFor = (message: ChatMessage, index: number): string => {
+      const base = message.id || `idx-${index}`
+      const occurrence = seenKeys.get(base) ?? 0
+      seenKeys.set(base, occurrence + 1)
+      return occurrence === 0 ? base : `${base}__${occurrence}`
+    }
+
     return (
       <div
         ref={containerRef}
@@ -259,7 +267,7 @@ export const MessageList = memo(
                 differenceInMinutes(new Date(next.timestamp), new Date(message.timestamp)) < 5
 
               return (
-                <React.Fragment key={message.id || `msg-${index}`}>
+                <React.Fragment key={keyFor(message, index)}>
                   {showDateSeparator && (
                     <div className="flex justify-center my-8 animate-in fade-in zoom-in-95">
                       <span className="px-4 py-1.5 bg-muted/40 backdrop-blur-md rounded-full text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] border border-border/50 shadow-sm">

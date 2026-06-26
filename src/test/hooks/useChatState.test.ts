@@ -289,6 +289,23 @@ describe('useChatState', () => {
       expect(result.current.state.messages).toEqual(messages)
     })
 
+    it('should drop duplicate-id messages when setting the array (server transcript with repeated ids)', () => {
+      const { result } = renderHook(() => useChatState())
+
+      const messages: ChatMessage[] = [
+        { id: 'x', type: 'text', content: 'A', sender: 'bot', timestamp: new Date() },
+        { id: 'x', type: 'text', content: 'A', sender: 'bot', timestamp: new Date() },
+        { id: 'y', type: 'text', content: 'B', sender: 'user', timestamp: new Date() },
+      ]
+
+      act(() => {
+        result.current.actions.setMessages(messages)
+      })
+
+      expect(result.current.state.messages).toHaveLength(2)
+      expect(result.current.state.messages.map(m => m.id)).toEqual(['x', 'y'])
+    })
+
     it('should clear messages', () => {
       const { result } = renderHook(() => useChatState())
 

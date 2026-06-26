@@ -21,6 +21,19 @@ const initialState: ChatState = {
   sessionId: null,
 }
 
+function dedupeById(messages: ChatMessage[]): ChatMessage[] {
+  const seen = new Set<string>()
+  const out: ChatMessage[] = []
+  for (const m of messages) {
+    if (m.id) {
+      if (seen.has(m.id)) continue
+      seen.add(m.id)
+    }
+    out.push(m)
+  }
+  return out
+}
+
 function chatReducer(
   state: ChatState,
   action: ChatAction | { type: 'RESTORE_SESSION'; payload: Partial<ChatState> }
@@ -79,7 +92,7 @@ function chatReducer(
     }
 
     case 'SET_MESSAGES':
-      return { ...state, messages: [...action.payload] }
+      return { ...state, messages: dedupeById(action.payload) }
 
     case 'SET_ERROR':
       return { ...state, error: action.payload }
@@ -116,6 +129,9 @@ function chatReducer(
       return {
         ...state,
         ...action.payload,
+        messages: action.payload.messages
+          ? dedupeById(action.payload.messages)
+          : state.messages,
         isConnected: false,
         isTyping: false,
         error: null,
