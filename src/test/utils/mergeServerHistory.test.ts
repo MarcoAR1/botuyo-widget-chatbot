@@ -75,4 +75,32 @@ describe('mergeServerHistory — server-authoritative reconciliation', () => {
 
     expect(ids(result)).toEqual(['srv-1'])
   })
+
+  it('orders the merged transcript chronologically by timestamp (defensive against server order)', () => {
+    // Server delivered OUT of chronological order; the widget must not rely on it.
+    const server = [
+      msg({ id: 's-late', sender: 'bot', content: 'b', timestamp: new Date('2026-01-01T10:00:02Z') }),
+      msg({ id: 's-early', sender: 'user', content: 'a', timestamp: new Date('2026-01-01T10:00:00Z') }),
+    ]
+    // A genuine in-flight message, newer than everything on the server.
+    const local = [
+      msg({ id: 'temp-1', sender: 'user', content: 'c', timestamp: new Date('2026-01-01T10:00:05Z') }),
+    ]
+
+    const result = mergeServerHistory(local, server)
+
+    expect(ids(result)).toEqual(['s-early', 's-late', 'temp-1'])
+  })
+
+  it('keeps a stable order for messages sharing the same timestamp', () => {
+    const sameTs = new Date('2026-01-01T10:00:00.000Z')
+    const server = [
+      msg({ id: 's-1', sender: 'user', content: 'first', timestamp: sameTs }),
+      msg({ id: 's-2', sender: 'bot', content: 'second', timestamp: sameTs }),
+    ]
+
+    const result = mergeServerHistory([], server)
+
+    expect(ids(result)).toEqual(['s-1', 's-2'])
+  })
 })

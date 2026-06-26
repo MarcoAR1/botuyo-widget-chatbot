@@ -12,6 +12,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.1] — 2026-06-26
+
+### Fixed
+- **Chat transcript no longer renders out of order after a session resumes.** When the
+  widget reconciled its local fast-paint cache with the server's authoritative
+  `chat_history`, the merged list was returned as `[...server, ...localInFlight]`
+  **without sorting**, so cached messages and freshly-received turns could interleave
+  incorrectly (e.g. an agent re-greeting appearing *below* newer messages, with crossed
+  timestamps). `mergeServerHistory` now sorts the reconciled transcript **chronologically
+  by timestamp** (stable), and the sorted, de-duplicated result is persisted back to the
+  cache — guaranteeing a consistent order no matter how server history and local messages
+  interleave. Pairs with the backend change that **resumes** an inactivity-closed web
+  conversation instead of starting a fresh chat.
+
 ## [1.6.0] — 2026-06-26
 
 ### Added

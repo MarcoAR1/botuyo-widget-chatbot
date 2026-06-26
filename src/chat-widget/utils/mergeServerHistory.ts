@@ -38,5 +38,5 @@ export function mergeServerHistory(local: ChatMessage[], server: ChatMessage[]):
     m => !serverIds.has(m.id) && ts(m) > newestServerTs && !serverSignatures.has(signature(m))
   )
 
-  return [...server, ...inFlight]
+  return [...server, ...inFlight].sort((a, b) => ts(a) - ts(b))
 }
