@@ -12,6 +12,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] — 2026-06-26
+
+### Added
+- **Interactive 3D avatar preview.** `Avatar3DPreview` (consumed by the dashboard/landing
+  to preview interviewer avatars) now supports mouse/touch **orbit + zoom** via OrbitControls,
+  plus real **loading and error states** so a slow or broken `.glb`/`.vrm` gives clear feedback
+  instead of a blank canvas.
+  - **New optional props:** `interactive` (orbit/zoom, default `true`), `showShadow` (soft
+    contact shadow, default `true`), `loadingLabel`, `errorLabel`, `onLoad`, and `onError`.
+  - **Better visuals:** 3-point studio lighting and a soft contact shadow that grounds the model.
+  - All new props are optional — **no breaking change** for existing consumers.
+
+### Changed
+- `Avatar3DPreview` no longer writes to `console.*` directly: model load failures now go through
+  the centralized `logger` and surface an in-canvas error overlay (+ the new `onError` callback).
+
 ## [1.5.2] — 2026-06-26
 
 ### Fixed

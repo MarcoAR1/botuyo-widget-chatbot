@@ -8,25 +8,51 @@
 
 'use client'
 
-import { useRef, useEffect, Suspense } from 'react'
+import { useRef, useEffect, useState, useCallback, type MutableRefObject } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { VRMLoaderPlugin, VRM } from '@pixiv/three-vrm'
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { AlertTriangle } from 'lucide-react'
+import { logger } from '../utils/logger'
 
 interface Avatar3DPreviewProps {
   url: string
   className?: string
   cameraPosition?: [number, number, number]
   targetPosition?: [number, number, number]
+  /** Slow idle auto-spin. Default true. */
   autoRotate?: boolean
+  /** Allow the user to orbit/zoom with mouse + touch. Default true. */
+  interactive?: boolean
+  /** Render a soft contact shadow beneath the model. Default true. */
+  showShadow?: boolean
+  /** Text shown while the model downloads. */
+  loadingLabel?: string
+  /** Text shown if the model fails to load. */
+  errorLabel?: string
+  /** Fired once the model has loaded successfully. */
+  onLoad?: () => void
+  /** Fired if the model fails to load. */
+  onError?: (error: unknown) => void
 }
 
 // ═══════════════════════════════════════
 // VRM/GLB MODEL COMPONENT
 // ═══════════════════════════════════════
 
-function VRMModelPreview({ url, autoRotate, hasCustomCamera }: { url: string; autoRotate?: boolean; hasCustomCamera?: boolean }) {
+interface VRMModelPreviewProps {
+  url: string
+  autoRotate?: boolean
+  hasCustomCamera?: boolean
+  /** Shared ref the loader writes the framed target height into (for OrbitControls). */
+  frameRef: MutableRefObject<{ targetY: number }>
+  onLoaded?: () => void
+  onError?: (error: unknown) => void
+}
+
+function VRMModelPreview({ url, autoRotate, hasCustomCamera, frameRef, onLoaded, onError }: VRMModelPreviewProps) {
   const vrmRef = useRef<VRM | null>(null)
   const glbSceneRef = useRef<THREE.Group | null>(null)
   const mixerRef = useRef<THREE.AnimationMixer | null>(null)
@@ -66,6 +92,7 @@ function VRMModelPreview({ url, autoRotate, hasCustomCamera }: { url: string; au
             // Camera placed in front of model at +Z looking backwards at model
             camera.position.set(0, headY, cameraZ)
             camera.lookAt(0, headY, 0)
+            frameRef.current.targetY = headY
           }
 
           // Eyes look straight at camera
@@ -99,6 +126,7 @@ function VRMModelPreview({ url, autoRotate, hasCustomCamera }: { url: string; au
             const cameraZ = (size.y * 0.5) / Math.tan(fov / 2) * 1.2
             camera.position.set(0, headY, cameraZ) // +Z position
             camera.lookAt(0, headY, 0)
+            frameRef.current.targetY = headY
           }
           
           // Play embedded animations if available
@@ -110,10 +138,12 @@ function VRMModelPreview({ url, autoRotate, hasCustomCamera }: { url: string; au
             })
           }
         }
+        onLoaded?.()
       },
       undefined,
       (error) => {
-        console.error('[Avatar3DPreview] Failed to load model:', error)
+        logger.error('[Avatar3DPreview] Failed to load model:', error)
+        onError?.(error)
       }
     )
 
@@ -131,7 +161,7 @@ function VRMModelPreview({ url, autoRotate, hasCustomCamera }: { url: string; au
         mixerRef.current = null
       }
     }
-  }, [url, scene, camera, autoRotate])
+  }, [url, scene, camera, autoRotate, hasCustomCamera, frameRef, onLoaded, onError])
 
   // Animation Loop (Subtle Idle only)
   useFrame((_, delta) => {
@@ -210,8 +240,61 @@ function PreviewCameraSetup({
 }
 
 // ═══════════════════════════════════════
+// ORBIT CONTROLS (rotate + zoom)
+// ═══════════════════════════════════════
+
+function PreviewControls({
+  enabled,
+  autoRotate,
+  frameRef,
+}: {
+  enabled: boolean
+  autoRotate: boolean
+  frameRef: MutableRefObject<{ targetY: number }>
+}) {
+  const { camera, gl } = useThree()
+  const controlsRef = useRef<OrbitControls | null>(null)
+  const synced = useRef(false)
+
+  useEffect(() => {
+    if (!enabled) return
+    const controls = new OrbitControls(camera, gl.domElement)
+    controls.enablePan = false
+    controls.enableDamping = true
+    controls.dampingFactor = 0.08
+    controls.rotateSpeed = 0.6
+    controls.zoomSpeed = 0.8
+    controls.minDistance = 0.15
+    controls.maxDistance = 6
+    controls.autoRotate = autoRotate
+    controls.autoRotateSpeed = 1.2
+    controlsRef.current = controls
+    synced.current = false
+    return () => {
+      controls.dispose()
+      controlsRef.current = null
+    }
+  }, [enabled, autoRotate, camera, gl])
+
+  useFrame(() => {
+    const controls = controlsRef.current
+    if (!controls) return
+    // Re-center the orbit pivot on the framed head once the loader reports it.
+    if (!synced.current && frameRef.current.targetY) {
+      controls.target.set(0, frameRef.current.targetY, 0)
+      synced.current = true
+    }
+    controls.update()
+  })
+
+  return null
+}
+
+// ═══════════════════════════════════════
 // EXPORTED COMPONENT
 // ═══════════════════════════════════════
+
+type LoadStatus = 'loading' | 'ready' | 'error'
 
 export function Avatar3DPreview({
   url,
@@ -219,33 +302,98 @@ export function Avatar3DPreview({
   cameraPosition,
   targetPosition,
   autoRotate = true,
+  interactive = true,
+  showShadow = true,
+  loadingLabel = 'Loading 3D model…',
+  errorLabel = 'Could not load the 3D model',
+  onLoad,
+  onError,
 }: Avatar3DPreviewProps) {
+  // The status is keyed to the url it belongs to, so a source change reads as
+  // "loading" immediately (no reset effect that could clobber the load result).
+  const [loadState, setLoadState] = useState<{ url: string; status: LoadStatus }>({ url, status: 'loading' })
+  const status: LoadStatus = loadState.url === url ? loadState.status : 'loading'
+  const frameRef = useRef<{ targetY: number }>({ targetY: 0 })
+
+  const handleLoaded = useCallback(() => {
+    setLoadState({ url, status: 'ready' })
+    onLoad?.()
+  }, [url, onLoad])
+
+  const handleError = useCallback(
+    (error: unknown) => {
+      setLoadState({ url, status: 'error' })
+      onError?.(error)
+    },
+    [url, onError],
+  )
+
   if (!url) return null
 
+  const hasCustomCamera = !!(cameraPosition && targetPosition)
+  // OrbitControls owns rotation while interactive; otherwise the model self-spins.
+  const modelAutoRotate = autoRotate && !interactive
+
   return (
-    <div className={`relative w-full h-full ${className}`}>
-      <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">Loading 3D Model...</div>}>
-        <Canvas
-          style={{ width: '100%', height: '100%', background: 'transparent' }}
-          gl={{ alpha: true, antialias: true, preserveDrawingBuffer: false }}
-          camera={{ fov: 30, near: 0.01, far: 10 }}
-          dpr={[1, 2]}
-        >
-          <PreviewCameraSetup position={cameraPosition} target={targetPosition} />
+    <div className={`relative h-full w-full overflow-hidden ${className}`}>
+      {/* Soft contact shadow grounding the avatar (behind the transparent canvas). */}
+      {showShadow && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute bottom-[8%] left-1/2 z-0 h-[10%] w-[55%] -translate-x-1/2 rounded-[50%]"
+          style={{
+            background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0) 70%)',
+            filter: 'blur(2px)',
+          }}
+        />
+      )}
 
-          {/* Lighting setup based on main widget */}
-          {/* @ts-ignore */}
-          <ambientLight intensity={0.6} />
-          {/* @ts-ignore */}
-          <directionalLight position={[1, 2, 3]} intensity={0.8} color="#ffffff" />
-          {/* @ts-ignore */}
-          <directionalLight position={[-1, 1, -1]} intensity={0.3} color="#b4c6e7" />
-          {/* @ts-ignore */}
-          <pointLight position={[0, 0.5, -0.5]} intensity={0.5} distance={3} />
+      <Canvas
+        key={url}
+        className="relative z-10"
+        style={{ width: '100%', height: '100%', background: 'transparent' }}
+        gl={{ alpha: true, antialias: true, preserveDrawingBuffer: false }}
+        camera={{ fov: 30, near: 0.01, far: 10 }}
+        dpr={[1, 2]}
+      >
+        <PreviewCameraSetup position={cameraPosition} target={targetPosition} />
+        <PreviewControls enabled={interactive && !hasCustomCamera} autoRotate={autoRotate} frameRef={frameRef} />
 
-          <VRMModelPreview url={url} autoRotate={autoRotate} hasCustomCamera={!!(cameraPosition && targetPosition)} />
-        </Canvas>
-      </Suspense>
+        {/* 3-point studio lighting */}
+        {/* @ts-ignore */}
+        <ambientLight intensity={0.55} />
+        {/* @ts-ignore key light */}
+        <directionalLight position={[1.5, 2, 3]} intensity={0.9} color="#ffffff" />
+        {/* @ts-ignore fill light (cool) */}
+        <directionalLight position={[-2, 1, 1.5]} intensity={0.35} color="#b4c6e7" />
+        {/* @ts-ignore rim / back light */}
+        <directionalLight position={[0, 1.5, -2.5]} intensity={0.5} color="#ffffff" />
+        {/* @ts-ignore subtle ground bounce */}
+        <pointLight position={[0, -0.5, 0.5]} intensity={0.25} distance={4} />
+
+        <VRMModelPreview
+          url={url}
+          autoRotate={modelAutoRotate}
+          hasCustomCamera={hasCustomCamera}
+          frameRef={frameRef}
+          onLoaded={handleLoaded}
+          onError={handleError}
+        />
+      </Canvas>
+
+      {status === 'loading' && (
+        <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 text-gray-400">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-current border-t-transparent opacity-70" />
+          {loadingLabel && <span className="text-xs">{loadingLabel}</span>}
+        </div>
+      )}
+
+      {status === 'error' && (
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-1 px-3 text-center text-gray-400">
+          <AlertTriangle className="h-5 w-5" aria-hidden />
+          {errorLabel && <span className="text-xs">{errorLabel}</span>}
+        </div>
+      )}
     </div>
   )
 }
