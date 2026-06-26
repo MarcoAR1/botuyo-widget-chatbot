@@ -94,6 +94,40 @@ describe('MessageBubble', () => {
       expect(link).toHaveAttribute('target', '_blank')
     })
 
+    it('should render an email autolink as a wrapping inline link, not a CTA button', () => {
+      const message: TextMessage = {
+        id: 'email-cta',
+        type: 'text',
+        content: 'Tu correo electrónico registrado es marcorivero.mr26@gmail.com.',
+        sender: 'bot',
+        timestamp: new Date(),
+      }
+
+      const { container } = renderWithI18n(<MessageBubble message={message} />)
+
+      const link = container.querySelector('a[href^="mailto:"]')
+      expect(link).toBeInTheDocument()
+      expect(link).toHaveAttribute('href', 'mailto:marcorivero.mr26@gmail.com')
+      expect(link?.className).not.toContain('uppercase')
+      expect(link?.className).toMatch(/break-/)
+    })
+
+    it('should still render action links (reservar/ver/pagar) as CTA buttons', () => {
+      const message: TextMessage = {
+        id: 'cta',
+        type: 'text',
+        content: '[Reservar ahora](https://example.com/book)',
+        sender: 'bot',
+        timestamp: new Date(),
+      }
+
+      const { container } = renderWithI18n(<MessageBubble message={message} />)
+
+      const link = container.querySelector('a[href="https://example.com/book"]')
+      expect(link).toBeInTheDocument()
+      expect(link?.className).toContain('uppercase')
+    })
+
     it('should render markdown lists', () => {
       const message: TextMessage = {
         id: '6',

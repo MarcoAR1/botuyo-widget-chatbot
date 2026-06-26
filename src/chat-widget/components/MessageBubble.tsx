@@ -189,10 +189,14 @@ export const MessageBubble = memo(
     const RenderLink = ({ href, children }: any) => {
       if (!href) return null
       const textContent = String(children).toLowerCase()
+      const isEmail = String(href).startsWith('mailto:')
+      const isTel = String(href).startsWith('tel:')
       const isCTA =
-        textContent.includes('reservar') ||
-        textContent.includes('ver') ||
-        textContent.includes('pagar')
+        !isEmail &&
+        !isTel &&
+        (textContent.includes('reservar') ||
+          textContent.includes('ver') ||
+          textContent.includes('pagar'))
       const isGoogleMaps = href.includes('maps.google') || href.includes('goo.gl') || href.includes('google.com/maps')
 
       // Detect if link is same-domain (internal navigation)
@@ -260,7 +264,7 @@ export const MessageBubble = memo(
           target={linkTarget}
           rel={linkRel}
           onClick={handleClick}
-          className="font-bold underline decoration-primary/30 hover:decoration-primary transition-all"
+          className="font-bold underline decoration-primary/30 hover:decoration-primary transition-all break-words"
           style={{ color: isUser ? 'inherit' : brandColor }}
         >
           {children}

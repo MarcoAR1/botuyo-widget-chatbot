@@ -12,6 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.1] — 2026-06-26
+
+### Fixed
+- **Long emails/links no longer overflow the chat bubble.** Email (`mailto:`) and phone (`tel:`)
+  autolinks were being mis-detected as call-to-action buttons. The CTA style is a fixed-width,
+  non-wrapping uppercase pill, so an address like `marcorivero.mr26@gmail.com` — which happens to
+  contain the substring `"ver"` — spilled outside the bubble. Email/phone autolinks now render as
+  normal inline links, and every rendered link uses `break-words` so long addresses/URLs wrap inside
+  the bubble. Genuine action links (`reservar`/`ver`/`pagar`) keep their CTA styling.
+
 ## [1.5.0] — 2026-06-25
 
 ### Added
