@@ -79,6 +79,14 @@ export interface UseChatSocketOptions {
   onAuthRequired?: ChatWidgetProps['onAuthRequired']
   /** A pending tool proposal was resolved server-side (confirmed/cancelled) or expired. */
   onToolProposalResolved?: (proposalId: string, status: ToolProposalStatus) => void
+  /**
+   * Returns true while a live voice call is in progress. During a call the VoiceCallOverlay
+   * renders + resolves quizzes itself (answered by voice / dock tap), so the SAME `quiz_question`
+   * event must NOT also be materialized as a persistent main-chat buttons card — otherwise it
+   * lingers unanswered in the transcript after the call ends. Read via the handlers ref so it
+   * always reflects the latest call state without re-subscribing the socket.
+   */
+  isVoiceCallActive?: () => boolean
 }
 
 /** Connect-error reasons that mean "the user token is missing/expired/invalid" → re-auth. */
@@ -317,7 +325,11 @@ export function useChatSocket(options: UseChatSocketOptions) {
         // Forward ALL custom events to the host page for external listeners
         forwardToPage({ type: 'botuyo-custom-event', ...evt })
 
-        if (evt?.eventName === 'quiz_question' && evt?.data) {
+        // During a live voice call the VoiceCallOverlay owns the quiz (renders + resolves it),
+        // so skip materializing a persistent main-chat card here — otherwise it lingers
+        // unanswered in the transcript after the call ends. The event was already forwarded to
+        // the host page above, so external listeners still receive it.
+        if (evt?.eventName === 'quiz_question' && evt?.data && !handlersRef.current.isVoiceCallActive?.()) {
           const { question, buttons } = evt.data as { question: string; buttons: Array<{ id: string; label: string }> }
           if (question && buttons?.length) {
             const quizMsg: ButtonsMessage = {

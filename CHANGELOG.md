@@ -12,6 +12,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.2] — 2026-06-27
+
+### Fixed
+- **Quiz questions no longer linger in the main chat after a voice call.** During an
+  **active voice call**, an incoming `quiz_question` event was creating a *persistent*
+  interactive quiz card in the main chat transcript **in addition to** the quiz already
+  rendered (and answered) inside the voice overlay. Because the user answers in the
+  overlay, the main-chat copy was never resolved and stayed visible after the call ended.
+  `useChatSocket` now accepts an `isVoiceCallActive` flag and **skips creating the
+  main-chat quiz card while a voice call is active** (the voice overlay owns the quiz UI
+  during the call); the `quiz_question` event is still forwarded to the host page as
+  before. No public API change — the flag is wired internally from the voice-overlay
+  open/close state.
+
 ## [1.6.1] — 2026-06-26
 
 ### Fixed

@@ -81,6 +81,7 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
     handleQuizAnswer,
     handleConfirmProposal,
     handleCancelProposal,
+    setVoiceCallActive,
   } = useChatWidget({
     apiKey,
     apiBaseUrl,
@@ -328,6 +329,7 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
                   ? handleConfirmProposal(proposalId)
                   : handleCancelProposal(proposalId)
               }
+              onVoiceActiveChange={setVoiceCallActive}
             />
           </ErrorBoundary>
         </div>

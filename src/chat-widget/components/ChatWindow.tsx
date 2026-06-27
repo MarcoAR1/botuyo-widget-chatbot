@@ -48,6 +48,12 @@ export interface ChatWindowProps {
   onQuizAnswer?: (message: ButtonsMessage, label: string, buttonId: string) => void
   /** Called when the user confirms/cancels an inline tool-approval proposal card. */
   onProposalAction?: (proposalId: string, action: 'confirm' | 'reject') => void
+  /**
+   * Notifies the parent when the voice-call overlay opens/closes. The parent feeds this into
+   * useChatSocket so quiz_question events during a call are NOT duplicated as persistent
+   * main-chat cards (the overlay owns the quiz while the call is live).
+   */
+  onVoiceActiveChange?: (active: boolean) => void
 }
 
 export function ChatWindow({
@@ -74,6 +80,7 @@ export function ChatWindow({
   activeQuiz,
   onQuizAnswer,
   onProposalAction,
+  onVoiceActiveChange,
 }: ChatWindowProps) {
   const [logoError, setLogoError] = useState(false)
   const [showVoiceOverlay, setShowVoiceOverlay] = useState(false)
@@ -125,6 +132,12 @@ export function ChatWindow({
       setShowVoiceOverlay(true)
     }
   }, [pendingCall, isConnected, mediaConfig?.enableVoice, showVoiceOverlay])
+
+  // Mirror the voice-overlay open state up so useChatSocket can skip duplicating in-call quizzes
+  // into the persistent transcript (the overlay renders + resolves them). See issue #2.
+  useEffect(() => {
+    onVoiceActiveChange?.(showVoiceOverlay)
+  }, [showVoiceOverlay, onVoiceActiveChange])
 
   if (!isOpen) return null
 

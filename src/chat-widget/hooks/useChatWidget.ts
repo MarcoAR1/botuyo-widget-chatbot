@@ -77,6 +77,10 @@ export function useChatWidget(options: UseChatWidgetOptions) {
 
   const [unreadCount, setUnreadCount] = useState(0)
   const lastMessageTimeRef = useRef<number>(0)
+  // True while the voice-call overlay is open. Mutated via setVoiceCallActive (no re-render) and
+  // read by useChatSocket so quiz_question events during a call are NOT duplicated as persistent
+  // main-chat cards (the overlay owns the quiz). See useChatSocket.isVoiceCallActive.
+  const voiceCallActiveRef = useRef(false)
   const { t } = useTranslations()
 
   // Inicializar analytics
@@ -203,7 +207,15 @@ export function useChatWidget(options: UseChatWidgetOptions) {
       (proposalId: string, status: ToolProposalCardStatus) => actions.resolveProposal(proposalId, status),
       [actions]
     ),
+    // Read the latest voice-call state on every quiz_question (see voiceCallActiveRef).
+    isVoiceCallActive: useCallback(() => voiceCallActiveRef.current, []),
   })
+
+  // Set by ChatWindow when the voice-call overlay opens/closes. A ref (not state) so toggling it
+  // never re-renders the widget — it only gates quiz duplication inside useChatSocket.
+  const setVoiceCallActive = useCallback((active: boolean) => {
+    voiceCallActiveRef.current = active
+  }, [])
 
   // Active (unanswered) quiz — pinned in a dock above the input so the question + options
   // never scroll away while the bot keeps talking. Resolved (answered/dismissed) quizzes
@@ -442,5 +454,6 @@ export function useChatWidget(options: UseChatWidgetOptions) {
     handleQuizAnswer,
     handleConfirmProposal,
     handleCancelProposal,
+    setVoiceCallActive,
   }
 }

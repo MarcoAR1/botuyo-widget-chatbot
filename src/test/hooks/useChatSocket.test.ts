@@ -265,6 +265,67 @@ describe('useChatSocket', () => {
       )
     })
 
+    it('creates a main-chat quiz card from quiz_question when no voice call is active', () => {
+      renderHook(() =>
+        useChatSocket({
+          apiKey: 'test-api-key',
+          apiBaseUrl: 'http://localhost:3000',
+          ...mockHandlers,
+        })
+      )
+
+      const customHandler = mockSocket.on.mock.calls.find((call: any[]) => call[0] === 'custom_event')?.[1]
+
+      act(() => {
+        customHandler?.({
+          eventName: 'quiz_question',
+          data: {
+            question: 'Past tense of go?',
+            buttons: [
+              { id: 'a', label: 'went' },
+              { id: 'b', label: 'goed' },
+            ],
+          },
+        })
+      })
+
+      expect(mockHandlers.onMessage).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'buttons', content: 'Past tense of go?' })
+      )
+    })
+
+    it('does NOT create a main-chat quiz card while a voice call is active (the overlay owns it) — issue #2', () => {
+      renderHook(() =>
+        useChatSocket({
+          apiKey: 'test-api-key',
+          apiBaseUrl: 'http://localhost:3000',
+          ...mockHandlers,
+          // A live voice call is in progress: the VoiceCallOverlay renders + resolves the quiz
+          // (answered by voice / dock tap). A persistent main-chat buttons card would linger
+          // unanswered after the call ends (the reported bug), so it must NOT be created here.
+          isVoiceCallActive: () => true,
+        })
+      )
+
+      const customHandler = mockSocket.on.mock.calls.find((call: any[]) => call[0] === 'custom_event')?.[1]
+
+      act(() => {
+        customHandler?.({
+          eventName: 'quiz_question',
+          data: {
+            question: 'Past tense of go?',
+            buttons: [
+              { id: 'a', label: 'went' },
+              { id: 'b', label: 'goed' },
+            ],
+          },
+        })
+      })
+
+      const quizCalls = (mockHandlers.onMessage as any).mock.calls.filter((c: any[]) => c[0]?.type === 'buttons')
+      expect(quizCalls).toHaveLength(0)
+    })
+
     it('should handle image messages', () => {
       renderHook(() =>
         useChatSocket({
