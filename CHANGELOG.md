@@ -12,6 +12,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.1] — 2026-06-28
+
+### Fixed
+- **Realistic GLB avatars no longer appear from behind or jumping in the voice call,
+  and the preview gallery is no longer over-zoomed.** Three related issues with 3D
+  (`.glb`) avatars are resolved:
+  - **"De espaldas" (facing away):** the voice-call avatar (`Avatar3D`) placed the
+    camera on the **−Z** side while the preview (`Avatar3DPreview`) used **+Z**, so the
+    call rendered the back of the head. glTF / Ready-Player-Me avatars face **+Z**, so
+    both now frame the model from the front consistently.
+  - **"Saltando" (jumping):** both renderers auto-played **every** embedded animation
+    clip. Game-character GLBs ship locomotion/jump clips, which made the avatar jump or
+    walk around the frame. They now auto-play **only a genuine idle loop** (matched by
+    name) and otherwise rely on the built-in procedural breathing/sway.
+  - **Over-zoomed preview:** the gallery framed around the chest with little margin,
+    cropping the legs/outfit. The preview now frames the **whole figure** with breathing
+    room, while the call keeps a head-and-shoulders bust.
+  Camera framing and idle-clip selection were extracted into a shared, unit-tested pure
+  helper (`utils/avatar3d`) so the call and the preview can no longer drift apart. No
+  public API change.
+
 ## [1.7.0] — 2026-06-27
 
 ### Added

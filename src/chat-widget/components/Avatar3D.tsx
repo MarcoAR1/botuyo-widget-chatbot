@@ -18,6 +18,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { VRMLoaderPlugin, VRMExpressionPresetName, VRM } from '@pixiv/three-vrm'
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { computeGlbFraming, selectIdleClip } from '../utils/avatar3d'
 
 // ═══════════════════════════════════════
 // TYPES
@@ -39,8 +40,8 @@ interface Avatar3DProps {
 // ═══════════════════════════════════════
 
 interface EmotionConfig {
-  expressions: Record<string, number>  // VRM expression name → weight 0-1
-  headRotation?: [number, number, number]  // euler XYZ in radians
+  expressions: Record<string, number> // VRM expression name → weight 0-1
+  headRotation?: [number, number, number] // euler XYZ in radians
 }
 
 const EMOTION_MAP: Record<string, EmotionConfig> = {
@@ -83,17 +84,29 @@ const EMOTION_MAP: Record<string, EmotionConfig> = {
 // ═══════════════════════════════════════
 
 interface ARKitEmotionConfig {
-  morphs: Record<string, number>  // ARKit morph target name → weight 0-1
+  morphs: Record<string, number> // ARKit morph target name → weight 0-1
   headRotation?: [number, number, number]
 }
 
 const ARKIT_EMOTION_MAP: Record<string, ARKitEmotionConfig> = {
   default: { morphs: {} },
   happy: {
-    morphs: { mouthSmileLeft: 0.7, mouthSmileRight: 0.7, cheekSquintLeft: 0.3, cheekSquintRight: 0.3 },
+    morphs: {
+      mouthSmileLeft: 0.7,
+      mouthSmileRight: 0.7,
+      cheekSquintLeft: 0.3,
+      cheekSquintRight: 0.3,
+    },
   },
   angry: {
-    morphs: { browDownLeft: 0.7, browDownRight: 0.7, mouthFrownLeft: 0.4, mouthFrownRight: 0.4, noseSneerLeft: 0.3, noseSneerRight: 0.3 },
+    morphs: {
+      browDownLeft: 0.7,
+      browDownRight: 0.7,
+      mouthFrownLeft: 0.4,
+      mouthFrownRight: 0.4,
+      noseSneerLeft: 0.3,
+      noseSneerRight: 0.3,
+    },
     headRotation: [0.05, 0, 0],
   },
   sorry: {
@@ -105,7 +118,12 @@ const ARKIT_EMOTION_MAP: Record<string, ARKitEmotionConfig> = {
     headRotation: [0, 0, 0.08],
   },
   love: {
-    morphs: { mouthSmileLeft: 0.9, mouthSmileRight: 0.9, cheekSquintLeft: 0.5, cheekSquintRight: 0.5 },
+    morphs: {
+      mouthSmileLeft: 0.9,
+      mouthSmileRight: 0.9,
+      cheekSquintLeft: 0.5,
+      cheekSquintRight: 0.5,
+    },
   },
   thinking: {
     morphs: { browInnerUp: 0.3, eyeSquintLeft: 0.2, eyeSquintRight: 0.2 },
@@ -123,7 +141,7 @@ type MorphMesh = THREE.Mesh & {
 
 function findMorphMeshes(root: THREE.Object3D): MorphMesh[] {
   const meshes: MorphMesh[] = []
-  root.traverse((child) => {
+  root.traverse(child => {
     if (
       (child as THREE.Mesh).isMesh &&
       (child as THREE.Mesh).morphTargetDictionary &&
@@ -153,7 +171,7 @@ function getMorphTarget(meshes: MorphMesh[], name: string): number {
 }
 
 function hasMorphTarget(meshes: MorphMesh[], name: string): boolean {
-  return meshes.some((m) => m.morphTargetDictionary[name] !== undefined)
+  return meshes.some(m => m.morphTargetDictionary[name] !== undefined)
 }
 
 // ═══════════════════════════════════════
@@ -189,11 +207,11 @@ function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
   // Load model using Three.js GLTFLoader (with VRM plugin for VRM models)
   useEffect(() => {
     const loader = new GLTFLoader()
-    loader.register((parser) => new VRMLoaderPlugin(parser) as any)
+    loader.register(parser => new VRMLoaderPlugin(parser) as any)
 
     loader.load(
       url,
-      (gltf) => {
+      gltf => {
         const vrm = (gltf as any).userData?.vrm as VRM | undefined
         if (vrm) {
           // ── VRM MODEL PATH ──
@@ -219,9 +237,13 @@ function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
           morphMeshesRef.current = morphMeshes
           if (morphMeshes.length > 0) {
             const sampleNames = Object.keys(morphMeshes[0].morphTargetDictionary).slice(0, 5)
-            console.info(`[Avatar3D] GLB with ${morphMeshes.length} morph meshes detected. Sample blendshapes: ${sampleNames.join(', ')}`)
+            console.info(
+              `[Avatar3D] GLB with ${morphMeshes.length} morph meshes detected. Sample blendshapes: ${sampleNames.join(', ')}`
+            )
           } else {
-            console.info('[Avatar3D] Plain GLB model detected (no morph targets), using basic fallback animations')
+            console.info(
+              '[Avatar3D] Plain GLB model detected (no morph targets), using basic fallback animations'
+            )
           }
 
           // Force world matrix update so bbox is accurate
@@ -245,28 +267,31 @@ function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
           baseScale.current = 1
           scene.add(pivot)
 
-          // Frame the HEAD: camera at -Z (model faces -Z based on tests)
-          const fov = (camera as THREE.PerspectiveCamera).fov * (Math.PI / 180)
-          const headY = size.y * 0.35
-          const cameraZ = (size.y * 0.5) / Math.tan(fov / 2)
-          // Camera on the -Z side to see the model's FRONT
-          camera.position.set(0, headY, -cameraZ)
-          camera.lookAt(0, headY, 0)
+          // Frame head + shoulders from the FRONT (+Z): glTF / Ready-Player-Me
+          // avatars face +Z, so the camera must sit on +Z — otherwise the call
+          // renders the back of the head ("de espaldas").
+          const framing = computeGlbFraming(
+            { x: size.x, y: size.y, z: size.z },
+            (camera as THREE.PerspectiveCamera).fov,
+            'bust'
+          )
+          camera.position.set(...framing.position)
+          camera.lookAt(...framing.target)
 
-          // Play embedded animations if available
-          if (gltf.animations.length > 0) {
+          // Only auto-play a genuine idle loop. Playing every embedded clip (or a
+          // locomotion/jump clip) makes game-character GLBs jump around the frame.
+          const idleClip = selectIdleClip(gltf.animations)
+          if (idleClip) {
             const mixer = new THREE.AnimationMixer(model)
             mixerRef.current = mixer
-            gltf.animations.forEach((clip) => {
-              mixer.clipAction(clip).play()
-            })
+            mixer.clipAction(idleClip).play()
           }
         }
       },
       undefined,
-      (error) => {
+      error => {
         console.error('[Avatar3D] Failed to load model:', error)
-      },
+      }
     )
 
     return () => {
@@ -355,7 +380,11 @@ function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
         ])
         for (const key of allMorphKeys) {
           // Skip blink morphs during active blink animation
-          if ((key === 'eyeBlinkLeft' || key === 'eyeBlinkRight') && blinkTimer.current >= nextBlinkAt.current) continue
+          if (
+            (key === 'eyeBlinkLeft' || key === 'eyeBlinkRight') &&
+            blinkTimer.current >= nextBlinkAt.current
+          )
+            continue
           const current = currentMorphTargets.current[key] || 0
           const target = targetMorphTargets.current[key] || 0
           const next = THREE.MathUtils.lerp(current, target, 4 * dt)
@@ -375,10 +404,10 @@ function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
         if (hasRPMVisemes) {
           const rpmVisemes: [string, number][] = [
             ['viseme_aa', Math.max(0, Math.sin(p * 1.0)) * amp],
-            ['viseme_E',  Math.max(0, Math.sin(p * 1.7 + 1.2)) * amp * 0.6],
-            ['viseme_I',  Math.max(0, Math.sin(p * 2.3 + 2.5)) * amp * 0.4],
-            ['viseme_O',  Math.max(0, Math.sin(p * 1.3 + 3.8)) * amp * 0.7],
-            ['viseme_U',  Math.max(0, Math.sin(p * 1.9 + 5.0)) * amp * 0.5],
+            ['viseme_E', Math.max(0, Math.sin(p * 1.7 + 1.2)) * amp * 0.6],
+            ['viseme_I', Math.max(0, Math.sin(p * 2.3 + 2.5)) * amp * 0.4],
+            ['viseme_O', Math.max(0, Math.sin(p * 1.3 + 3.8)) * amp * 0.7],
+            ['viseme_U', Math.max(0, Math.sin(p * 1.9 + 5.0)) * amp * 0.5],
           ]
           for (const [name, target] of rpmVisemes) {
             const current = getMorphTarget(morphs, name)
@@ -390,16 +419,33 @@ function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
           const currentJaw = getMorphTarget(morphs, 'jawOpen')
           setMorphTarget(morphs, 'jawOpen', THREE.MathUtils.lerp(currentJaw, jawTarget, 8 * dt))
           if (hasMorphTarget(morphs, 'mouthOpen')) {
-            setMorphTarget(morphs, 'mouthOpen', THREE.MathUtils.lerp(getMorphTarget(morphs, 'mouthOpen'), jawTarget * 0.6, 8 * dt))
+            setMorphTarget(
+              morphs,
+              'mouthOpen',
+              THREE.MathUtils.lerp(getMorphTarget(morphs, 'mouthOpen'), jawTarget * 0.6, 8 * dt)
+            )
           }
         }
       } else if (morphs.length > 0) {
         // Smoothly close all viseme morphs when not speaking
         const visemeNames = [
-          'viseme_aa', 'viseme_E', 'viseme_I', 'viseme_O', 'viseme_U',
-          'viseme_CH', 'viseme_DD', 'viseme_FF', 'viseme_kk', 'viseme_nn',
-          'viseme_PP', 'viseme_RR', 'viseme_SS', 'viseme_TH', 'viseme_sil',
-          'jawOpen', 'mouthOpen',
+          'viseme_aa',
+          'viseme_E',
+          'viseme_I',
+          'viseme_O',
+          'viseme_U',
+          'viseme_CH',
+          'viseme_DD',
+          'viseme_FF',
+          'viseme_kk',
+          'viseme_nn',
+          'viseme_PP',
+          'viseme_RR',
+          'viseme_SS',
+          'viseme_TH',
+          'viseme_sil',
+          'jawOpen',
+          'mouthOpen',
         ]
         for (const name of visemeNames) {
           const current = getMorphTarget(morphs, name)
@@ -462,7 +508,8 @@ function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
       currentExpressions.current[key] = next
 
       // Don't override blink during active blink animation
-      if (key === VRMExpressionPresetName.Blink && blinkTimer.current >= nextBlinkAt.current) continue
+      if (key === VRMExpressionPresetName.Blink && blinkTimer.current >= nextBlinkAt.current)
+        continue
 
       vrm.expressionManager?.setValue(key, next)
     }
@@ -491,8 +538,10 @@ function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
     } else {
       // Smoothly close all visemes when not speaking
       const visemeNames = [
-        VRMExpressionPresetName.Aa, VRMExpressionPresetName.Ee,
-        VRMExpressionPresetName.Ih, VRMExpressionPresetName.Oh,
+        VRMExpressionPresetName.Aa,
+        VRMExpressionPresetName.Ee,
+        VRMExpressionPresetName.Ih,
+        VRMExpressionPresetName.Oh,
         VRMExpressionPresetName.Ou,
       ]
       for (const name of visemeNames) {
@@ -587,10 +636,14 @@ export default function Avatar3D({
 }: Avatar3DProps) {
   const glowIntensity = useMemo(() => {
     switch (callState) {
-      case 'speaking': return 0.6
-      case 'listening': return 0.4
-      case 'thinking': return 0.3
-      default: return 0.15
+      case 'speaking':
+        return 0.6
+      case 'listening':
+        return 0.4
+      case 'thinking':
+        return 0.3
+      default:
+        return 0.15
     }
   }, [callState])
 
@@ -605,7 +658,11 @@ export default function Avatar3D({
           width: `${size}px`,
           height: `${size}px`,
           boxShadow: isActive
-            ? `0 0 0 3px ${primaryColor}50, 0 0 30px ${primaryColor}${Math.floor(glowIntensity * 255).toString(16).padStart(2, '0')}, 0 0 60px ${primaryColor}20`
+            ? `0 0 0 3px ${primaryColor}50, 0 0 30px ${primaryColor}${Math.floor(
+                glowIntensity * 255
+              )
+                .toString(16)
+                .padStart(2, '0')}, 0 0 60px ${primaryColor}20`
             : `0 0 0 2px ${primaryColor}25`,
           transition: 'box-shadow 0.5s ease',
         }}

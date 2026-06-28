@@ -16,6 +16,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { AlertTriangle } from 'lucide-react'
 import { logger } from '../utils/logger'
+import { computeGlbFraming, selectIdleClip } from '../utils/avatar3d'
 
 interface Avatar3DPreviewProps {
   url: string
@@ -52,7 +53,14 @@ interface VRMModelPreviewProps {
   onError?: (error: unknown) => void
 }
 
-function VRMModelPreview({ url, autoRotate, hasCustomCamera, frameRef, onLoaded, onError }: VRMModelPreviewProps) {
+function VRMModelPreview({
+  url,
+  autoRotate,
+  hasCustomCamera,
+  frameRef,
+  onLoaded,
+  onError,
+}: VRMModelPreviewProps) {
   const vrmRef = useRef<VRM | null>(null)
   const glbSceneRef = useRef<THREE.Group | null>(null)
   const mixerRef = useRef<THREE.AnimationMixer | null>(null)
@@ -64,11 +72,11 @@ function VRMModelPreview({ url, autoRotate, hasCustomCamera, frameRef, onLoaded,
   // Load model using GLTFLoader (with VRM plugin)
   useEffect(() => {
     const loader = new GLTFLoader()
-    loader.register((parser) => new VRMLoaderPlugin(parser) as any)
+    loader.register(parser => new VRMLoaderPlugin(parser) as any)
 
     loader.load(
       url,
-      (gltf) => {
+      gltf => {
         const vrm = (gltf as any).userData?.vrm as VRM | undefined
         if (vrm) {
           // ── VRM MODEL PATH ──
@@ -76,19 +84,19 @@ function VRMModelPreview({ url, autoRotate, hasCustomCamera, frameRef, onLoaded,
           vrm.scene.rotation.y = Math.PI
           const box = new THREE.Box3().setFromObject(vrm.scene)
           const size = box.getSize(new THREE.Vector3())
-          
+
           baseY.current = 0
           baseRotationY.current = Math.PI
 
           scene.add(vrm.scene)
 
-          // Frame the bust/head 
+          // Frame the bust/head
           if (!hasCustomCamera) {
             const headY = size.y * 0.75 // Approx neck/head level
             const fov = (camera as THREE.PerspectiveCamera).fov * (Math.PI / 180)
             const frameHeight = size.y * 0.55 // Show head + shoulders
-            const cameraZ = (frameHeight * 0.5) / Math.tan(fov / 2) * 1.3 // Pull back 30% more
-            
+            const cameraZ = ((frameHeight * 0.5) / Math.tan(fov / 2)) * 1.3 // Pull back 30% more
+
             // Camera placed in front of model at +Z looking backwards at model
             camera.position.set(0, headY, cameraZ)
             camera.lookAt(0, headY, 0)
@@ -102,7 +110,7 @@ function VRMModelPreview({ url, autoRotate, hasCustomCamera, frameRef, onLoaded,
         } else {
           // ── GLB PATH ──
           const model = gltf.scene
-          
+
           // Force world matrix update
           model.updateMatrixWorld(true)
           const box = new THREE.Box3().setFromObject(model)
@@ -113,35 +121,38 @@ function VRMModelPreview({ url, autoRotate, hasCustomCamera, frameRef, onLoaded,
           const pivot = new THREE.Group()
           model.position.sub(center) // Center geometry
           pivot.add(model)
-          
+
           glbSceneRef.current = pivot
           baseY.current = 0
           baseRotationY.current = 0
           scene.add(pivot)
 
-          // Frame the object
+          // Frame the WHOLE avatar from the FRONT (+Z) with breathing room, so the
+          // gallery shows the full figure/outfit instead of an over-zoomed crop.
           if (!hasCustomCamera) {
-            const fov = (camera as THREE.PerspectiveCamera).fov * (Math.PI / 180)
-            const headY = size.y * 0.3
-            const cameraZ = (size.y * 0.5) / Math.tan(fov / 2) * 1.2
-            camera.position.set(0, headY, cameraZ) // +Z position
-            camera.lookAt(0, headY, 0)
-            frameRef.current.targetY = headY
+            const framing = computeGlbFraming(
+              { x: size.x, y: size.y, z: size.z },
+              (camera as THREE.PerspectiveCamera).fov,
+              'portrait'
+            )
+            camera.position.set(...framing.position)
+            camera.lookAt(...framing.target)
+            frameRef.current.targetY = framing.target[1]
           }
-          
-          // Play embedded animations if available
-          if (gltf.animations.length > 0) {
+
+          // Only auto-play a genuine idle loop — never locomotion/jump clips, which
+          // would make game-character GLBs jump around the preview frame.
+          const idleClip = selectIdleClip(gltf.animations)
+          if (idleClip) {
             const mixer = new THREE.AnimationMixer(model)
             mixerRef.current = mixer
-            gltf.animations.forEach((clip) => {
-              mixer.clipAction(clip).play()
-            })
+            mixer.clipAction(idleClip).play()
           }
         }
         onLoaded?.()
       },
       undefined,
-      (error) => {
+      error => {
         logger.error('[Avatar3DPreview] Failed to load model:', error)
         onError?.(error)
       }
@@ -179,11 +190,11 @@ function VRMModelPreview({ url, autoRotate, hasCustomCamera, frameRef, onLoaded,
       const glb = glbSceneRef.current
       const breathOffset = Math.sin(breathPhase.current) * 0.003
       glb.position.y = baseY.current + breathOffset
-      
+
       if (autoRotate) {
         baseRotationY.current -= autoRotSpeed
       }
-      
+
       const idleSway = Math.sin(breathPhase.current * 0.3) * 0.02
       glb.rotation.y = baseRotationY.current + idleSway
       return
@@ -194,7 +205,7 @@ function VRMModelPreview({ url, autoRotate, hasCustomCamera, frameRef, onLoaded,
     if (vrm) {
       const breathOffset = Math.sin(breathPhase.current) * 0.003
       vrm.scene.position.y = baseY.current + breathOffset
-      
+
       if (autoRotate) {
         baseRotationY.current -= autoRotSpeed
         vrm.scene.rotation.y = baseRotationY.current
@@ -222,10 +233,10 @@ function VRMModelPreview({ url, autoRotate, hasCustomCamera, frameRef, onLoaded,
 // CAMERA SETUP
 // ═══════════════════════════════════════
 
-function PreviewCameraSetup({ 
-  position, 
-  target 
-}: { 
+function PreviewCameraSetup({
+  position,
+  target,
+}: {
   position?: [number, number, number]
   target?: [number, number, number]
 }) {
@@ -311,7 +322,10 @@ export function Avatar3DPreview({
 }: Avatar3DPreviewProps) {
   // The status is keyed to the url it belongs to, so a source change reads as
   // "loading" immediately (no reset effect that could clobber the load result).
-  const [loadState, setLoadState] = useState<{ url: string; status: LoadStatus }>({ url, status: 'loading' })
+  const [loadState, setLoadState] = useState<{ url: string; status: LoadStatus }>({
+    url,
+    status: 'loading',
+  })
   const status: LoadStatus = loadState.url === url ? loadState.status : 'loading'
   const frameRef = useRef<{ targetY: number }>({ targetY: 0 })
 
@@ -325,7 +339,7 @@ export function Avatar3DPreview({
       setLoadState({ url, status: 'error' })
       onError?.(error)
     },
-    [url, onError],
+    [url, onError]
   )
 
   if (!url) return null
@@ -342,7 +356,8 @@ export function Avatar3DPreview({
           aria-hidden
           className="pointer-events-none absolute bottom-[8%] left-1/2 z-0 h-[10%] w-[55%] -translate-x-1/2 rounded-[50%]"
           style={{
-            background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0) 70%)',
+            background:
+              'radial-gradient(ellipse at center, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0) 70%)',
             filter: 'blur(2px)',
           }}
         />
@@ -357,7 +372,11 @@ export function Avatar3DPreview({
         dpr={[1, 2]}
       >
         <PreviewCameraSetup position={cameraPosition} target={targetPosition} />
-        <PreviewControls enabled={interactive && !hasCustomCamera} autoRotate={autoRotate} frameRef={frameRef} />
+        <PreviewControls
+          enabled={interactive && !hasCustomCamera}
+          autoRotate={autoRotate}
+          frameRef={frameRef}
+        />
 
         {/* 3-point studio lighting */}
         {/* @ts-ignore */}
