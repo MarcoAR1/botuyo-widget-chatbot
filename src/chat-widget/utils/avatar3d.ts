@@ -1,17 +1,16 @@
 /**
  * Pure 3D-avatar helpers shared by the voice-call avatar (`Avatar3D`) and the
- * dashboard previewer (`Avatar3DPreview`).
+ * dashboard/landing previewer (`Avatar3DPreview`).
  *
- * Keeping the camera framing + animation selection here (instead of duplicated
- * inside each component) guarantees the two stay in sync — historically they
- * drifted apart and the call ended up rendering the avatar from behind while the
- * preview rendered it from the front.
+ * The preview framing was already correct, so it is the single source of truth:
+ * both the call and the preview place the camera with `computeGlbFraming`, which
+ * guarantees the call shows exactly what the preview shows — same distance, same
+ * front-facing orientation — instead of the two drifting apart (the call used to
+ * render the avatar from behind, "de espaldas").
  *
  * No three.js / R3F imports on purpose: this is plain math so it is trivially
  * unit-testable in happy-dom without mocking the WebGL stack.
  */
-
-export type AvatarFramingMode = 'bust' | 'portrait'
 
 /** Bounding-box size (metres) of the model AFTER it has been centred on the origin. */
 export interface AvatarSize {
@@ -27,20 +26,11 @@ export interface AvatarFraming {
   target: [number, number, number]
 }
 
-/**
- * Per-mode framing tuning.
- * - `targetYFactor` — look-at height as a fraction of the model height (0 = bbox centre, +0.5 = top).
- * - `spanFactor`    — fraction of the model height that should fill the vertical FOV (>1 = breathing room).
- */
-const FRAMING: Record<AvatarFramingMode, { targetYFactor: number; spanFactor: number }> = {
-  // Head, shoulders and upper chest — fits the small voice-call orb.
-  bust: { targetYFactor: 0.28, spanFactor: 0.6 },
-  // Whole figure with margin — so the preview gallery shows the full avatar (outfit included),
-  // instead of a cropped, over-zoomed close-up.
-  portrait: { targetYFactor: 0, spanFactor: 1.35 },
-}
-
 const DEFAULT_FOV_DEGREES = 30
+/** Look-at height as a fraction of the model height (0 = bbox centre, +0.5 = top of head). */
+const TARGET_Y_FACTOR = 0.3
+/** Pull the camera back this much past the exact fit, so the figure has breathing room. */
+const DISTANCE_PADDING = 1.2
 
 /**
  * Compute where to place the camera to frame a centred GLB avatar.
@@ -49,19 +39,17 @@ const DEFAULT_FOV_DEGREES = 30
  * `(0,0,0)`), so it spans `[-size.y/2, +size.y/2]` vertically. The camera is
  * placed on the **positive Z axis** because glTF / Ready-Player-Me humanoids
  * face +Z — this is what stops the avatar from appearing "de espaldas".
+ *
+ * The numbers mirror the preview's original (correct) framing, so the voice call
+ * and the preview render the avatar identically.
  */
-export function computeGlbFraming(
-  size: AvatarSize,
-  fovDegrees: number,
-  mode: AvatarFramingMode
-): AvatarFraming {
+export function computeGlbFraming(size: AvatarSize, fovDegrees: number): AvatarFraming {
   const height = size.y > 0 ? size.y : 1
   const fov = ((fovDegrees > 0 ? fovDegrees : DEFAULT_FOV_DEGREES) * Math.PI) / 180
-  const { targetYFactor, spanFactor } = FRAMING[mode]
 
-  const targetY = height * targetYFactor
-  // Distance at which `height * spanFactor` exactly fills the vertical FOV.
-  const distance = (height * spanFactor * 0.5) / Math.tan(fov / 2)
+  const targetY = height * TARGET_Y_FACTOR
+  // Distance that fits the model height in the vertical FOV, with padding.
+  const distance = ((height * 0.5) / Math.tan(fov / 2)) * DISTANCE_PADDING
 
   return {
     position: [0, targetY, distance],

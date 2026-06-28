@@ -267,13 +267,13 @@ function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
           baseScale.current = 1
           scene.add(pivot)
 
-          // Frame head + shoulders from the FRONT (+Z): glTF / Ready-Player-Me
-          // avatars face +Z, so the camera must sit on +Z — otherwise the call
-          // renders the back of the head ("de espaldas").
+          // Frame the avatar from the FRONT (+Z) using the SAME framing as the
+          // preview, so the call shows exactly what the preview shows. glTF /
+          // Ready-Player-Me avatars face +Z; the camera used to sit on −Z here,
+          // which is why the call rendered the back of the head ("de espaldas").
           const framing = computeGlbFraming(
             { x: size.x, y: size.y, z: size.z },
-            (camera as THREE.PerspectiveCamera).fov,
-            'bust'
+            (camera as THREE.PerspectiveCamera).fov
           )
           camera.position.set(...framing.position)
           camera.lookAt(...framing.target)

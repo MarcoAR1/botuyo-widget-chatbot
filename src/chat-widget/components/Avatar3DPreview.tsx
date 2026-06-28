@@ -127,13 +127,12 @@ function VRMModelPreview({
           baseRotationY.current = 0
           scene.add(pivot)
 
-          // Frame the WHOLE avatar from the FRONT (+Z) with breathing room, so the
-          // gallery shows the full figure/outfit instead of an over-zoomed crop.
+          // Frame from the FRONT (+Z). This is the original, correct preview
+          // framing — now shared with the voice call so the two always match.
           if (!hasCustomCamera) {
             const framing = computeGlbFraming(
               { x: size.x, y: size.y, z: size.z },
-              (camera as THREE.PerspectiveCamera).fov,
-              'portrait'
+              (camera as THREE.PerspectiveCamera).fov
             )
             camera.position.set(...framing.position)
             camera.lookAt(...framing.target)

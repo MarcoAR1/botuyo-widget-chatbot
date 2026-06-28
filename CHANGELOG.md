@@ -12,6 +12,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.2] — 2026-06-28
+
+### Fixed
+- **The voice-call 3D avatar now uses the exact same (correct) framing as the preview.**
+  v1.7.1 fixed the call's orientation but went too far: it gave the call its own close-up
+  framing and also changed the **preview** framing — yet the preview was already correctly
+  positioned. The preview framing is now the single source of truth: `Avatar3D` (the call)
+  and `Avatar3DPreview` share one `computeGlbFraming` helper, so the call renders the avatar
+  exactly as the preview does — same front-facing **(+Z)** orientation and same distance
+  (`targetY = 0.3·height`, 1.2× pull-back). The idle-only animation fix (no more "saltando")
+  is unchanged. No public API change.
+
 ## [1.7.1] — 2026-06-28
 
 ### Fixed
