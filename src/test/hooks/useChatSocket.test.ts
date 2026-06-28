@@ -983,6 +983,88 @@ describe('useChatSocket', () => {
     })
   })
 
+  describe('Custom Events — show_image', () => {
+    const getCustomEventHandler = () =>
+      mockSocket.on.mock.calls.find((call: any[]) => call[0] === 'custom_event')?.[1]
+
+    const renderShowImage = (extra: Record<string, any> = {}) => {
+      renderHook(() =>
+        useChatSocket({
+          apiKey: 'test-api-key',
+          apiBaseUrl: 'http://localhost:3000',
+          ...mockHandlers,
+          ...extra,
+        })
+      )
+      return getCustomEventHandler()
+    }
+
+    it('creates an image message with caption + attribution from a show_image event', () => {
+      const handler = renderShowImage()
+
+      act(() => {
+        handler?.({
+          eventName: 'show_image',
+          data: {
+            imageUrl: 'https://img.test/umbrella.jpg',
+            caption: 'umbrella = paraguas',
+            attribution: '"Umbrella" by Jane (CC BY)',
+            sourceUrl: 'https://flickr.test/umbrella',
+          },
+        })
+      })
+
+      expect(mockHandlers.onMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'image',
+          imageUrl: 'https://img.test/umbrella.jpg',
+          caption: 'umbrella = paraguas',
+          attribution: '"Umbrella" by Jane (CC BY)',
+          sourceUrl: 'https://flickr.test/umbrella',
+          sender: 'bot',
+        })
+      )
+    })
+
+    it('falls back altText to "Imagen" and omits absent optional fields', () => {
+      const handler = renderShowImage()
+
+      act(() => {
+        handler?.({ eventName: 'show_image', data: { imageUrl: 'https://img.test/cat.jpg' } })
+      })
+
+      const msg = (mockHandlers.onMessage as any).mock.calls.find((c: any[]) => c[0]?.type === 'image')?.[0]
+      expect(msg.altText).toBe('Imagen')
+      expect('caption' in msg).toBe(false)
+      expect('attribution' in msg).toBe(false)
+    })
+
+    it('drops a malformed show_image payload (missing/invalid imageUrl)', () => {
+      const handler = renderShowImage()
+
+      act(() => {
+        handler?.({ eventName: 'show_image', data: { caption: 'no url here' } })
+      })
+
+      const imageCalls = (mockHandlers.onMessage as any).mock.calls.filter((c: any[]) => c[0]?.type === 'image')
+      expect(imageCalls).toHaveLength(0)
+    })
+
+    it('does NOT create a main-chat image while a voice call is active (the overlay renders it)', () => {
+      const handler = renderShowImage({ isVoiceCallActive: () => true })
+
+      act(() => {
+        handler?.({
+          eventName: 'show_image',
+          data: { imageUrl: 'https://img.test/umbrella.jpg', caption: 'umbrella' },
+        })
+      })
+
+      const imageCalls = (mockHandlers.onMessage as any).mock.calls.filter((c: any[]) => c[0]?.type === 'image')
+      expect(imageCalls).toHaveLength(0)
+    })
+  })
+
   describe('Authenticated agents — getUserToken / onAuthRequired (OC-WD-02)', () => {
     const findHandler = (event: string) =>
       mockSocket.on.mock.calls.find((call: any[]) => call[0] === event)?.[1]

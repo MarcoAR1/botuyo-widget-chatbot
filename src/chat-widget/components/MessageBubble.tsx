@@ -328,23 +328,35 @@ export const MessageBubble = memo(
         case 'image': {
           const imgMsg = message as ImageMessage
           return (
-            <Suspense
-              fallback={
-                <div className="my-3 animate-pulse">
-                  <div className="w-full h-48 bg-muted rounded-xl" />
-                </div>
-              }
-            >
-              <Gallery
-                images={[
-                  {
-                    src: imgMsg.imageUrl || (imgMsg as any).content,
-                    alt: imgMsg.altText || 'Imagen',
-                  },
-                ]}
-                radius="rounded-xl"
-              />
-            </Suspense>
+            <div className="my-1">
+              <Suspense
+                fallback={
+                  <div className="my-3 animate-pulse">
+                    <div className="w-full h-48 bg-muted rounded-xl" />
+                  </div>
+                }
+              >
+                <Gallery
+                  images={[
+                    {
+                      src: imgMsg.imageUrl || (imgMsg as any).content,
+                      alt: imgMsg.altText || 'Imagen',
+                    },
+                  ]}
+                  radius="rounded-xl"
+                />
+              </Suspense>
+              {imgMsg.caption && <p className="mt-1.5 text-sm leading-snug">{imgMsg.caption}</p>}
+              {imgMsg.attribution && (
+                <p className="mt-1 text-[11px] leading-snug opacity-60">
+                  {imgMsg.sourceUrl ? (
+                    <RenderLink href={imgMsg.sourceUrl}>{imgMsg.attribution}</RenderLink>
+                  ) : (
+                    imgMsg.attribution
+                  )}
+                </p>
+              )}
+            </div>
           )
         }
 

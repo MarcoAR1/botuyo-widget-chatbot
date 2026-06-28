@@ -12,6 +12,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0] — 2026-06-27
+
+### Added
+- **The agent can now show real, openly-licensed images inline in the chat.** A new
+  `show_image` socket event (emitted by the backend `show_image` tool) renders an
+  `ImageMessage` bubble with the image, an optional **caption** (e.g. the target
+  vocabulary word) and a **source/license attribution** that links back to the origin
+  (e.g. Creative Commons images via Openverse). The payload is validated with Zod and
+  malformed/spoofed events are dropped (`imageUrl` must be a valid URL), so a broken
+  image never reaches the transcript. During an **active voice call** the event is
+  **skipped in the main chat** — the voice overlay already renders it as visual content —
+  mirroring the existing quiz suppression, so images are never duplicated. The
+  `ImageMessage` type gained optional `caption`, `attribution` and `sourceUrl` fields.
+  No breaking API change.
+
 ## [1.6.2] — 2026-06-27
 
 ### Fixed

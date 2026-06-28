@@ -278,6 +278,41 @@ describe('MessageBubble', () => {
         { timeout: 1000 }
       )
     })
+
+    it('renders the caption below the image', () => {
+      const message: ImageMessage = {
+        id: 'img-cap',
+        type: 'image',
+        imageUrl: 'https://example.com/umbrella.jpg',
+        altText: 'umbrella',
+        caption: 'umbrella = paraguas',
+        sender: 'bot',
+        timestamp: new Date(),
+      }
+
+      renderWithI18n(<MessageBubble message={message} />)
+
+      expect(screen.getByText('umbrella = paraguas')).toBeInTheDocument()
+    })
+
+    it('renders the attribution as a credit link to the source page', () => {
+      const message: ImageMessage = {
+        id: 'img-attr',
+        type: 'image',
+        imageUrl: 'https://example.com/umbrella.jpg',
+        altText: 'umbrella',
+        attribution: '"Umbrella" by Jane (CC BY)',
+        sourceUrl: 'https://flickr.example/umbrella',
+        sender: 'bot',
+        timestamp: new Date(),
+      }
+
+      const { container } = renderWithI18n(<MessageBubble message={message} />)
+
+      const link = container.querySelector('a[href="https://flickr.example/umbrella"]')
+      expect(link).toBeInTheDocument()
+      expect(link?.textContent).toContain('Umbrella')
+    })
   })
 
   describe('Location Messages', () => {

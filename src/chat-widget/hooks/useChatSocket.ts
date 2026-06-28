@@ -21,6 +21,7 @@ import type {
   ChatWidgetProps,
   PageContext,
   ButtonsMessage,
+  ImageMessage,
   ToolProposalMessage,
 } from '../types'
 import { getOrCreateDeviceId } from '../utils/deviceId'
@@ -52,6 +53,18 @@ const AgentSwitchedSchema = z.object({
   avatarUrl: z.string().optional(),
   variantKey: z.string().optional(),
 })
+// Zod schema for the `show_image` custom event emitted by the backend ShowImageTool.
+// `imageUrl` is required and must be a valid URL; safeParse drops malformed payloads so a
+// broken/spoofed image never reaches the chat.
+const ShowImageSchema = z.object({
+  imageUrl: z.string().url(),
+  caption: z.string().optional(),
+  alt: z.string().optional(),
+  attribution: z.string().optional(),
+  sourceUrl: z.string().url().optional(),
+  license: z.string().optional(),
+})
+
 
 export interface UseChatSocketOptions {
   apiKey: string
@@ -341,6 +354,31 @@ export function useChatSocket(options: UseChatSocketOptions) {
               buttons
             }
             handlersRef.current.onMessage(quizMsg)
+          }
+        }
+
+        // Rich content — the agent shows a REAL openly-licensed image (e.g. vocabulary) via the
+        // show_image tool. Render it as an ImageMessage with caption + attribution. During a live
+        // voice call the VoiceCallOverlay already renders it (show_content visual), so skip the
+        // main-chat card to avoid a duplicate (the event was forwarded to the host page above).
+        if (evt?.eventName === 'show_image' && evt?.data && !handlersRef.current.isVoiceCallActive?.()) {
+          const parsed = ShowImageSchema.safeParse(evt.data)
+          if (parsed.success) {
+            const d = parsed.data
+            const imgMsg: ImageMessage = {
+              id: `img-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+              type: 'image',
+              sender: 'bot',
+              timestamp: new Date(),
+              imageUrl: d.imageUrl,
+              altText: d.alt || d.caption || 'Imagen',
+              ...(d.caption ? { caption: d.caption } : {}),
+              ...(d.attribution ? { attribution: d.attribution } : {}),
+              ...(d.sourceUrl ? { sourceUrl: d.sourceUrl } : {}),
+            }
+            handlersRef.current.onMessage(imgMsg)
+          } else {
+            logger.debug('ChatSocket: dropped malformed show_image payload')
           }
         }
 

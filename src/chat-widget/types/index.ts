@@ -383,6 +383,12 @@ export interface ImageMessage extends BaseMessage {
   type: 'image'
   imageUrl: string
   altText?: string
+  /** Optional short caption shown under the image (e.g. the target vocabulary word). */
+  caption?: string
+  /** Attribution line for openly-licensed media (e.g. Openverse CC images). */
+  attribution?: string
+  /** Source/landing page the credit links back to. */
+  sourceUrl?: string
   // ⚠️ NOTA: Aquí NO hay 'content', por eso TS se quejaba
 }
 
