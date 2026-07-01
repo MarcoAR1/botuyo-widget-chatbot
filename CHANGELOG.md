@@ -12,6 +12,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.6] — 2026-07-01
+
+### Removed
+- **Dead "Voice Notes" (async voice-message) stack removed — cleaner codebase, no public API change.**
+  The mounted widget uses the realtime socket.io call path (`VoiceCallOverlay`). The parallel,
+  unmounted raw-`WebSocket` "Voice Notes" stack was confirmed dead and deleted: `VoiceInputArea`,
+  `useVoiceChat`, `useVoiceState`, `VoiceButton`, `VoiceChatOverlay`, `WaveformVisualizer`, all their
+  legacy types (`VoiceState`, `Voice*Message`, `UseVoiceChat*`, `VoiceConfig`, `VoiceButtonProps`,
+  `WaveformVisualizerProps`, `VoiceChatOverlayProps`), the `voice/` + `voice/components/` barrels and
+  their 3 test suites. The live realtime path is untouched: `VOICE_AUDIO_CONFIG`, `audioEnhancement`,
+  `vadGate` and `speechDetector` are kept. None of the removed symbols were part of the npm public
+  API (`index.tsx`/`standalone.tsx`), so this is not a breaking change.
+
 ## [1.7.5] — 2026-07-01
 
 ### Changed
