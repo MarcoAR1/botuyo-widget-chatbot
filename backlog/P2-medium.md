@@ -1,11 +1,5 @@
 # P2 — Medium
 
-> Resolved & removed: **WID-P2-1** (`console.*` → gated `logger.*`, RULE 9) — v1.7.4. Replaced in
-> `LanguageContext`, `AnimationContext`, `useVoiceState`, `VoiceCallOverlay` (Three.js fallback
-> boundary) and `Avatar3D`. Some originally-listed locations were already gone (the `useLiveCall`/
-> `LiveCallInputArea` files were deleted in WID-P1-1; `Avatar3DPreview` was already clean). The one
-> intentional always-on notice (`ChatWidget` draft-agent warning) is left as-is by design.
-
 ## WID-P2-2 — Hardcoded `voice_start { language: 'es-AR', voice: 'Kore' }`
 
 - **Category:** inconsistency / config gap

@@ -8,9 +8,4 @@
 - **Fix:** Derive the message type from the Zod schema (`z.infer<typeof BotMessageSchema>`) and use a discriminated union on `type` so `content`/`emotion`/`sources` are typed per variant. Drop the `as any`.
 - **Confidence:** High. **Effort:** S.
 
-## WID-P3-2 — `logger` variadic uses `any[]` (acceptable, note only)
-
-- **Category:** typing (low)
-- **Location:** `src/chat-widget/utils/logger.ts` — `(...args: any[])`.
-- **Note:** Reasonable for a console passthrough; could be `unknown[]`. Stories' `console.log` and tests are intentional. **Not** a bug — listed for completeness.
-- **Effort:** XS.
+> Dropped (not a bug / note only): **WID-P3-2** (`logger` `(...args: any[])` — reasonable console passthrough).

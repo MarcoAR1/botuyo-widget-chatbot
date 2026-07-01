@@ -23,9 +23,9 @@ Audit of the embeddable chat widget (`@botuyo/chat-widget-standalone`). Generate
 
 | Pri | Count | Headline |
 |-----|-------|----------|
-| P1 | 0 | ✅ **RESOLVED v1.7.3** — dead raw-WS `useLiveCall`/`LiveCallInputArea` stack removed (socket.io `VoiceCallOverlay` is what mounts) |
-| P2 | 1 | hardcoded `voice_start {es-AR, Kore}` not prop-configurable (WID-P2-1 `console.*`→`logger` ✅ RESOLVED v1.7.4) |
-| P3 | 1 | `(safe as any)` casts after Zod |
+| P1 | 0 | — no open items |
+| P2 | 1 | hardcoded `voice_start {es-AR, Kore}` not prop-configurable (WID-P2-2) |
+| P3 | 1 | `(safe as any)` casts after Zod (WID-P3-1) |
 
 ## Method & confidence
 
