@@ -24,7 +24,7 @@ Audit of the embeddable chat widget (`@botuyo/chat-widget-standalone`). Generate
 | Pri | Count | Headline |
 |-----|-------|----------|
 | P1 | 0 | — no open items |
-| P2 | 1 | hardcoded `voice_start {es-AR, Kore}` not prop-configurable (WID-P2-2) |
+| P2 | 0 | — no open items |
 | P3 | 1 | `(safe as any)` casts after Zod (WID-P3-1) |
 
 ## Method & confidence

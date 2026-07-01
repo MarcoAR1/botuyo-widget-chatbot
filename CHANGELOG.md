@@ -12,6 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.5] — 2026-07-01
+
+### Changed
+- **`voice_start` no longer sends the dead `language` field (WID-P2-2 cleanup).** Live-voice
+  language is prompt-driven (agent config) and the backend dropped the threaded language param
+  (BE-P2-4), so `language:'es-AR'` was already ignored. The widget now emits only
+  `{ voice: 'Kore' }` — and `voice` is only a fallback for agents without a configured voice
+  (the agent's configured voice is authoritative server-side). No public API change.
+
 ## [1.7.4] — 2026-07-01
 
 ### Changed

@@ -1344,8 +1344,11 @@ export function VoiceCallOverlay({
       return
     }
 
-    // Tell backend to create Gemini Live session
-    socket.emit('voice_start', { language: 'es-AR', voice: 'Kore' })
+    // Tell backend to create Gemini Live session. `language` is intentionally NOT sent:
+    // live-voice language is prompt-driven (agent config) and the backend dropped the
+    // threaded language param (BE-P2-4), so it was dead. `voice` is only a fallback for
+    // agents without a configured voice — the agent's configured voice is authoritative.
+    socket.emit('voice_start', { voice: 'Kore' })
 
     // Duration counter (display only)
     timerRef.current = setInterval(() => {
