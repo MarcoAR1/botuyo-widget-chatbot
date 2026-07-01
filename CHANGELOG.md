@@ -12,6 +12,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.3] — 2026-07-01
+
+### Removed
+- **Dead raw-WebSocket voice stack removed (WID-P1-1) — smaller bundle, no public API change.**
+  The mounted widget uses the socket.io realtime path (`VoiceCallOverlay`, `voice_start`).
+  The parallel, unmounted raw-`WebSocket` "Live Call" stack was confirmed dead and deleted:
+  `voice/useLiveCall.ts`, `components/LiveCallInputArea.tsx`, `voice/components/CallButton.tsx`,
+  `voice/components/LiveCallOverlay.tsx`, all `LiveCall*` types (`LiveCallState`,
+  `LiveCall*Message`, `UseLiveCall*`, `CallButtonProps`, `LiveCallOverlayProps`) and their tests.
+  None of these were part of the npm public API (`index.tsx`), so this is not a breaking change.
+
 ## [1.7.2] — 2026-06-28
 
 ### Fixed

@@ -5,16 +5,6 @@
 
 // Types
 export type {
-  // Live Call types
-  LiveCallState,
-  LiveCallClientMessage,
-  LiveCallServerMessage,
-  LiveCallErrorCode,
-  LiveCallErrorMessage,
-  UseLiveCallOptions,
-  UseLiveCallReturn,
-  CallButtonProps,
-  LiveCallOverlayProps,
   // Voice Notes types (legacy)
   VoiceState,
   VoiceServerMessage,
@@ -38,15 +28,8 @@ export {
 } from './audioEnhancement'
 
 // Hooks
-export { useLiveCall } from './useLiveCall'
 export { useVoiceChat } from './useVoiceChat'
 export { useVoiceState } from './useVoiceState'
 
 // Components
-export {
-  CallButton,
-  LiveCallOverlay,
-  VoiceButton,
-  VoiceChatOverlay,
-  WaveformVisualizer,
-} from './components'
+export { VoiceButton, VoiceChatOverlay, WaveformVisualizer } from './components'

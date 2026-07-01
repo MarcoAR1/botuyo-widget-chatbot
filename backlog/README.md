@@ -23,9 +23,9 @@ Audit of the embeddable chat widget (`@botuyo/chat-widget-standalone`). Generate
 
 | Pri | Count | Headline |
 |-----|-------|----------|
-| P1 | 1 | Two parallel voice implementations (raw-WS `useLiveCall` vs socket.io `VoiceCallOverlay`) — bundle bloat / dead code in a size-critical package |
+| P1 | 0 | ✅ **RESOLVED v1.7.3** — dead raw-WS `useLiveCall`/`LiveCallInputArea` stack removed (socket.io `VoiceCallOverlay` is what mounts) |
 | P2 | 2 | Widespread `console.*` instead of `logger.*` (RULE 9), esp. the whole `voice/` module; hardcoded `voice_start {es-AR, Kore}` not prop-configurable |
-| P3 | 2 | `(safe as any)` casts after Zod; `logger` `any[]` variadic |
+| P3 | 1 | `(safe as any)` casts after Zod |
 
 ## Method & confidence
 
