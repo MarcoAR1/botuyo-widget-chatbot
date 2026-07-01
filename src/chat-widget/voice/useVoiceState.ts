@@ -7,6 +7,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type { VoiceState } from './types'
+import { logger } from '../utils/logger'
 
 interface UseVoiceStateOptions {
   /** Maximum recording duration in seconds */
@@ -103,7 +104,7 @@ export function useVoiceState(options: UseVoiceStateOptions = {}): UseVoiceState
         setState(newState)
         onStateChangeRef.current?.(newState)
       } else {
-        console.warn(`Invalid voice state transition: ${state} → ${newState}`)
+        logger.warn(`[useVoiceState] Invalid voice state transition: ${state} → ${newState}`)
       }
     },
     [state]

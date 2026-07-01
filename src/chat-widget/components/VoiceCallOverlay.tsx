@@ -23,6 +23,7 @@ import {
   type ReactNode,
 } from 'react'
 import { cn } from '@/lib/utils'
+import { logger } from '../utils/logger'
 import { PhoneOff, Mic, MicOff, Volume2, Keyboard, Send } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -315,7 +316,7 @@ class Avatar3DErrorBoundary extends Component<
     return { hasError: true }
   }
   componentDidCatch(error: Error) {
-    console.warn('[Avatar3D] Three.js failed, falling back to 2D orb:', error.message)
+    logger.warn('[Avatar3D] Three.js failed, falling back to 2D orb:', error.message)
     this.props.onError()
   }
   render() {

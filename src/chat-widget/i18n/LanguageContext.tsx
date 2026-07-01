@@ -5,6 +5,7 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 import { type SupportedLocale, detectLanguage } from './translations'
+import { logger } from '../utils/logger'
 
 interface LanguageContextType {
   locale: SupportedLocale
@@ -52,7 +53,7 @@ export function LanguageProvider({ children, defaultLocale }: LanguageProviderPr
     // Validar que el locale sea soportado
     const supportedLocales: SupportedLocale[] = ['es', 'en', 'pt', 'fr']
     if (!supportedLocales.includes(newLocale)) {
-      console.warn(`[BotUyo] Locale "${newLocale}" no es soportado. Manteniendo "${locale}"`)
+      logger.warn(`[LanguageContext] Locale "${newLocale}" no es soportado. Manteniendo "${locale}"`)
       return
     }
 

@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useMemo, type ReactNode } from 'react'
 import type { AnimationConfig, EffectsConfig } from '../types'
+import { logger } from '../utils/logger'
 
 /**
  * Default animation configuration - all premium features enabled
@@ -183,12 +184,12 @@ export function usePremiumEffects() {
     playSound: (type: 'send' | 'receive' | 'notification') => {
       if (!effects.soundEffects) return
       // Sound effects would be implemented here
-      console.log(`[Sound] ${type}`)
+      logger.debug(`[AnimationContext] Sound: ${type}`)
     },
     triggerParticles: (element: HTMLElement) => {
       if (!effects.particles) return
       // Particle effect would be implemented here
-      console.log('[Particles] triggered on', element)
+      logger.debug('[AnimationContext] Particles triggered on', element)
     },
   }
 }

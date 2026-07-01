@@ -12,6 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.4] — 2026-07-01
+
+### Changed
+- **Production `console.*` calls now route through the gated `logger` (WID-P2-1, RULE 9).**
+  Direct `console.log/warn/info` printed unconditionally on the host page's console — noisy for
+  an embedded widget. Replaced with `logger.*` (gated behind the DEBUG flag) in `LanguageContext`,
+  `AnimationContext` (sound/particle placeholders), `useVoiceState`, `VoiceCallOverlay` (the
+  Three.js fallback error boundary) and `Avatar3D`. The single intentional always-on notice
+  (`ChatWidget` draft-agent warning) is left as-is on purpose. No public API change.
+
 ## [1.7.3] — 2026-07-01
 
 ### Removed

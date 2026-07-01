@@ -1,18 +1,10 @@
 # P2 — Medium
 
-## WID-P2-1 — `console.*` used directly instead of `logger.*` (RULE 9 / pitfall 12.9)
-
-- **Category:** inconsistency / rule violation
-- **Locations (production code, not stories/tests):**
-  - `src/chat-widget/voice/useLiveCall.ts:317,347,352,359,371,399`
-  - `src/chat-widget/voice/useVoiceState.ts:106`
-  - `src/chat-widget/components/VoiceCallOverlay.tsx:247,643,960,985`
-  - `src/chat-widget/components/LiveCallInputArea.tsx:77`
-  - `src/chat-widget/components/Avatar3DPreview.tsx:116`, `Avatar3D.tsx:222,224`
-  - `src/chat-widget/i18n/LanguageContext.tsx:55`
-- **Problem:** RULE 9 mandates the centralized `logger` (gates `log/warn/info/debug` behind the DEBUG flag; only `error` is always shown). Direct `console.log/info/warn` **always print** on the host page's console — noisy/embarrassing for an embedded widget and leaks internal state. The entire `voice/` module appears to predate/ignore the logger convention.
-- **Fix:** Replace `console.*` with `logger.*` (import from `utils/logger.ts`) using the `[Component] msg` prefix. Stories (`*.stories.tsx`) and `utils/logger.ts` itself are exempt.
-- **Confidence:** High — confirmed in source. **Effort:** S (mechanical) — but touch the voice module carefully (RULE 10 TDD).
+> Resolved & removed: **WID-P2-1** (`console.*` → gated `logger.*`, RULE 9) — v1.7.4. Replaced in
+> `LanguageContext`, `AnimationContext`, `useVoiceState`, `VoiceCallOverlay` (Three.js fallback
+> boundary) and `Avatar3D`. Some originally-listed locations were already gone (the `useLiveCall`/
+> `LiveCallInputArea` files were deleted in WID-P1-1; `Avatar3DPreview` was already clean). The one
+> intentional always-on notice (`ChatWidget` draft-agent warning) is left as-is by design.
 
 ## WID-P2-2 — Hardcoded `voice_start { language: 'es-AR', voice: 'Kore' }`
 

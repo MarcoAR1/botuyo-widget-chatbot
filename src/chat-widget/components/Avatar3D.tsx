@@ -14,6 +14,7 @@
 'use client'
 
 import { useRef, useEffect, useMemo } from 'react'
+import { logger } from '../utils/logger'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { VRMLoaderPlugin, VRMExpressionPresetName, VRM } from '@pixiv/three-vrm'
 import * as THREE from 'three'
@@ -237,11 +238,11 @@ function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
           morphMeshesRef.current = morphMeshes
           if (morphMeshes.length > 0) {
             const sampleNames = Object.keys(morphMeshes[0].morphTargetDictionary).slice(0, 5)
-            console.info(
+            logger.info(
               `[Avatar3D] GLB with ${morphMeshes.length} morph meshes detected. Sample blendshapes: ${sampleNames.join(', ')}`
             )
           } else {
-            console.info(
+            logger.info(
               '[Avatar3D] Plain GLB model detected (no morph targets), using basic fallback animations'
             )
           }
