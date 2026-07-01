@@ -1708,7 +1708,7 @@ export function VoiceCallOverlay({
       </div>
 
       {/* Scrollable conversation area */}
-      <div className="relative flex-1 overflow-y-auto px-5 pb-4" style={{ scrollbarWidth: 'none' }}>
+      <div className="relative flex-1 min-h-0 overflow-y-auto px-5 pb-4" style={{ scrollbarWidth: 'none' }}>
         <div className="flex flex-col gap-4 w-full">
           {conversation.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
