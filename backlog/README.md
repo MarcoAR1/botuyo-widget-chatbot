@@ -25,7 +25,7 @@ Audit of the embeddable chat widget (`@botuyo/chat-widget-standalone`). Generate
 |-----|-------|----------|
 | P1 | 0 | — no open items |
 | P2 | 0 | — no open items |
-| P3 | 1 | `(safe as any)` casts after Zod (WID-P3-1) |
+| P3 | 0 | — no open items |
 
 ## Method & confidence
 

@@ -43,6 +43,8 @@ const BotMessageSchema = z.object({
   sources: z.array(z.string()).optional(),
 })
 
+type BotMessage = z.infer<typeof BotMessageSchema>
+
 // Zod schema for the `agent_switched` custom event — mirrors AgentSwitchedData.
 // All fields optional (the backend omits some depending on switch_variant vs.
 // transfer_to_department); safeParse drops malformed payloads.
@@ -133,7 +135,7 @@ export function useChatSocket(options: UseChatSocketOptions) {
           : `msg-${Math.random().toString(36).slice(2, 11)}`
       const baseSender = data.success && data.data.sender ? data.data.sender : 'bot'
       const ts = data.success && data.data.timestamp ? new Date(data.data.timestamp) : new Date()
-      const safe = data.success ? data.data : { type: 'text' as const }
+      const safe: BotMessage = data.success ? data.data : { type: 'text' }
 
       switch (safe.type) {
         case 'image':
@@ -188,9 +190,9 @@ export function useChatSocket(options: UseChatSocketOptions) {
             type: 'text',
             sender: baseSender,
             timestamp: ts,
-            content: String((safe as any).content || 'Sin contenido'),
-            emotion: (safe as any).emotion,
-            ...((safe as any).sources?.length ? { sources: (safe as any).sources } : {}),
+            content: String(safe.content || 'Sin contenido'),
+            emotion: safe.emotion,
+            ...(safe.sources?.length ? { sources: safe.sources } : {}),
           }
       }
     },

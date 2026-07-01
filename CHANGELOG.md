@@ -12,6 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.7] — 2026-07-01
+
+### Changed
+- **Removed `(safe as any)` casts in the `useChatSocket` message sanitizer (WID-P3-1, RULE 11).**
+  The message type is now derived via `z.infer<typeof BotMessageSchema>` and the not-parsed fallback
+  is typed as `{ type: 'text' }`, so `content`/`emotion`/`sources` read through the schema's inferred
+  types instead of `any`. Type-only change — no runtime behavior change, no public API change.
+
 ## [1.7.6] — 2026-07-01
 
 ### Removed
