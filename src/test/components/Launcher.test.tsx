@@ -32,12 +32,15 @@ describe('Launcher', () => {
       expect(avatar).toHaveAttribute('src', 'https://example.com/avatar.jpg')
     })
 
-    it('should use default avatar when no logo provided', () => {
+    it('should render default MessageCircle icon when no logo provided', () => {
       const { container } = renderWithI18n(<Launcher isOpen={false} onClick={mockOnClick} />)
 
-      // Default avatar URL is used as fallback
+      // Fallback is the inline SVG chat icon
       const avatar = container.querySelector('img')
-      expect(avatar).toBeInTheDocument()
+      expect(avatar).not.toBeInTheDocument()
+
+      const chatIcon = container.querySelector('svg.lucide-message-circle')
+      expect(chatIcon).toBeInTheDocument()
     })
 
     it('should render launcher in closed state', () => {
@@ -57,9 +60,9 @@ describe('Launcher', () => {
     it('should show different icons based on state', () => {
       const { container, rerender } = renderWithI18n(<Launcher isOpen={false} onClick={mockOnClick} />)
 
-      // Closed state shows default avatar image
-      const avatar = container.querySelector('img')
-      expect(avatar).toBeInTheDocument()
+      // Closed state shows default MessageCircle icon
+      const chatIcon = container.querySelector('svg.lucide-message-circle')
+      expect(chatIcon).toBeInTheDocument()
 
       rerender(<Launcher isOpen={true} onClick={mockOnClick} />)
       const closeIcon = container.querySelector('svg.lucide-x')

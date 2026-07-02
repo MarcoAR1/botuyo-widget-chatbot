@@ -29,7 +29,6 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeSanitize from 'rehype-sanitize'
 import type { EmotionAvatarMap } from './Launcher'
-import { DEFAULT_AVATAR_URL } from '../utils/defaultAssets'
 import {
   ENHANCED_AUDIO_CONSTRAINTS,
   createEnhancementChain,
@@ -344,9 +343,9 @@ function AvatarOrb({
     if (!hasAvatars && !hasLogo) return null
     if (hasAvatars) {
       const emotionKey = (emotion || 'default') as keyof EmotionAvatarMap
-      return avatars![emotionKey] || avatars!.default || logoUrl || DEFAULT_AVATAR_URL
+      return avatars![emotionKey] || avatars!.default || logoUrl || null
     }
-    return logoUrl || DEFAULT_AVATAR_URL
+    return logoUrl || null
   }, [hasAvatars, hasLogo, avatars, emotion, logoUrl])
 
   const isActive = callState === 'listening' || callState === 'speaking'

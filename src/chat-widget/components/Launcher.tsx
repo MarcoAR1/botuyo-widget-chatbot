@@ -8,7 +8,6 @@ import { getPrimaryColor } from '../utils/theme'
 import { useAnimations, usePremiumEffects } from '../contexts/AnimationContext'
 import type { BubbleStyles } from '../types'
 import { logger } from '../utils/logger'
-import { DEFAULT_AVATAR_URL } from '../utils/defaultAssets'
 
 export type BotEmotion =
   | 'default'
@@ -74,7 +73,7 @@ export function Launcher({
   const STORAGE_KEY = 'chat_launcher_prompt_state'
 
   const currentImageSrc = useMemo(
-    () => avatars[emotion] || avatars.default || logoUrl || DEFAULT_AVATAR_URL,
+    () => avatars[emotion] || avatars.default || logoUrl || null,
     [emotion, avatars, logoUrl]
   )
 
@@ -276,7 +275,7 @@ export function Launcher({
             getGlowClass()
           )}
           style={{
-            backgroundColor: customLauncherStyle ? (themeColor || 'hsl(160, 84%, 39%)') : 'transparent',
+            backgroundColor: customLauncherStyle ? undefined : (themeColor || 'hsl(160, 84%, 39%)'),
             '--primary-glow': `${themeColor}66`,
           } as React.CSSProperties}
           aria-label={isOpen ? 'Cerrar chat' : 'Abrir chat'}

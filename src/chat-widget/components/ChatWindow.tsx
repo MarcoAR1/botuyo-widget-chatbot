@@ -14,7 +14,6 @@ import { useIsMobile } from '../hooks/useIsMobile'
 import { useDynamicHeight } from '../hooks/useDynamicHeight'
 import { useFocusTrap } from '../hooks/useFocusTrap'
 import { EmotionAvatarMap } from './Launcher'
-import { DEFAULT_AVATAR_URL } from '../utils/defaultAssets'
 import { VoiceCallOverlay, type VoiceOverlayConfig } from './VoiceCallOverlay'
 
 export interface ChatWindowProps {
@@ -208,7 +207,7 @@ export function ChatWindow({
             <div className="flex items-center gap-3">
               <div className="relative">
                 <div className="h-10 w-10 rounded-full overflow-hidden bg-primary/10 border-2 border-background shadow-soft-sm">
-                  {logoError ? (
+                  {logoError || !logoUrl ? (
                     <div className="h-full w-full flex items-center justify-center bg-muted text-muted-foreground">
                       <svg
                         className="w-5 h-5"
@@ -226,7 +225,7 @@ export function ChatWindow({
                     </div>
                   ) : (
                     <img
-                      src={logoUrl || DEFAULT_AVATAR_URL}
+                      src={logoUrl}
                       alt={botName}
                       className="h-full w-full object-cover"
                       onError={() => setLogoError(true)}
