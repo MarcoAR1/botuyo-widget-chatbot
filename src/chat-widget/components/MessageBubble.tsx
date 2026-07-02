@@ -157,10 +157,8 @@ export const MessageBubble = memo(
     const isBot = !isUser && !isSystem
 
     const brandColor = getPrimaryColor({ primaryColor })
-    
-    // Premium animation hooks
+    const [avatarError, setAvatarError] = useState(false)
     const messageEntryClass = useMessageEntryClass()
-    // Note: usePremiumEffects available for future enhancements (hover lift, haptics, etc.)
 
     // --- AVATAR LOGIC ---
     const currentAvatar = useMemo(() => {
@@ -173,6 +171,15 @@ export const MessageBubble = memo(
       }
       return botAvatar
     }, [message, avatars, botAvatar, isUser])
+
+    const hasValidAvatar = useMemo(() => {
+      return !!(
+        currentAvatar &&
+        currentAvatar !== 'undefined' &&
+        currentAvatar !== 'null' &&
+        !avatarError
+      )
+    }, [currentAvatar, avatarError])
 
     const formatTime = (date: Date | string) => {
       const dateObj = new Date(date)
@@ -554,14 +561,28 @@ export const MessageBubble = memo(
                   backgroundColor: 'hsl(var(--background))',
                 }}
               >
-                {currentAvatar ? (
-                  <img src={currentAvatar} alt={botName} className="h-full w-full object-cover" />
+                {hasValidAvatar ? (
+                  <img
+                    src={currentAvatar || ''}
+                    alt={botName}
+                    className="h-full w-full object-cover"
+                    onError={() => setAvatarError(true)}
+                  />
                 ) : (
-                  <div
-                    className="h-full w-full flex items-center justify-center text-white text-[10px] font-black uppercase"
-                    style={{ backgroundColor: brandColor }}
-                  >
-                    {botName.charAt(0)}
+                  <div className="h-full w-full flex items-center justify-center bg-muted text-muted-foreground">
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
+                    </svg>
                   </div>
                 )}
               </div>
