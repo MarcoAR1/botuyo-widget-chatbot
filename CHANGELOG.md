@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.1] — 2026-08-11
+
+### Changed
+- Maintenance release to re-publish the widget (npm + R2 CDN) and trigger a coordinated redeploy across all botuyo repos. No functional changes.
+
 ## [1.7.7] — 2026-07-01
 
 ### Changed
