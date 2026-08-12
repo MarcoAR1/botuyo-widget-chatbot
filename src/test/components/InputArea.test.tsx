@@ -854,4 +854,24 @@ describe('InputArea', () => {
       expect(hasPlusButton).toBe(false)
     })
   })
+
+  describe('Focus & Styling', () => {
+    it('should apply focus styling to pill container when textarea is focused', async () => {
+      const user = userEvent.setup()
+      const { container } = renderWithI18n(
+        <InputArea isConnected={true} onSendMessage={mockOnSendMessage} />
+      )
+
+      const textarea = screen.getByPlaceholderText(/escribe un mensaje/i)
+      const pillContainer = container.querySelector('.chat-input-pill')
+
+      expect(pillContainer).toBeInTheDocument()
+      expect(textarea).toHaveClass('chat-input-textarea')
+
+      await user.click(textarea)
+
+      expect(pillContainer).toHaveClass('border-[hsl(var(--primary))]')
+    })
+  })
 })
+

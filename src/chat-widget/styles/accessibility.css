@@ -111,13 +111,27 @@
   box-shadow: 0 0 0 4px hsl(var(--primary) / 0.1);
 }
 
-/* Focus en inputs */
+/* Focus en inputs (excepto textarea del chat que delega el borde a la píldora) */
 #botuyo-chat-widget-root input:focus-visible,
-#botuyo-chat-widget-root textarea:focus-visible {
+#botuyo-chat-widget-root textarea:focus-visible:not(.chat-input-textarea) {
   outline: 2px solid hsl(var(--primary));
   outline-offset: 0;
   border-color: hsl(var(--primary));
   box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);
+}
+
+/* El textarea del chat delega la indicación de focus a la píldora contenedora */
+#botuyo-chat-widget-root textarea.chat-input-textarea,
+#botuyo-chat-widget-root textarea.chat-input-textarea:focus,
+#botuyo-chat-widget-root textarea.chat-input-textarea:focus-visible {
+  outline: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+#botuyo-chat-widget-root .chat-input-pill:focus-within {
+  border-color: hsl(var(--primary)) !important;
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.25) !important;
 }
 
 /* --- SKIP LINKS --- */

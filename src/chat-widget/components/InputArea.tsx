@@ -50,6 +50,7 @@ export function InputArea({
 }: InputAreaProps) {
   const { t } = useTranslations()
   const [inputValue, setInputValue] = useState('')
+  const [isFocused, setIsFocused] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
   const [recordingTime, setRecordingTime] = useState(0)
@@ -434,12 +435,17 @@ export function InputArea({
         {/* ÁREA DE TEXTO / GRABACIÓN */}
         <div
           className={cn(
-            'flex-1 relative flex items-center min-w-0 rounded-[24px] border px-4 transition-all shadow-inner',
+            'flex-1 relative flex items-center min-w-0 rounded-[24px] border px-4 transition-all shadow-inner chat-input-pill',
+            isFocused && 'border-[hsl(var(--primary))] ring-2 ring-[hsl(var(--primary))]',
             isRecording ? 'h-[44px]' : 'min-h-[40px] max-h-[120px]'
           )}
           style={{
             backgroundColor: isRecording ? 'hsl(var(--destructive) / 0.05)' : 'hsl(var(--muted))',
-            borderColor: isRecording ? 'hsl(var(--destructive))' : 'hsl(var(--border))',
+            borderColor: isRecording
+              ? 'hsl(var(--destructive))'
+              : isFocused
+              ? 'hsl(var(--primary))'
+              : 'hsl(var(--border))',
           }}
         >
           {isRecording ? (
@@ -483,13 +489,17 @@ export function InputArea({
                 value={inputValue}
                 onKeyDown={handleKeyDown}
                 onChange={handleInputChange}
-                onFocus={() => setIsMenuOpen(false)}
+                onFocus={() => {
+                  setIsFocused(true)
+                  setIsMenuOpen(false)
+                }}
+                onBlur={() => setIsFocused(false)}
                 placeholder={placeholder}
                 aria-label={t('accessibility.typeMessage')}
                 aria-describedby="send-message-hint"
                 aria-invalid={inputValue.length > MAX_CHARS}
                 disabled={!isConnected}
-                className="w-full bg-transparent text-sm py-2.5 outline-none resize-none overflow-hidden leading-tight pr-8 scrollbar-none disabled:opacity-50"
+                className="chat-input-textarea w-full bg-transparent text-sm py-2.5 outline-none resize-none overflow-hidden leading-tight pr-8 scrollbar-none disabled:opacity-50"
                 style={{
                   scrollbarWidth: 'none',
                   msOverflowStyle: 'none',
