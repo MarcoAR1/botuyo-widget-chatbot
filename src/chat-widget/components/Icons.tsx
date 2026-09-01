@@ -14,6 +14,7 @@ export {
   Paperclip,
   Send,
   Loader2,
+  Camera,
   Image as ImageIcon,
   FileAudio,
   FileText,

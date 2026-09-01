@@ -19,6 +19,7 @@ export const translations = {
     // Input area
     preview: 'Vista previa',
     fotos: 'Fotos',
+    camara: 'Cámara',
     ubicacion: 'Ubicación',
     input_placeholder: 'Escribe un mensaje...',
     send: 'Enviar',
@@ -90,6 +91,7 @@ export const translations = {
     // Input area
     preview: 'Preview',
     fotos: 'Photos',
+    camara: 'Camera',
     ubicacion: 'Location',
     input_placeholder: 'Type a message...',
     send: 'Send',
@@ -161,6 +163,7 @@ export const translations = {
     // Área de entrada
     preview: 'Visualizar',
     fotos: 'Fotos',
+    camara: 'Câmera',
     ubicacion: 'Localização',
     input_placeholder: 'Digite uma mensagem...',
     send: 'Enviar',
@@ -232,6 +235,7 @@ export const translations = {
     // Zone de saisie
     preview: 'Aperçu',
     fotos: 'Photos',
+    camara: 'Caméra',
     ubicacion: 'Emplacement',
     input_placeholder: 'Tapez un message...',
     send: 'Envoyer',

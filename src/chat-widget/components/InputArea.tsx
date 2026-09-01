@@ -3,7 +3,7 @@
 import { useState, useRef, useMemo } from 'react'
 import { useTranslations } from '@/chat-widget/i18n'
 import type { MediaConfig } from '../types'
-import { Send, ImageIcon, Loader2, Plus, MapPin, Mic, X, Trash2, FileIcon, Phone } from './Icons'
+import { Send, ImageIcon, Loader2, Plus, MapPin, Mic, X, Trash2, FileIcon, Phone, Camera } from './Icons'
 import { cn } from '@/lib/utils'
 import { getPrimaryColor } from '../utils/theme'
 import { logger } from '../utils/logger'
@@ -61,6 +61,7 @@ export function InputArea({
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
   const timerRef = useRef<NodeJS.Timeout | null>(null)
@@ -310,6 +311,16 @@ export function InputArea({
         onChange={handleFileSelect}
       />
 
+      {/* Input de cámara — `capture` abre la cámara del dispositivo (móvil) para sacar la foto en el momento */}
+      <input
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        ref={cameraInputRef}
+        onChange={handleFileSelect}
+      />
+
       {/* Input de archivos generales */}
       <input
         type="file"
@@ -342,6 +353,23 @@ export function InputArea({
                     }}
                   >
                     <ImageIcon size={18} className="text-blue-500" /> {t('fotos')}
+                  </button>
+                )}
+
+                {/* Opción: Cámara (sacar foto al momento) */}
+                {config.enableImages && (
+                  <button
+                    onClick={() => cameraInputRef.current?.click()}
+                    className="flex items-center border shadow-soft-2xl rounded-2xl transition-colors text-[10px] font-black uppercase tracking-widest"
+                    style={{
+                      gap: 'var(--spacing-3)',
+                      padding: 'var(--spacing-3) var(--spacing-5)',
+                      backgroundColor: 'hsl(var(--card))',
+                      borderColor: 'hsl(var(--border))',
+                      color: 'hsl(var(--card-foreground))',
+                    }}
+                  >
+                    <Camera size={18} className="text-rose-500" /> {t('camara')}
                   </button>
                 )}
 
