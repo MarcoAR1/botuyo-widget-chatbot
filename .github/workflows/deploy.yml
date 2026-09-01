@@ -83,6 +83,10 @@ jobs:
           npm ci
           npm run build
 
+      # Test-gate the publish: the full suite must pass before we deploy to CDN / publish to npm.
+      - name: Run tests
+        run: npm run test:run
+
       - name: Install Wrangler
         run: npm install -g wrangler
 
