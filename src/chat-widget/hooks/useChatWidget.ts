@@ -275,11 +275,19 @@ export function useChatWidget(options: UseChatWidgetOptions) {
     [actions, socket, rateLimit, analytics, t]
   )
 
-  // Answer the pinned quiz: mark it answered (highlighting the chosen option) and send the
-  // answer to the backend. No optimistic user bubble — the highlighted quiz is the record.
+  // Answer the pinned quiz: mark it answered (clears the dock) and ECHO the chosen option as a
+  // user bubble so the selection is visible in the transcript, in sync with the bot's reply
+  // (mirrors typed messages + the voice-mode quiz). The backend still receives `Answer: <label>`.
   const handleQuizAnswer = useCallback(
     (message: ButtonsMessage, label: string, buttonId: string) => {
       actions.answerQuiz(message.id, buttonId)
+      actions.addMessage({
+        id: `temp-${Date.now()}-${Math.random()}`,
+        type: 'text',
+        sender: 'user',
+        timestamp: new Date(),
+        content: label,
+      })
       socket.sendMessage(`Answer: ${label}`, 'text')
       analytics.trackMessageSent('text')
     },
