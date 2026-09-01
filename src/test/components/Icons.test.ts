@@ -106,9 +106,9 @@ describe('Icons', () => {
       expect(Icons.MapPin).toBe(Icons.MapPinBubble)
     })
 
-    it('should export 30 unique icon references', () => {
+    it('should export 31 unique icon references', () => {
       const exportedKeys = Object.keys(Icons)
-      expect(exportedKeys.length).toBe(30)
+      expect(exportedKeys.length).toBe(31)
     })
   })
 
