@@ -306,6 +306,65 @@ describe('useChatState', () => {
       expect(result.current.state.messages.map(m => m.id)).toEqual(['x', 'y'])
     })
 
+    it('orders messages by timestamp regardless of insertion/id order', () => {
+      const { result } = renderHook(() => useChatState())
+      const older: ChatMessage = {
+        id: 'srv-2',
+        type: 'text',
+        content: 'first',
+        sender: 'user',
+        timestamp: new Date('2024-01-01T10:00:00Z'),
+      }
+      const newer: ChatMessage = {
+        id: 'srv-1',
+        type: 'text',
+        content: 'second',
+        sender: 'bot',
+        timestamp: new Date('2024-01-01T10:05:00Z'),
+      }
+      act(() => {
+        result.current.actions.addMessage(newer) // inserted first, but chronologically later
+        result.current.actions.addMessage(older)
+      })
+      expect(result.current.state.messages.map(m => (m as { content: string }).content)).toEqual([
+        'first',
+        'second',
+      ])
+    })
+
+    it('collapses an optimistic message against its server echo (same content, different ids)', () => {
+      const { result } = renderHook(() => useChatState())
+      const t = new Date()
+      act(() => {
+        result.current.actions.addMessage({ id: 'msg-abc', type: 'text', content: 'hola', sender: 'user', timestamp: t })
+        result.current.actions.addMessage({
+          id: 'srv-99',
+          type: 'text',
+          content: 'hola',
+          sender: 'user',
+          timestamp: new Date(t.getTime() + 1200),
+        })
+      })
+      expect(result.current.state.messages).toHaveLength(1)
+      expect(result.current.state.messages[0].id).toBe('srv-99') // the real server id wins
+    })
+
+    it('keeps two genuinely repeated messages (both real ids)', () => {
+      const { result } = renderHook(() => useChatState())
+      const t = new Date()
+      act(() => {
+        result.current.actions.addMessage({ id: 'srv-1', type: 'text', content: 'sí', sender: 'user', timestamp: t })
+        result.current.actions.addMessage({
+          id: 'srv-2',
+          type: 'text',
+          content: 'sí',
+          sender: 'user',
+          timestamp: new Date(t.getTime() + 500),
+        })
+      })
+      expect(result.current.state.messages).toHaveLength(2)
+    })
+
     it('should clear messages', () => {
       const { result } = renderHook(() => useChatState())
 

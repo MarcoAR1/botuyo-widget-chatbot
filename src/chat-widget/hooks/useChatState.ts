@@ -21,18 +21,61 @@ const initialState: ChatState = {
   sessionId: null,
 }
 
-function dedupeById(messages: ChatMessage[]): ChatMessage[] {
-  const seen = new Set<string>()
+/** Time window within which the same sender+content is treated as ONE logical message. */
+const SIG_WINDOW_MS = 60000
+
+const tsOf = (m: ChatMessage): number => {
+  const t = new Date(m.timestamp as unknown as string).getTime()
+  return Number.isFinite(t) ? t : 0
+}
+
+/** Signature for collapsing the same TEXT turn that arrived under different ids (optimistic vs server echo). */
+const sigOf = (m: ChatMessage): string => {
+  const c = (m as { content?: string }).content
+  return `${m.sender}|${typeof c === 'string' ? c.trim() : ''}`
+}
+
+/**
+ * Canonicalize the message list so ORDER never depends on id coordination:
+ *   1. sort by timestamp (chronological — the source of truth for order),
+ *   2. dedupe by id,
+ *   3. collapse duplicate TEXT turns (same sender+content within SIG_WINDOW_MS) that arrived under
+ *      different ids — preferring the server's real id over the optimistic `msg-*` one.
+ * This is what stops the "pile-up / out-of-order" when the cache expires and history re-merges.
+ */
+function normalizeMessages(messages: ChatMessage[]): ChatMessage[] {
+  const sorted = [...messages].sort((a, b) => tsOf(a) - tsOf(b))
+  const seenIds = new Set<string>()
   const out: ChatMessage[] = []
-  for (const m of messages) {
+  for (const m of sorted) {
     if (m.id) {
-      if (seen.has(m.id)) continue
-      seen.add(m.id)
+      if (seenIds.has(m.id)) continue
+      seenIds.add(m.id)
+    }
+    // Signature dedup ONLY for non-empty text (never collapse distinct images/buttons/proposals).
+    const isText = m.type === 'text' && !!(m as { content?: string }).content?.trim()
+    if (isText) {
+      const idx = out.findIndex(
+        x => x.type === 'text' && sigOf(x) === sigOf(m) && Math.abs(tsOf(x) - tsOf(m)) < SIG_WINDOW_MS
+      )
+      if (idx >= 0) {
+        const existingOptimistic = !!out[idx].id?.startsWith('msg-')
+        const incomingOptimistic = !!m.id?.startsWith('msg-')
+        // Only collapse an OPTIMISTIC turn against its real server echo — never two real messages
+        // (that would drop a legitimate repeated message like the user saying "sí" twice).
+        if (existingOptimistic !== incomingOptimistic) {
+          if (existingOptimistic) out[idx] = m // keep the server's real id
+          continue
+        }
+      }
     }
     out.push(m)
   }
   return out
 }
+
+/** Back-compat alias — same canonicalization used everywhere the list is rebuilt. */
+const dedupeById = normalizeMessages
 
 function chatReducer(
   state: ChatState,
@@ -55,44 +98,31 @@ function chatReducer(
       return { ...state, isTyping: action.payload }
 
     case 'ADD_MESSAGE': {
-      // ⚡ FIX CRÍTICO: Creamos un nuevo array de mensajes y forzamos el render
-      // Evitar duplicados: si el mensaje ya existe (mismo ID), no lo agregamos
-      const messageExists = state.messages.some(m => m.id === action.payload.id)
-      if (messageExists) {
+      // Exact id already present → no-op (no re-render).
+      if (state.messages.some(m => m.id === action.payload.id)) {
         return state
       }
-
-      // Content-based dedup fallback: si el ID es random (msg-*), verificar
-      // que no haya un mensaje reciente idéntico (mismo content + sender en últimos 30s)
-      if (action.payload.id.startsWith('msg-') && action.payload.type === 'text') {
-        const now = new Date().getTime()
-        const recentDuplicateExists = state.messages
-          .slice(-10)
-          .some(m =>
-            m.type === 'text' &&
-            m.sender === action.payload.sender &&
-            'content' in m && 'content' in action.payload &&
-            m.content === (action.payload as any).content &&
-            Math.abs(now - new Date(m.timestamp).getTime()) < 30000
-          )
-        if (recentDuplicateExists) {
-          return state
-        }
+      // Insert + canonicalize (timestamp order + id/signature dedup).
+      const merged = normalizeMessages([...state.messages, action.payload])
+      // If nothing actually changed (same ids in the same order), skip the render. Note we compare
+      // the id SEQUENCE, not just length: a server echo can REPLACE an optimistic id without
+      // changing the count, and that swap must go through.
+      const unchanged =
+        merged.length === state.messages.length && merged.every((m, i) => m.id === state.messages[i].id)
+      if (unchanged) {
+        return state
       }
-
-      const newMessages = [...state.messages, action.payload]
       const isBot = action.payload.sender === 'bot'
-
       return {
         ...state,
-        messages: newMessages,
+        messages: merged,
         // Si el mensaje es del bot, apagamos typing. Si es del usuario, mantenemos el actual.
         isTyping: isBot ? false : state.isTyping,
       }
     }
 
     case 'SET_MESSAGES':
-      return { ...state, messages: dedupeById(action.payload) }
+      return { ...state, messages: normalizeMessages(action.payload) }
 
     case 'SET_ERROR':
       return { ...state, error: action.payload }
