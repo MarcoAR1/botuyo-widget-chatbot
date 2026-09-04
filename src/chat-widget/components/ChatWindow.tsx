@@ -31,7 +31,7 @@ export interface ChatWindowProps {
   position?: 'bottom-right' | 'bottom-left'
   bubbleStyles?: BubbleStyles
   avatars?: EmotionAvatarMap
-  onSendAttachment?: (file: File, type: 'image' | 'audio' | 'file') => void
+  onSendAttachment?: (file: File, type: 'image' | 'audio' | 'file', caption?: string) => void
   onSendLocation?: (location: { latitude: number; longitude: number }) => void
   getSocket?: () => any
   /** URL to a .vrm/.glb 3D model for voice call avatar */

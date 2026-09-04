@@ -313,7 +313,8 @@ export function useChatWidget(options: UseChatWidgetOptions) {
   )
 
   const handleSendAttachment = useCallback(
-    async (file: File, type: 'image' | 'audio' | 'file') => {
+    async (file: File, type: 'image' | 'audio' | 'file', caption?: string) => {
+      const trimmedCaption = caption?.trim() || undefined
       // Optimistic update: agregar mensaje del usuario inmediatamente
       let userMessage: ChatMessage
 
@@ -332,6 +333,7 @@ export function useChatWidget(options: UseChatWidgetOptions) {
           sender: 'user',
           timestamp: new Date(),
           imageUrl: URL.createObjectURL(file), // Preview local de la imagen
+          ...(trimmedCaption ? { caption: trimmedCaption } : {}),
         } satisfies ImageMessage
       } else {
         // 'file' → convertir a mensaje de texto con el nombre del archivo
@@ -340,15 +342,15 @@ export function useChatWidget(options: UseChatWidgetOptions) {
           type: 'text',
           sender: 'user',
           timestamp: new Date(),
-          content: `📎 ${file.name}`, // Mostrar nombre del archivo
+          content: trimmedCaption ? `📎 ${file.name} — ${trimmedCaption}` : `📎 ${file.name}`,
         } satisfies TextMessage
       }
 
       actions.addMessage(userMessage)
 
-      // Enviar al servidor
+      // Enviar al servidor (con el caption tipeado, si lo hay, para que viaje junto a la imagen)
       const b64 = await toBase64(file)
-      socket.sendMessage(b64, type)
+      socket.sendMessage(b64, type, trimmedCaption)
     },
     [actions, socket]
   )

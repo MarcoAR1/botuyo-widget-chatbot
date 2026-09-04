@@ -577,13 +577,20 @@ export function useChatSocket(options: UseChatSocketOptions) {
    * Envío de mensaje con reintentos automáticos y garantía de entrega
    */
   const sendMessage = useCallback(
-    (content: string, type: 'text' | 'image' | 'audio' | 'location' | 'file' = 'text') => {
+    (
+      content: string,
+      type: 'text' | 'image' | 'audio' | 'location' | 'file' = 'text',
+      caption?: string
+    ) => {
       const messageId = generateMessageId()
+      const trimmedCaption = caption?.trim()
       const metadata = {
         ...pageContextRef.current,
         currentUrl: typeof window !== 'undefined' ? window.location.href : undefined,
         sentAt: new Date().toISOString(),
         deviceId: deviceIdRef.current,
+        // Text typed alongside an attachment (image/file) — travels with it so the model gets both.
+        ...(trimmedCaption ? { caption: trimmedCaption } : {}),
       }
 
       const payload = {
