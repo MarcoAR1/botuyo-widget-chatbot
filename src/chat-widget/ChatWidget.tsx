@@ -226,7 +226,12 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
   // the init `theme` prop or the backend-pushed widget config (socketTheme).
   // Memoized so the overlay's resolved gate config stays stable across renders.
   const voiceNoiseGate = theme?.voiceNoiseGate ?? (socketTheme as any)?.voiceNoiseGate
-  const voiceConfig = useMemo(() => ({ noiseGate: voiceNoiseGate }), [voiceNoiseGate])
+  const avatarZoom = theme?.avatarZoom ?? (socketTheme as any)?.avatarZoom
+  const avatarOffsetY = theme?.avatarOffsetY ?? (socketTheme as any)?.avatarOffsetY
+  const voiceConfig = useMemo(
+    () => ({ noiseGate: voiceNoiseGate, avatarZoom, avatarOffsetY }),
+    [voiceNoiseGate, avatarZoom, avatarOffsetY]
+  )
 
   // Voice-first (kiosk) mode: latch the call open once the socket connects, then
   // keep it open so a transient disconnect doesn't unmount the call mid-interview.

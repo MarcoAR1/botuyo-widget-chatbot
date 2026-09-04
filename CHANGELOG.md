@@ -12,6 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.14] — 2026-09-04
+
+### Fixed
+- **3D avatar face is always visible now.** VRM avatars used a fixed camera that cut off heads on models with different proportions. The camera now frames adaptively around the **VRM head bone** (bust shot), so the face stays in frame regardless of the model.
+
+### Added
+- **`theme.avatarZoom`** (number, default `1`) — camera zoom for the 3D voice-call avatar (`>1` closer).
+- **`theme.avatarOffsetY`** (number, default `0`) — vertical framing nudge for the 3D avatar (metres). Lets you fine-tune posture per model without editing the widget.
+- `computeGlbFraming` now accepts `{ portion, targetYFactor, zoom, offsetY }` (backward compatible).
+
 ## [1.8.13] — 2026-09-04
 
 ### Fixed

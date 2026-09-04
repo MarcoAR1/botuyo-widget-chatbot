@@ -85,6 +85,10 @@ export interface VoiceOverlayConfig {
   thinkingScale?: number
   /** URL to a .vrm/.glb 3D model. When set, replaces 2D avatar with 3D. */
   avatar3dUrl?: string
+  /** Camera zoom for the 3D avatar framing (>1 = closer, <1 = farther). Default 1. */
+  avatarZoom?: number
+  /** Vertical framing offset for the 3D avatar, in metres (+ = look higher). Default 0. */
+  avatarOffsetY?: number
   /**
    * Background-noise gate sensitivity for the live voice call — isolates the
    * speaker in front of the device by attenuating background ambience/chatter
@@ -265,6 +269,8 @@ type Required_VoiceOverlayConfig = {
   speakingScale: number
   thinkingScale: number
   avatar3dUrl?: string
+  avatarZoom: number
+  avatarOffsetY: number
   voiceGate: VoiceGateConfig
   vad: false | VadGateConfig
   vadAssetBaseUrl?: string
@@ -296,6 +302,8 @@ function resolveVoiceConfig(
     speakingScale: cfg?.speakingScale ?? 1.08,
     thinkingScale: cfg?.thinkingScale ?? 0.95,
     avatar3dUrl: cfg?.avatar3dUrl,
+    avatarZoom: cfg?.avatarZoom ?? 1,
+    avatarOffsetY: cfg?.avatarOffsetY ?? 0,
     voiceGate: resolveVoiceGateConfig(cfg?.noiseGate),
     vad: cfg?.vad === false ? false : resolveVadGateConfig(cfg?.vad),
     vadAssetBaseUrl: cfg?.vadAssetBaseUrl,
@@ -392,6 +400,8 @@ function AvatarOrb({
               audioLevel={audioLevel}
               primaryColor={config.speakingColor}
               size={config.orbSize}
+              avatarZoom={config.avatarZoom}
+              avatarOffsetY={config.avatarOffsetY}
             />
           </Suspense>
         </Avatar3DErrorBoundary>

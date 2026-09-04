@@ -43,13 +43,34 @@ const DISTANCE_PADDING = 1.2
  * The numbers mirror the preview's original (correct) framing, so the voice call
  * and the preview render the avatar identically.
  */
-export function computeGlbFraming(size: AvatarSize, fovDegrees: number): AvatarFraming {
+/** Optional framing tweaks so the face is always visible and consumers can fine-tune. */
+export interface FramingOptions {
+  /** Fraction of the model height to fit vertically. `1` = full figure, `~0.55` ≈ bust. Default `1`. */
+  portion?: number
+  /** Look-at height as a fraction of the model height. Default `0.3`. */
+  targetYFactor?: number
+  /** Zoom multiplier (`>1` = closer, `<1` = farther). Default `1`. */
+  zoom?: number
+  /** Vertical nudge added to the look-at target, in metres. Default `0`. */
+  offsetY?: number
+}
+
+export function computeGlbFraming(
+  size: AvatarSize,
+  fovDegrees: number,
+  opts: FramingOptions = {}
+): AvatarFraming {
   const height = size.y > 0 ? size.y : 1
   const fov = ((fovDegrees > 0 ? fovDegrees : DEFAULT_FOV_DEGREES) * Math.PI) / 180
 
-  const targetY = height * TARGET_Y_FACTOR
-  // Distance that fits the model height in the vertical FOV, with padding.
-  const distance = ((height * 0.5) / Math.tan(fov / 2)) * DISTANCE_PADDING
+  const portion = opts.portion && opts.portion > 0 ? opts.portion : 1
+  const zoom = opts.zoom && opts.zoom > 0 ? opts.zoom : 1
+  const targetYFactor = opts.targetYFactor ?? TARGET_Y_FACTOR
+  const offsetY = opts.offsetY ?? 0
+
+  const targetY = height * targetYFactor + offsetY
+  // Distance that fits `height * portion` in the vertical FOV, with padding, divided by zoom.
+  const distance = (((height * portion) * 0.5) / Math.tan(fov / 2)) * DISTANCE_PADDING / zoom
 
   return {
     position: [0, targetY, distance],

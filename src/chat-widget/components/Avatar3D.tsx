@@ -34,6 +34,10 @@ interface Avatar3DProps {
   audioLevel: number
   primaryColor: string
   size: number
+  /** Zoom multiplier for the camera framing (>1 = closer). Default 1. */
+  avatarZoom?: number
+  /** Vertical nudge for the framing target, in metres (+ = look higher). Default 0. */
+  avatarOffsetY?: number
 }
 
 // ═══════════════════════════════════════
@@ -184,10 +188,17 @@ interface VRMModelProps {
   emotion: string | null
   callState: CallState
   audioLevel: number
+  zoom?: number
+  offsetY?: number
 }
 
-function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
+function VRMModel({ url, emotion, callState, audioLevel, zoom = 1, offsetY = 0 }: VRMModelProps) {
   const vrmRef = useRef<VRM | null>(null)
+  // Framing knobs read via refs so changing them doesn't force a model reload.
+  const zoomRef = useRef(zoom)
+  zoomRef.current = zoom
+  const offsetYRef = useRef(offsetY)
+  offsetYRef.current = offsetY
   const glbSceneRef = useRef<THREE.Group | null>(null)
   const morphMeshesRef = useRef<MorphMesh[]>([]) // ARKit/RPM morph target meshes
   const mixerRef = useRef<THREE.AnimationMixer | null>(null)
@@ -224,6 +235,27 @@ function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
           vrm.scene.position.y = -center.y - height * 0.05
           baseY.current = vrm.scene.position.y
           scene.add(vrm.scene)
+          vrm.scene.updateWorldMatrix(true, true)
+
+          // ── Adaptive "bust" framing ──────────────────────────────────────
+          // Aim the camera at the VRM head bone so the FACE is always visible,
+          // regardless of the model's proportions (fixes heads getting cut off).
+          // Falls back to a fraction of the height if the humanoid rig is missing.
+          const humanoid = (vrm as any).humanoid
+          const headNode =
+            humanoid?.getNormalizedBoneNode?.('head') || humanoid?.getRawBoneNode?.('head') || null
+          const headWorld = new THREE.Vector3()
+          if (headNode) headNode.getWorldPosition(headWorld)
+          else headWorld.set(0, baseY.current + height * 0.85, 0)
+
+          const fovRad = ((camera as THREE.PerspectiveCamera).fov * Math.PI) / 180
+          const z = zoomRef.current > 0 ? zoomRef.current : 1
+          const framedHeight = Math.max(height * 0.55, 0.4) // upper body ≈ bust
+          const distance = ((framedHeight * 0.5) / Math.tan(fovRad / 2)) * 1.15 / z
+          // Keep the face in the upper third of the frame (look slightly below the head).
+          const targetY = headWorld.y - framedHeight * 0.3 + offsetYRef.current
+          camera.position.set(0, targetY, distance)
+          camera.lookAt(0, targetY, 0)
 
           // Eyes look straight at camera (forward-facing)
           if (vrm.lookAt) {
@@ -274,7 +306,8 @@ function VRMModel({ url, emotion, callState, audioLevel }: VRMModelProps) {
           // which is why the call rendered the back of the head ("de espaldas").
           const framing = computeGlbFraming(
             { x: size.x, y: size.y, z: size.z },
-            (camera as THREE.PerspectiveCamera).fov
+            (camera as THREE.PerspectiveCamera).fov,
+            { zoom: zoomRef.current, offsetY: offsetYRef.current }
           )
           camera.position.set(...framing.position)
           camera.lookAt(...framing.target)
@@ -634,6 +667,8 @@ export default function Avatar3D({
   audioLevel,
   primaryColor,
   size,
+  avatarZoom = 1,
+  avatarOffsetY = 0,
 }: Avatar3DProps) {
   const glowIntensity = useMemo(() => {
     switch (callState) {
@@ -698,6 +733,8 @@ export default function Avatar3D({
             emotion={emotion}
             callState={callState}
             audioLevel={audioLevel}
+            zoom={avatarZoom}
+            offsetY={avatarOffsetY}
           />
         </Canvas>
       </div>

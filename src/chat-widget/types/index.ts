@@ -248,7 +248,12 @@ export interface ChatTheme {
 
   promptPersistence?: PromptStrategy // Estrategia del globo
 
-  avatarScale?: number // Zoom del avatar (ej: 1.2 para 20% más grande)
+  avatarScale?: number // Zoom del avatar 2D en el prompt/launcher (ej: 1.2 = 20% más grande)
+
+  /** Zoom de la cámara del avatar 3D en la llamada de voz (>1 = más cerca). Default 1. */
+  avatarZoom?: number
+  /** Ajuste vertical del encuadre del avatar 3D, en metros (+ = mirar más arriba). Default 0. */
+  avatarOffsetY?: number
 
   /** Muestra un mini avatar en el prompt bubble (default: false) */
   showPromptAvatar?: boolean

@@ -57,6 +57,30 @@ describe('computeGlbFraming', () => {
     expect(Number.isFinite(f.position[2])).toBe(true)
     expect(f.position[2]).toBeGreaterThan(0)
   })
+
+  it('is unchanged when no framing options are passed (backward compatible)', () => {
+    const a = computeGlbFraming(size, 30)
+    const b = computeGlbFraming(size, 30, {})
+    expect(b).toEqual(a)
+  })
+
+  it('zoom > 1 pulls the camera closer', () => {
+    const base = computeGlbFraming(size, 30)
+    const zoomed = computeGlbFraming(size, 30, { zoom: 2 })
+    expect(zoomed.position[2]).toBeCloseTo(base.position[2] / 2, 5)
+  })
+
+  it('portion < 1 frames a smaller extent (closer)', () => {
+    const full = computeGlbFraming(size, 30, { portion: 1 })
+    const bust = computeGlbFraming(size, 30, { portion: 0.5 })
+    expect(bust.position[2]).toBeLessThan(full.position[2])
+  })
+
+  it('offsetY shifts the look-at target vertically', () => {
+    const base = computeGlbFraming(size, 30)
+    const shifted = computeGlbFraming(size, 30, { offsetY: 0.5 })
+    expect(shifted.target[1]).toBeCloseTo(base.target[1] + 0.5, 5)
+  })
 })
 
 describe('selectIdleClip', () => {

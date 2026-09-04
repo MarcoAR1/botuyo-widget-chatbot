@@ -168,7 +168,9 @@ export default function App() {
 | `inputPlaceholder` | `string` | Input field placeholder |
 | `starterPrompt` | `string` | Prompt bubble shown when chat is closed |
 | `defaultLocale` | `'es' \| 'en' \| 'pt' \| 'fr'` | Widget language |
-| `avatarScale` | `number` | Avatar zoom (e.g., `1.2` = 20% bigger) |
+| `avatarScale` | `number` | 2D avatar zoom in the prompt/launcher (e.g., `1.2` = 20% bigger) |
+| `avatarZoom` | `number` | 3D avatar (voice call) camera zoom — `>1` closer, `<1` farther. Default `1` |
+| `avatarOffsetY` | `number` | 3D avatar (voice call) vertical framing nudge, in metres (`+` = look higher). Default `0` |
 | `showPromptAvatar` | `boolean` | Show mini avatar in prompt bubble |
 | `isHidden` | `boolean` | Hide widget (draft/paused agents) |
 | `cssVariables` | `CSSVariables` | Light mode colors and layout (see below) |
