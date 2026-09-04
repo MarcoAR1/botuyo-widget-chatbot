@@ -116,9 +116,19 @@ Theme flows: `ChatWidgetProps.theme` → `useWidgetTheme` hook → CSS variables
 
 **Architecture:** HSL-based CSS variable system supporting light/dark mode. Dark mode overrides only surface colors — primary is preserved from light mode.
 
+**Configurable tokens** (via `theme.cssVariables`, mirrored into CSS vars — see README for the full table):
+`background`, `foreground`, `card`, `cardForeground`, `primary`, `primaryForeground`, `muted`,
+`mutedForeground`, `border`, `destructive`, `radius`, `windowBorderRadius`, `launcherBorderRadius`,
+`bubbleRadius`, `inputRadius`, `borderWidth`, `fontFamily`, `spacing1..8`. Every token has a default,
+so consumers override only what they need. The SAME tokens can be set server-side on the agent's
+`widgetConfig.cssVariables` (arrives via socket `connection_ack`).
+
 **Hard rules:**
 - **Use Tailwind classes** referencing CSS vars (e.g., `bg-[hsl(var(--background))]`)
-- **NEVER use hardcoded colors** — always reference theme tokens or CSS variables
+- **NEVER hardcode colors, radii, border widths or fonts** — always route through a theme token / CSS
+  variable so consumers can customize it. If a component needs a new visual knob, add it as a
+  `cssVariables` token (types + `theme.ts` + `ChatWidget.tsx` injection + `standalone.tsx` varMap + README)
+  with the current value as its `var(--x, default)` fallback — never a bare literal.
 - **`BubbleStyles`** allows per-tenant bubble customization
 
 ## RULE 8: Internationalization (i18n)

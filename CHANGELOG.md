@@ -12,6 +12,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.9] — 2026-09-04
+
+### Added
+- **`theme.cssVariables.fontFamily`** (`--font-family`) — set the widget's font stack (e.g. `"'Inter', sans-serif"`). Applied to the whole widget tree; falls back to the host page font when unset.
+- **`theme.cssVariables.borderWidth`** (`--border-width`) — border thickness for the chat window, bot bubbles and input. Default `1px`.
+
+### Fixed
+- The desktop chat window hard-coded `border-radius: 32px`, ignoring `windowBorderRadius`. It now honors `--window-border-radius` (default `32px`, non-breaking).
+
+### Docs
+- README: complete configurable-tokens table (colors, radii, `bubbleRadius`, `inputRadius`, `borderWidth`, `fontFamily`, spacing) and a note that tokens can be set **consumer-side** (`theme.cssVariables`) or **server-side** via the agent's `widgetConfig.cssVariables` (JSON).
+
+## [1.8.8] — 2026-09-04
+
+### Added
+- **`theme.cssVariables.bubbleRadius`** (`--bubble-radius`) and **`theme.cssVariables.inputRadius`** (`--input-radius`) — the chat bubble and text-input corner radii used to be hard-coded (`18px` / `24px`) and ignored the theme. They are now consumer-configurable, with those same values as defaults (non-breaking).
+
 ## [1.8.1] — 2026-08-11
 
 ### Changed
