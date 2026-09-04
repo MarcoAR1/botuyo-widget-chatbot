@@ -33,7 +33,7 @@ export interface InputAreaProps {
   primaryColor?: string
   mediaConfig?: MediaConfig
   onSendMessage: (message: string) => void
-  onSendAttachment?: (file: File, type: 'image' | 'audio' | 'file') => void
+  onSendAttachment?: (file: File, type: 'image' | 'audio' | 'file', caption?: string) => void
   onSendLocation?: (location: { latitude: number; longitude: number }) => void
   onVoiceCall?: () => void // Voice call callback
 }
@@ -90,7 +90,9 @@ export function InputArea({
     }
 
     if (attachment) {
-      onSendAttachment?.(attachment.file, attachment.type)
+      // Send the typed text ALONG WITH the attachment as its caption (was being discarded before),
+      // so a photo + question ("¿qué ves acá?") reaches the model as one turn.
+      onSendAttachment?.(attachment.file, attachment.type, trimmedValue || undefined)
       setAttachment(null)
       setInputValue('')
     } else if (trimmedValue && isConnected) {
@@ -257,7 +259,7 @@ export function InputArea({
       {/* PREVIEW DE ADJUNTO */}
       {(attachment || isCompressing) && (
         <div
-          className="absolute bottom-full left-0 mb-2 p-2 rounded-2xl border shadow-soft-2xl animate-in slide-in-from-bottom-2 z-50"
+          className="absolute bottom-full left-0 mb-2 p-2 rounded-[var(--button-radius,1rem)] border shadow-soft-2xl animate-in slide-in-from-bottom-2 z-50"
           style={{
             backgroundColor: 'hsl(var(--card))',
             borderColor: 'hsl(var(--border))',
@@ -343,7 +345,7 @@ export function InputArea({
                 {config.enableImages && (
                   <button
                     onClick={() => imageInputRef.current?.click()}
-                    className="flex items-center border shadow-soft-2xl rounded-2xl transition-colors text-[10px] font-black uppercase tracking-widest"
+                    className="flex items-center border shadow-soft-2xl rounded-[var(--button-radius,1rem)] transition-colors text-[10px] font-black uppercase tracking-widest"
                     style={{
                       gap: 'var(--spacing-3)',
                       padding: 'var(--spacing-3) var(--spacing-5)',
@@ -360,7 +362,7 @@ export function InputArea({
                 {config.enableImages && (
                   <button
                     onClick={() => cameraInputRef.current?.click()}
-                    className="flex items-center border shadow-soft-2xl rounded-2xl transition-colors text-[10px] font-black uppercase tracking-widest"
+                    className="flex items-center border shadow-soft-2xl rounded-[var(--button-radius,1rem)] transition-colors text-[10px] font-black uppercase tracking-widest"
                     style={{
                       gap: 'var(--spacing-3)',
                       padding: 'var(--spacing-3) var(--spacing-5)',
@@ -377,7 +379,7 @@ export function InputArea({
                 {config.enableFiles && (
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center border shadow-soft-2xl rounded-2xl transition-colors text-[10px] font-black uppercase tracking-widest"
+                    className="flex items-center border shadow-soft-2xl rounded-[var(--button-radius,1rem)] transition-colors text-[10px] font-black uppercase tracking-widest"
                     style={{
                       gap: 'var(--spacing-3)',
                       padding: 'var(--spacing-3) var(--spacing-5)',
@@ -407,7 +409,7 @@ export function InputArea({
                         () => setIsLoadingLocation(false)
                       )
                     }}
-                    className="flex items-center border shadow-soft-2xl rounded-2xl transition-colors text-[10px] font-black uppercase tracking-widest"
+                    className="flex items-center border shadow-soft-2xl rounded-[var(--button-radius,1rem)] transition-colors text-[10px] font-black uppercase tracking-widest"
                     style={{
                       gap: 'var(--spacing-3)',
                       padding: 'var(--spacing-3) var(--spacing-5)',
@@ -432,7 +434,7 @@ export function InputArea({
                       onVoiceCall?.()
                       setIsMenuOpen(false)
                     }}
-                    className="flex items-center border shadow-soft-2xl rounded-2xl transition-colors text-[10px] font-black uppercase tracking-widest"
+                    className="flex items-center border shadow-soft-2xl rounded-[var(--button-radius,1rem)] transition-colors text-[10px] font-black uppercase tracking-widest"
                     style={{
                       gap: 'var(--spacing-3)',
                       padding: 'var(--spacing-3) var(--spacing-5)',

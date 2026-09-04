@@ -277,7 +277,7 @@ export function ChatWindow({
                   {/* Mini confirmation modal */}
                   {showCallConfirm && (
                     <div
-                      className="absolute top-full right-0 mt-2 rounded-2xl border shadow-soft-2xl animate-in fade-in zoom-in-95 duration-200 z-50"
+                      className="absolute top-full right-0 mt-2 rounded-[var(--button-radius,1rem)] border shadow-soft-2xl animate-in fade-in zoom-in-95 duration-200 z-50"
                       style={{
                         backgroundColor: 'hsl(var(--card))',
                         borderColor: 'hsl(var(--border))',
@@ -294,7 +294,7 @@ export function ChatWindow({
                       <div className="flex items-center justify-center" style={{ gap: 'var(--spacing-2)' }}>
                         <button
                           onClick={() => setShowCallConfirm(false)}
-                          className="h-8 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all active:scale-95"
+                          className="h-8 rounded-[var(--button-radius,0.75rem)] text-[10px] font-black uppercase tracking-wider transition-all active:scale-95"
                           style={{
                             padding: '0 var(--spacing-4)',
                             backgroundColor: 'hsl(var(--muted))',
@@ -308,7 +308,7 @@ export function ChatWindow({
                             setShowCallConfirm(false)
                             setShowVoiceOverlay(true)
                           }}
-                          className="h-8 rounded-xl text-[10px] font-black uppercase tracking-wider text-white transition-all active:scale-95 shadow-md"
+                          className="h-8 rounded-[var(--button-radius,0.75rem)] text-[10px] font-black uppercase tracking-wider text-white transition-all active:scale-95 shadow-md"
                           style={{
                             padding: '0 var(--spacing-4)',
                             backgroundColor: '#10b981',

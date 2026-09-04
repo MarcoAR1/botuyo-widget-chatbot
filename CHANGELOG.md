@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.11] — 2026-09-04
+
+### Changed
+- `buttonRadius` (`--button-radius`) now also drives the dropdown menus and their items — the input `+` attachment menu (Photos/Camera/Files/Location/Call) and the header options menu — so every button in the widget shares one radius. Fallbacks preserve the previous look.
+
 ## [1.8.10] — 2026-09-04
 
 ### Added
