@@ -12,6 +12,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.13] — 2026-09-04
+
+### Fixed
+- **No more green "loading" flash**: the standalone renders no Suspense placeholder — the launcher appears directly once the widget config is ready (the widget already returns `null` until then).
+- **Launcher logo no longer cropped**: the logo container follows `--avatar-radius` (instead of a forced circle) and, when showing the logo (not a photo/emotion avatar), the image uses `object-contain` with a little padding so square logos render complete. Photo/emotion avatars keep `object-cover`.
+
+## [1.8.12] — 2026-09-04
+
+### Fixed
+- Image attachments now send the typed text as the image **caption** (previously discarded), so "photo + question" reaches the model as a single turn.
+
 ## [1.8.11] — 2026-09-04
 
 ### Changed

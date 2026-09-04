@@ -277,43 +277,12 @@ class BotUyoChatWidget {
       onStateChange: this.config.onStateChange,
     };
 
-    // Render React component with Error Boundary + Suspense for code splitting
+    // Render React component with Error Boundary + Suspense for code splitting.
+    // No loading placeholder: the widget only renders once its config arrives
+    // (ChatWidget returns null until then), so nothing flashes before the launcher.
     const suspenseElement = React.createElement(
       Suspense,
-      {
-        fallback: React.createElement(
-          'div',
-          {
-            style: {
-              position: 'fixed',
-              bottom: '24px',
-              right: '24px',
-              width: '60px',
-              height: '60px',
-              borderRadius: '50%',
-              backgroundColor: '#10b981',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-              cursor: 'wait',
-            }
-          },
-          React.createElement(
-            'div',
-            {
-              style: {
-                width: '24px',
-                height: '24px',
-                border: '3px solid rgba(255, 255, 255, 0.3)',
-                borderTopColor: '#fff',
-                borderRadius: '50%',
-                animation: 'spin 1s linear infinite',
-              }
-            }
-          )
-        )
-      },
+      { fallback: null },
       React.createElement(ChatWidget, widgetProps)
     );
 

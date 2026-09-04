@@ -77,6 +77,13 @@ export function Launcher({
     [emotion, avatars, logoUrl]
   )
 
+  // Cuando el launcher muestra el LOGO (no un avatar/foto), usamos object-contain + padding
+  // para que se vea completo (object-cover recortaría los bordes del logo).
+  const showingLogo = useMemo(
+    () => !avatars[emotion] && !avatars.default && !!logoUrl,
+    [emotion, avatars, logoUrl]
+  )
+
   // Reset error state when image changes
   useEffect(() => {
     setImageError(false)
@@ -284,7 +291,7 @@ export function Launcher({
           } as React.CSSProperties}
           aria-label={isOpen ? 'Cerrar chat' : 'Abrir chat'}
         >
-          <div className="relative h-full w-full flex items-center justify-center overflow-hidden rounded-full">
+          <div className="relative h-full w-full flex items-center justify-center overflow-hidden rounded-[var(--avatar-radius,9999px)]">
             <div
               className={cn(
                 'absolute inset-0 transition-all duration-500 flex items-center justify-center',
@@ -295,7 +302,7 @@ export function Launcher({
                 <img
                   src={currentImageSrc}
                   alt={t('assistant')}
-                  className="w-full h-full object-cover"
+                  className={cn('w-full h-full', showingLogo ? 'object-contain p-1.5' : 'object-cover')}
                   style={{ transform: `scale(${avatarScale})` }}
                   onError={() => setImageError(true)}
                   key={currentImageSrc}
