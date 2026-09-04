@@ -30,7 +30,7 @@ type CallState = 'idle' | 'connecting' | 'listening' | 'speaking' | 'thinking'
 /**
  * Default rest angle (radians, ~69°) for the VRM upper arms. VRM models load in a
  * T-pose; lowering the upper arms to the sides gives a natural A-pose. Left arm uses
- * `-ARM_REST_Z`, right arm `+ARM_REST_Z`.
+ * `+ARM_REST_Z`, right arm `-ARM_REST_Z`.
  */
 const ARM_REST_Z = 1.2
 
@@ -636,11 +636,11 @@ function VRMModel({ url, emotion, callState, audioLevel, zoom = 1, offsetY = 0 }
       const rightArm = vrm.humanoid.getNormalizedBoneNode('rightUpperArm')
       if (leftArm) {
         const armSway = Math.sin(breathPhase.current * 0.35 + 0.5) * 0.01
-        leftArm.rotation.z = THREE.MathUtils.lerp(leftArm.rotation.z, -ARM_REST_Z + armSway, 1.5 * dt)
+        leftArm.rotation.z = THREE.MathUtils.lerp(leftArm.rotation.z, ARM_REST_Z + armSway, 1.5 * dt)
       }
       if (rightArm) {
         const armSway = Math.sin(breathPhase.current * 0.35 + 3.5) * 0.01
-        rightArm.rotation.z = THREE.MathUtils.lerp(rightArm.rotation.z, ARM_REST_Z - armSway, 1.5 * dt)
+        rightArm.rotation.z = THREE.MathUtils.lerp(rightArm.rotation.z, -ARM_REST_Z - armSway, 1.5 * dt)
       }
     }
 

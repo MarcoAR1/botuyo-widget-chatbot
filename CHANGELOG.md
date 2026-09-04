@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.16] — 2026-09-04
+
+### Fixed
+- Corrected the VRM rest-pose arm direction (arms were raised up); they now lower to a natural A-pose at the sides.
+
 ## [1.8.15] — 2026-09-04
 
 ### Fixed

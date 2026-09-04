@@ -1,6 +1,6 @@
 {
   "name": "@botuyo/chat-widget-standalone",
-  "version": "1.8.15",
+  "version": "1.8.16",
   "type": "module",
   "description": "BotUyo Chat Widget - Standalone CDN version with React/TypeScript support",
   "main": "dist/botuyo-chat.umd.js",
