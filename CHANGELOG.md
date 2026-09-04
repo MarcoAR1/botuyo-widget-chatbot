@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.15] — 2026-09-04
+
+### Fixed
+- **VRM avatars no longer stand in a T-pose.** Models without an idle clip (most VRoid exports) loaded in a T-pose, and the breathing sway lerped the arms toward `0`, locking it. Arms now rest in a natural A-pose (lowered to the sides, `ARM_REST_Z`) and the sway happens around that rest angle.
+- **Tighter default framing** for the 3D voice avatar (closer bust shot) so the avatar isn't so far away.
+
 ## [1.8.14] — 2026-09-04
 
 ### Fixed

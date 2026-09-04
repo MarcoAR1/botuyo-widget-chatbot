@@ -27,6 +27,13 @@ import { computeGlbFraming, selectIdleClip } from '../utils/avatar3d'
 
 type CallState = 'idle' | 'connecting' | 'listening' | 'speaking' | 'thinking'
 
+/**
+ * Default rest angle (radians, ~69°) for the VRM upper arms. VRM models load in a
+ * T-pose; lowering the upper arms to the sides gives a natural A-pose. Left arm uses
+ * `-ARM_REST_Z`, right arm `+ARM_REST_Z`.
+ */
+const ARM_REST_Z = 1.2
+
 interface Avatar3DProps {
   modelUrl: string
   emotion: string | null
@@ -250,10 +257,10 @@ function VRMModel({ url, emotion, callState, audioLevel, zoom = 1, offsetY = 0 }
 
           const fovRad = ((camera as THREE.PerspectiveCamera).fov * Math.PI) / 180
           const z = zoomRef.current > 0 ? zoomRef.current : 1
-          const framedHeight = Math.max(height * 0.55, 0.4) // upper body ≈ bust
-          const distance = ((framedHeight * 0.5) / Math.tan(fovRad / 2)) * 1.15 / z
+          const framedHeight = Math.max(height * 0.42, 0.34) // tight bust (head + upper chest)
+          const distance = ((framedHeight * 0.5) / Math.tan(fovRad / 2)) * 1.08 / z
           // Keep the face in the upper third of the frame (look slightly below the head).
-          const targetY = headWorld.y - framedHeight * 0.3 + offsetYRef.current
+          const targetY = headWorld.y - framedHeight * 0.32 + offsetYRef.current
           camera.position.set(0, targetY, distance)
           camera.lookAt(0, targetY, 0)
 
@@ -622,15 +629,18 @@ function VRMModel({ url, emotion, callState, audioLevel, zoom = 1, offsetY = 0 }
         spine.rotation.x = THREE.MathUtils.lerp(spine.rotation.x, spineSwayX, 2 * dt)
       }
 
+      // Natural rest pose (A-pose): VRM models load in a T-pose and rarely ship an
+      // idle clip, so we lower the arms to the sides by default and let the breathing
+      // sway happen AROUND that rest angle (not around 0, which forced the T-pose).
       const leftArm = vrm.humanoid.getNormalizedBoneNode('leftUpperArm')
       const rightArm = vrm.humanoid.getNormalizedBoneNode('rightUpperArm')
       if (leftArm) {
         const armSway = Math.sin(breathPhase.current * 0.35 + 0.5) * 0.01
-        leftArm.rotation.z = THREE.MathUtils.lerp(leftArm.rotation.z, armSway, 1.5 * dt)
+        leftArm.rotation.z = THREE.MathUtils.lerp(leftArm.rotation.z, -ARM_REST_Z + armSway, 1.5 * dt)
       }
       if (rightArm) {
         const armSway = Math.sin(breathPhase.current * 0.35 + 3.5) * 0.01
-        rightArm.rotation.z = THREE.MathUtils.lerp(rightArm.rotation.z, -armSway, 1.5 * dt)
+        rightArm.rotation.z = THREE.MathUtils.lerp(rightArm.rotation.z, ARM_REST_Z - armSway, 1.5 * dt)
       }
     }
 
