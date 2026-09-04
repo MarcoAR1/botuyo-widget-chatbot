@@ -96,6 +96,8 @@ interface CSSVariables {
   launcherBorderRadius?: string;
   bubbleRadius?: string;
   inputRadius?: string;
+  borderWidth?: string;
+  fontFamily?: string;
   windowHeight?: string;
   windowBottom?: string;
   // Spacing
@@ -200,6 +202,8 @@ class BotUyoChatWidget {
         ['--launcher-border-radius', vars.launcherBorderRadius],
         ['--bubble-radius', vars.bubbleRadius],
         ['--input-radius', vars.inputRadius],
+        ['--border-width', vars.borderWidth],
+        ['--font-family', vars.fontFamily],
         ['--window-height', vars.windowHeight],
         ['--window-bottom', vars.windowBottom],
         // Spacing

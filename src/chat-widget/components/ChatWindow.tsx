@@ -184,7 +184,9 @@ export function ChatWindow({
             width: '350px',
             minWidth: '350px',
             maxWidth: '350px',
-            borderRadius: '32px',
+            // Radio y grosor de borde tokenizados (con los valores previos como fallback).
+            borderRadius: 'var(--window-border-radius, 32px)',
+            borderWidth: 'var(--border-width, 1px)',
             boxShadow: '0 25px 65px -5px rgba(0, 0, 0, 0.15), 0 8px 20px -8px rgba(0, 0, 0, 0.1)',
           } : {}),
           // 🎨 CSS VARIABLES - Los temas se aplican automáticamente

@@ -183,6 +183,16 @@ export default function App() {
 
 All color values use **HSL without the `hsl()` wrapper**, e.g., `"210 100% 50%"`.
 
+> **Two ways to set these tokens:**
+> 1. **Consumer-side** — pass `theme.cssVariables` to `init()` / `<ChatWidget>` (this doc).
+> 2. **Server-side (no code)** — set them on the agent's `widgetConfig.cssVariables` in the
+>    BotUyo dashboard/JSON; they arrive via the socket `connection_ack` and apply to every embed.
+>    Consumer-side values take precedence over server-side ones.
+>
+> Tip: to stay in sync with a host site's design system, read the site's CSS custom
+> properties at runtime (`getComputedStyle(document.documentElement).getPropertyValue('--...')`)
+> and map them into `cssVariables` — the widget then follows the site's tokens automatically.
+
 | Variable | CSS Property | Default (Light) | Description |
 |----------|-------------|-----------------|-------------|
 | `background` | `--background` | `0 0% 100%` | Page/widget background |
@@ -197,14 +207,22 @@ All color values use **HSL without the `hsl()` wrapper**, e.g., `"210 100% 50%"`
 | `destructive` | `--destructive` | `0 84.2% 60.2%` | Error/danger color |
 | `radius` | `--radius` | `0.5rem` | Base border radius |
 
-**Layout variables:**
+**Layout, radius, border & typography variables:**
 
 | Variable | CSS Property | Default | Description |
 |----------|-------------|---------|-------------|
-| `windowBorderRadius` | `--window-border-radius` | `24px` | Chat window corner radius |
+| `windowBorderRadius` | `--window-border-radius` | `24px` | Chat window corner radius (desktop) |
 | `launcherBorderRadius` | `--launcher-border-radius` | `50%` | Launcher button radius |
+| `bubbleRadius` | `--bubble-radius` | `18px` | Chat message bubble radius |
+| `inputRadius` | `--input-radius` | `24px` | Text input radius |
+| `borderWidth` | `--border-width` | `1px` | Border thickness (window / bot bubbles / input) |
+| `fontFamily` | `--font-family` | *(inherits page font)* | Widget font stack, e.g. `"'Inter', sans-serif"` |
 | `windowHeight` | `--window-height` | `700px` | Chat window height (desktop) |
 | `windowBottom` | `--window-bottom` | `24px` | Distance from bottom edge |
+
+> **Everything here is fully consumer-customizable.** Any unset token falls back to
+> its default, so you only override what you need — the widget never hard-codes these
+> values internally.
 
 **Spacing variables:**
 

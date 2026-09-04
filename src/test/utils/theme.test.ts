@@ -284,11 +284,23 @@ describe('theme', () => {
       expect(styles['--input-radius']).toBe('6px')
     })
 
-    it('should omit bubble/input radius when not provided', () => {
+    it('should map borderWidth/fontFamily to CSS variables', () => {
+      const styles = cssVariablesToInlineStyles({
+        borderWidth: '1px',
+        fontFamily: "'Inter', sans-serif",
+      })
+
+      expect(styles['--border-width']).toBe('1px')
+      expect(styles['--font-family']).toBe("'Inter', sans-serif")
+    })
+
+    it('should omit bubble/input radius, border width and font when not provided', () => {
       const styles = cssVariablesToInlineStyles({})
 
       expect(styles['--bubble-radius']).toBeUndefined()
       expect(styles['--input-radius']).toBeUndefined()
+      expect(styles['--border-width']).toBeUndefined()
+      expect(styles['--font-family']).toBeUndefined()
     })
   })
 

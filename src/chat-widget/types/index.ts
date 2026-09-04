@@ -293,6 +293,10 @@ export interface ChatTheme {
     bubbleRadius?: string
     /** Border radius del campo de texto/input (ej: "6px", "24px") */
     inputRadius?: string
+    /** Grosor de los bordes de ventana/burbujas/input (ej: "1px", "2px") */
+    borderWidth?: string
+    /** Tipografía del widget (font stack CSS, ej: "'Inter', sans-serif") */
+    fontFamily?: string
     /** Altura de la ventana en desktop (ej: "700px", "80vh") */
     windowHeight?: string
     /** Distancia desde el borde inferior (ej: "24px") */

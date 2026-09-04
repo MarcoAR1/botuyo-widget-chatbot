@@ -469,6 +469,7 @@ export function InputArea({
           )}
           style={{
             backgroundColor: isRecording ? 'hsl(var(--destructive) / 0.05)' : 'hsl(var(--muted))',
+            borderWidth: 'var(--border-width, 1px)',
             borderColor: isRecording
               ? 'hsl(var(--destructive))'
               : isFocused

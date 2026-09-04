@@ -623,6 +623,7 @@ export const MessageBubble = memo(
                   padding: 'var(--spacing-4) var(--spacing-5)',
                   backgroundColor: 'hsl(var(--card))',
                   borderColor: 'hsl(var(--border) / 0.6)',
+                  borderWidth: 'var(--border-width, 1px)',
                   color: 'hsl(var(--foreground))',
                 }
           }

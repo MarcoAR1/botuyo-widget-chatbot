@@ -202,6 +202,8 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
     if (cssVars.launcherBorderRadius) vars['--launcher-border-radius'] = cssVars.launcherBorderRadius
     if (cssVars.bubbleRadius) vars['--bubble-radius'] = cssVars.bubbleRadius
     if (cssVars.inputRadius) vars['--input-radius'] = cssVars.inputRadius
+    if (cssVars.borderWidth) vars['--border-width'] = cssVars.borderWidth
+    if (cssVars.fontFamily) vars['--font-family'] = cssVars.fontFamily
     if (cssVars.windowHeight) vars['--window-height'] = cssVars.windowHeight
     if (cssVars.windowBottom) vars['--window-bottom'] = cssVars.windowBottom
 
@@ -247,7 +249,7 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
         ref={containerRef}
         id="botuyo-chat-widget-root"
         className="botuyo-chat-widget"
-        style={{ position: 'fixed', inset: 0, zIndex: 2147483000, ...cssVariablesStyle }}
+        style={{ position: 'fixed', inset: 0, zIndex: 2147483000, fontFamily: 'var(--font-family, inherit)', ...cssVariablesStyle }}
         data-animations-disabled={theme?.animations?.enabled === false ? 'true' : undefined}
       >
         <ErrorBoundary>
@@ -278,6 +280,7 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
         style={{
           ...containerStyle,
           ...cssVariablesStyle,
+          fontFamily: 'var(--font-family, inherit)',
           pointerEvents: 'auto',
           backgroundColor: 'transparent',
         }}
