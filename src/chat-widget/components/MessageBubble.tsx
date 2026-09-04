@@ -600,13 +600,13 @@ export const MessageBubble = memo(
             // Bordes inteligentes
             isUser
               ? cn(
-                  'rounded-[18px]',
+                  'rounded-[var(--bubble-radius,18px)]',
                   isFirst && 'rounded-tr-[4px]',
                   !isLast && 'rounded-br-[4px]',
                   !isFirst && !isLast && 'rounded-r-[4px]'
                 )
               : cn(
-                  'rounded-[18px]',
+                  'rounded-[var(--bubble-radius,18px)]',
                   isFirst && 'rounded-tl-[4px]',
                   !isLast && 'rounded-bl-[4px]',
                   !isFirst && !isLast && 'rounded-l-[4px]'

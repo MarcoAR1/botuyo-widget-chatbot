@@ -30,6 +30,8 @@ export interface CSSVariables {
   // ── Layout del widget (reemplaza top-level borderRadius / height / bottom) ───
   windowBorderRadius?: string  // ej: "24px"
   launcherBorderRadius?: string // ej: "50%"
+  bubbleRadius?: string        // ej: "6px" — radio de las burbujas del chat
+  inputRadius?: string         // ej: "6px" — radio del campo de texto
   windowHeight?: string        // ej: "700px"
   windowBottom?: string        // ej: "24px"
 
@@ -330,6 +332,8 @@ export function cssVariablesToInlineStyles(
   // Layout vars (only emit if defined)
   if (merged.windowBorderRadius) styles['--window-border-radius'] = merged.windowBorderRadius
   if (merged.launcherBorderRadius) styles['--launcher-border-radius'] = merged.launcherBorderRadius
+  if (merged.bubbleRadius) styles['--bubble-radius'] = merged.bubbleRadius
+  if (merged.inputRadius) styles['--input-radius'] = merged.inputRadius
   if (merged.windowHeight) styles['--window-height'] = merged.windowHeight
   if (merged.windowBottom) styles['--window-bottom'] = merged.windowBottom
   // Spacing vars

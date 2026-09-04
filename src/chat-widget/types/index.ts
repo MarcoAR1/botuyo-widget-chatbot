@@ -289,6 +289,10 @@ export interface ChatTheme {
     windowBorderRadius?: string
     /** Border radius del botón launcher (ej: "50%", "24px") */
     launcherBorderRadius?: string
+    /** Border radius de las burbujas del chat (ej: "6px", "18px") */
+    bubbleRadius?: string
+    /** Border radius del campo de texto/input (ej: "6px", "24px") */
+    inputRadius?: string
     /** Altura de la ventana en desktop (ej: "700px", "80vh") */
     windowHeight?: string
     /** Distancia desde el borde inferior (ej: "24px") */

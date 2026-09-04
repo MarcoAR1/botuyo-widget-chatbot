@@ -149,6 +149,8 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
       '--radius': '0.5rem',
       '--window-border-radius': '24px',
       '--launcher-border-radius': '50%',
+      '--bubble-radius': '18px',
+      '--input-radius': '24px',
       '--window-height': '700px',
       '--window-bottom': '24px',
       '--spacing-1': '0.25rem',
@@ -198,6 +200,8 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
     // Layout variables
     if (cssVars.windowBorderRadius) vars['--window-border-radius'] = cssVars.windowBorderRadius
     if (cssVars.launcherBorderRadius) vars['--launcher-border-radius'] = cssVars.launcherBorderRadius
+    if (cssVars.bubbleRadius) vars['--bubble-radius'] = cssVars.bubbleRadius
+    if (cssVars.inputRadius) vars['--input-radius'] = cssVars.inputRadius
     if (cssVars.windowHeight) vars['--window-height'] = cssVars.windowHeight
     if (cssVars.windowBottom) vars['--window-bottom'] = cssVars.windowBottom
 

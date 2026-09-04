@@ -463,7 +463,7 @@ export function InputArea({
         {/* ÁREA DE TEXTO / GRABACIÓN */}
         <div
           className={cn(
-            'flex-1 relative flex items-center min-w-0 rounded-[24px] border px-4 transition-all shadow-inner chat-input-pill',
+            'flex-1 relative flex items-center min-w-0 rounded-[var(--input-radius,24px)] border px-4 transition-all shadow-inner chat-input-pill',
             isFocused && 'border-[hsl(var(--primary))] ring-2 ring-[hsl(var(--primary))]',
             isRecording ? 'h-[44px]' : 'min-h-[40px] max-h-[120px]'
           )}

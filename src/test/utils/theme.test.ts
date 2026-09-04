@@ -273,6 +273,23 @@ describe('theme', () => {
       expect(styles['--window-height']).toBe('700px')
       expect(styles['--window-bottom']).toBe('24px')
     })
+
+    it('should map bubbleRadius/inputRadius to CSS variables', () => {
+      const styles = cssVariablesToInlineStyles({
+        bubbleRadius: '6px',
+        inputRadius: '6px',
+      })
+
+      expect(styles['--bubble-radius']).toBe('6px')
+      expect(styles['--input-radius']).toBe('6px')
+    })
+
+    it('should omit bubble/input radius when not provided', () => {
+      const styles = cssVariablesToInlineStyles({})
+
+      expect(styles['--bubble-radius']).toBeUndefined()
+      expect(styles['--input-radius']).toBeUndefined()
+    })
   })
 
   describe('getSolidStyles', () => {
