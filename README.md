@@ -215,6 +215,8 @@ All color values use **HSL without the `hsl()` wrapper**, e.g., `"210 100% 50%"`
 | `launcherBorderRadius` | `--launcher-border-radius` | `50%` | Launcher button radius |
 | `bubbleRadius` | `--bubble-radius` | `18px` | Chat message bubble radius |
 | `inputRadius` | `--input-radius` | `24px` | Text input radius |
+| `buttonRadius` | `--button-radius` | *(round / `rounded-xl`)* | Buttons: send, mic, attach, header actions, quick-replies, CTAs |
+| `avatarRadius` | `--avatar-radius` | *(circle)* | Avatar/logo container radius — set a small value so **square logos aren't cropped into circles** |
 | `borderWidth` | `--border-width` | `1px` | Border thickness (window / bot bubbles / input) |
 | `fontFamily` | `--font-family` | *(inherits page font)* | Widget font stack, e.g. `"'Inter', sans-serif"` |
 | `windowHeight` | `--window-height` | `700px` | Chat window height (desktop) |

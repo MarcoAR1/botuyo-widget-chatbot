@@ -207,7 +207,7 @@ export const MessageList = memo(
             <div className="flex-1 flex flex-col items-center justify-center py-16 text-center animate-in fade-in zoom-in-95 duration-1000">
               <div className="relative h-24 w-24 mb-6">
                 <div className="absolute inset-0 bg-primary/20 rounded-full animate-pulse blur-2xl" />
-                <div className="relative h-full w-full rounded-[28px] border-2 border-primary/20 overflow-hidden shadow-soft-2xl transition-transform hover:scale-105 duration-500">
+                <div className="relative h-full w-full rounded-[var(--avatar-radius,28px)] border-2 border-primary/20 overflow-hidden shadow-soft-2xl transition-transform hover:scale-105 duration-500">
                   {logoError ? (
                     <div
                       className="h-full w-full flex items-center justify-center text-3xl"

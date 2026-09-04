@@ -293,6 +293,10 @@ export interface ChatTheme {
     bubbleRadius?: string
     /** Border radius del campo de texto/input (ej: "6px", "24px") */
     inputRadius?: string
+    /** Border radius de los botones: enviar/mic/adjuntar/CTA/respuestas rápidas (ej: "4px") */
+    buttonRadius?: string
+    /** Border radius del contenedor de avatar/logo — evita recortar logos cuadrados (ej: "6px") */
+    avatarRadius?: string
     /** Grosor de los bordes de ventana/burbujas/input (ej: "1px", "2px") */
     borderWidth?: string
     /** Tipografía del widget (font stack CSS, ej: "'Inter', sans-serif") */

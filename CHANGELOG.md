@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.10] — 2026-09-04
+
+### Added
+- **`theme.cssVariables.buttonRadius`** (`--button-radius`) — unifies the radius of all buttons (send, mic, attach `+`, header call/close, quick-replies, CTAs) so they match the host site's button identity. Each button keeps its previous radius as fallback (non-breaking).
+- **`theme.cssVariables.avatarRadius`** (`--avatar-radius`) — radius of the avatar/logo containers (header, bot bubbles, welcome prompt). Set a small value so **square logos are shown square instead of being cropped into circles**. Defaults preserve the previous circular look.
+
 ## [1.8.9] — 2026-09-04
 
 ### Added

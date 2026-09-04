@@ -449,7 +449,7 @@ export function InputArea({
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className={cn(
-                'h-10 w-10 rounded-full flex items-center justify-center transition-all shadow-sm z-10',
+                'h-10 w-10 rounded-[var(--button-radius,9999px)] flex items-center justify-center transition-all shadow-sm z-10',
                 isMenuOpen
                   ? 'bg-muted text-foreground rotate-45'
                   : 'bg-muted/50 text-muted-foreground hover:bg-muted'
@@ -560,7 +560,7 @@ export function InputArea({
               <button
                 onClick={handleSend}
                 disabled={!isConnected || (isCompressing && !!attachment)}
-                className="h-10 w-10 rounded-full flex items-center justify-center transition-all active:scale-90 shadow-md shadow-primary/20 shrink-0 disabled:opacity-30 disabled:grayscale"
+                className="h-10 w-10 rounded-[var(--button-radius,9999px)] flex items-center justify-center transition-all active:scale-90 shadow-md shadow-primary/20 shrink-0 disabled:opacity-30 disabled:grayscale"
                 style={{ backgroundColor: brandColor }}
               >
                 <Send size={18} className="text-white ml-0.5 fill-current" />
@@ -569,7 +569,7 @@ export function InputArea({
               <button
                 onClick={startRecording}
                 disabled={!isConnected}
-                className="h-10 w-10 rounded-full flex items-center justify-center transition-all active:scale-90 shadow-md shadow-primary/20 shrink-0 disabled:opacity-30 disabled:grayscale"
+                className="h-10 w-10 rounded-[var(--button-radius,9999px)] flex items-center justify-center transition-all active:scale-90 shadow-md shadow-primary/20 shrink-0 disabled:opacity-30 disabled:grayscale"
                 style={{ backgroundColor: brandColor }}
               >
                 <Mic size={20} strokeWidth={2.5} className="text-white" />
@@ -578,7 +578,7 @@ export function InputArea({
               <button
                 onClick={handleSend}
                 disabled={!isConnected}
-                className="h-10 w-10 rounded-full flex items-center justify-center transition-all active:scale-90 shadow-md shadow-primary/20 shrink-0 disabled:opacity-30 disabled:grayscale"
+                className="h-10 w-10 rounded-[var(--button-radius,9999px)] flex items-center justify-center transition-all active:scale-90 shadow-md shadow-primary/20 shrink-0 disabled:opacity-30 disabled:grayscale"
                 style={{ backgroundColor: brandColor }}
               >
                 <Send size={18} className="text-white ml-0.5 fill-current" />

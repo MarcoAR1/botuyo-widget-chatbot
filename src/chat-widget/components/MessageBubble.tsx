@@ -103,7 +103,7 @@ function MessageButtons({ message, brandColor, onButtonClick }: MessageButtonsPr
               onClick={() => handleButtonClick(btn)}
               disabled={clickedId !== null}
               className={cn(
-                'w-full text-left px-4 py-3 rounded-xl border text-sm font-semibold',
+                'w-full text-left px-4 py-3 rounded-[var(--button-radius,0.75rem)] border text-sm font-semibold',
                 'transition-all duration-200 cursor-pointer',
                 isClicked
                   ? 'scale-[0.98] ring-2 shadow-md'
@@ -257,7 +257,7 @@ export const MessageBubble = memo(
             target={linkTarget}
             rel={linkRel}
             onClick={handleClick}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 mt-2 mx-1 text-[11px] font-black w-[calc(100%-0.5rem)] sm:w-auto rounded-xl shadow-md uppercase tracking-widest transition-transform active:scale-95 text-white"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 mt-2 mx-1 text-[11px] font-black w-[calc(100%-0.5rem)] sm:w-auto rounded-[var(--button-radius,0.75rem)] shadow-md uppercase tracking-widest transition-transform active:scale-95 text-white"
             style={{ backgroundColor: brandColor }}
           >
             {children} <ArrowRight size={14} />
@@ -555,7 +555,7 @@ export const MessageBubble = memo(
           <div className="w-9 shrink-0 flex flex-col justify-end pb-1">
             {isLast ? (
               <div
-                className="h-9 w-9 rounded-full overflow-hidden border shadow-sm"
+                className="h-9 w-9 rounded-[var(--avatar-radius,9999px)] overflow-hidden border shadow-sm"
                 style={{
                   borderColor: 'hsl(var(--border))',
                   backgroundColor: 'hsl(var(--background))',

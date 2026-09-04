@@ -38,7 +38,7 @@ export const SuggestedQuestions = memo(function SuggestedQuestions({
           <button
             key={`sq-${i}`}
             onClick={() => handleClick(q)}
-            className="px-3 py-1.5 text-[11px] font-semibold rounded-xl border transition-all duration-200 hover:scale-[1.02] active:scale-95 text-left leading-tight"
+            className="px-3 py-1.5 text-[11px] font-semibold rounded-[var(--button-radius,0.75rem)] border transition-all duration-200 hover:scale-[1.02] active:scale-95 text-left leading-tight"
             style={{
               color: 'hsl(var(--foreground))',
               backgroundColor: 'hsl(var(--muted) / 0.3)',

@@ -208,7 +208,7 @@ export function ChatWindow({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="h-10 w-10 rounded-full overflow-hidden bg-primary/10 border-2 border-background shadow-soft-sm">
+                <div className="h-10 w-10 rounded-[var(--avatar-radius,9999px)] overflow-hidden bg-primary/10 border-2 border-background shadow-soft-sm">
                   {logoError || !logoUrl ? (
                     <div className="h-full w-full flex items-center justify-center bg-muted text-muted-foreground">
                       <svg
@@ -269,7 +269,7 @@ export function ChatWindow({
                     onClick={() => setShowCallConfirm(!showCallConfirm)}
                     aria-label="Iniciar llamada de voz"
                     title="Llamar"
-                    className="h-8 w-8 flex items-center justify-center rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 transition-all active:scale-90 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                    className="h-8 w-8 flex items-center justify-center rounded-[var(--button-radius,9999px)] bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 transition-all active:scale-90 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
                   >
                     <Phone className="h-4 w-4" aria-hidden="true" />
                   </button>
@@ -326,7 +326,7 @@ export function ChatWindow({
                 onClick={onClose}
                 aria-label={t('accessibility.closeChat')}
                 title="Esc"
-                className="h-8 w-8 flex items-center justify-center rounded-full bg-muted/60 hover:bg-muted text-foreground transition-all active:scale-90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                className="h-8 w-8 flex items-center justify-center rounded-[var(--button-radius,9999px)] bg-muted/60 hover:bg-muted text-foreground transition-all active:scale-90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
               >
                 <X className="h-4 w-4" aria-hidden="true" />
               </button>

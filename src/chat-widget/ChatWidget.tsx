@@ -202,6 +202,8 @@ export function ChatWidgetInner(props: ChatWidgetProps) {
     if (cssVars.launcherBorderRadius) vars['--launcher-border-radius'] = cssVars.launcherBorderRadius
     if (cssVars.bubbleRadius) vars['--bubble-radius'] = cssVars.bubbleRadius
     if (cssVars.inputRadius) vars['--input-radius'] = cssVars.inputRadius
+    if (cssVars.buttonRadius) vars['--button-radius'] = cssVars.buttonRadius
+    if (cssVars.avatarRadius) vars['--avatar-radius'] = cssVars.avatarRadius
     if (cssVars.borderWidth) vars['--border-width'] = cssVars.borderWidth
     if (cssVars.fontFamily) vars['--font-family'] = cssVars.fontFamily
     if (cssVars.windowHeight) vars['--window-height'] = cssVars.windowHeight

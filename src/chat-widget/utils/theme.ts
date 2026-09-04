@@ -32,6 +32,8 @@ export interface CSSVariables {
   launcherBorderRadius?: string // ej: "50%"
   bubbleRadius?: string        // ej: "6px" — radio de las burbujas del chat
   inputRadius?: string         // ej: "6px" — radio del campo de texto
+  buttonRadius?: string        // ej: "4px" — radio de los botones (enviar/mic/adjuntar/CTA/rápidas)
+  avatarRadius?: string        // ej: "6px" — radio del contenedor de avatar/logo (evita recortar logos cuadrados)
   borderWidth?: string         // ej: "1px" — grosor de los bordes (ventana/burbujas/input)
   fontFamily?: string          // ej: "'Inter', sans-serif" — tipografía del widget
   windowHeight?: string        // ej: "700px"
@@ -336,6 +338,8 @@ export function cssVariablesToInlineStyles(
   if (merged.launcherBorderRadius) styles['--launcher-border-radius'] = merged.launcherBorderRadius
   if (merged.bubbleRadius) styles['--bubble-radius'] = merged.bubbleRadius
   if (merged.inputRadius) styles['--input-radius'] = merged.inputRadius
+  if (merged.buttonRadius) styles['--button-radius'] = merged.buttonRadius
+  if (merged.avatarRadius) styles['--avatar-radius'] = merged.avatarRadius
   if (merged.borderWidth) styles['--border-width'] = merged.borderWidth
   if (merged.fontFamily) styles['--font-family'] = merged.fontFamily
   if (merged.windowHeight) styles['--window-height'] = merged.windowHeight
