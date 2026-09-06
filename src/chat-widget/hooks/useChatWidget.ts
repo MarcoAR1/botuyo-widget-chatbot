@@ -20,7 +20,6 @@ import { useTranslations } from '../i18n'
 import { BotEmotion } from '../components/Launcher'
 import { logger } from '../utils/logger'
 import { composeAgentLabel } from '../utils/agentLabel'
-import { mergeServerHistory } from '../utils/mergeServerHistory'
 import { getActiveQuiz } from '../utils/activeQuiz'
 import type { AgentSwitchedData } from '../types/socket'
 import { _setInternalSendMessage, _setInternalClearMessages } from '../ChatWidgetProvider'
@@ -189,15 +188,14 @@ export function useChatWidget(options: UseChatWidgetOptions) {
     ),
     onHistoryLoaded: useCallback(
       (historyMessages: ChatMessage[]) => {
-        // SERVER-AUTHORITATIVE: the backend `chat_history` is the source of truth (text +
-        // persisted voice turns). Replace the local list with it, preserving only genuine
-        // in-flight local messages. This removes the duplication/pile-up that came from the
-        // old client-side voice dump (same turns, different ids). localStorage stays as the
-        // fast-paint cache and is reconciled here on every chat_history.
+        // SERVER-AUTHORITATIVE: the backend `chat_history` is the source of truth. The merge runs
+        // INSIDE the reducer (MERGE_SERVER_HISTORY) so it always reconciles against the CURRENT
+        // local list — not a stale `state.messages` captured when this socket event fired. That
+        // stale closure was the cause of the reconnect pile-up/drop after inactivity.
         if (historyMessages.length === 0) return
-        actions.setMessages(mergeServerHistory(state.messages, historyMessages))
+        actions.mergeHistory(historyMessages)
       },
-      [state.messages, actions]
+      [actions]
     ),
     // Authenticated agents: supply/refresh the user token in the handshake + prompt re-auth.
     getUserToken,

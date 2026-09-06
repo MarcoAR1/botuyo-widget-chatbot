@@ -390,6 +390,57 @@ describe('useChatState', () => {
     })
   })
 
+  describe('mergeHistory (server reconcile on reconnect)', () => {
+    it('replaces the optimistic local turn with the server transcript — no pile-up', () => {
+      const { result } = renderHook(() => useChatState())
+      act(() => {
+        result.current.actions.addMessage({
+          id: 'temp-1',
+          type: 'text',
+          content: 'hola',
+          sender: 'user',
+          timestamp: new Date('2024-01-01T10:00:00Z'),
+        })
+      })
+      // chat_history re-pushed on reconnect: same turn with its REAL id + the bot reply.
+      act(() => {
+        result.current.actions.mergeHistory([
+          { id: 'srv-1', type: 'text', content: 'hola', sender: 'user', timestamp: new Date('2024-01-01T10:00:00Z') },
+          { id: 'srv-2', type: 'text', content: 'buenas!', sender: 'bot', timestamp: new Date('2024-01-01T10:00:05Z') },
+        ])
+      })
+      const msgs = result.current.state.messages
+      expect(msgs).toHaveLength(2) // "hola" is NOT duplicated
+      expect(msgs.map(m => m.id)).toEqual(['srv-1', 'srv-2'])
+    })
+
+    it('keeps a genuinely in-flight local message newer than the server transcript', () => {
+      const { result } = renderHook(() => useChatState())
+      act(() => {
+        result.current.actions.mergeHistory([
+          { id: 'srv-1', type: 'text', content: 'hola', sender: 'user', timestamp: new Date('2024-01-01T10:00:00Z') },
+        ])
+      })
+      act(() => {
+        result.current.actions.addMessage({
+          id: 'temp-2',
+          type: 'text',
+          content: '¿seguís ahí?',
+          sender: 'user',
+          timestamp: new Date('2024-01-01T10:05:00Z'),
+        })
+      })
+      // A second reconnect re-pushes only the server transcript (temp-2 not persisted yet).
+      act(() => {
+        result.current.actions.mergeHistory([
+          { id: 'srv-1', type: 'text', content: 'hola', sender: 'user', timestamp: new Date('2024-01-01T10:00:00Z') },
+        ])
+      })
+      const contents = result.current.state.messages.map(m => (m as { content: string }).content)
+      expect(contents).toEqual(['hola', '¿seguís ahí?']) // in-flight message survives
+    })
+  })
+
   describe('Quiz', () => {
     const makeQuiz = (id: string): ChatMessage => ({
       id,

@@ -7,6 +7,7 @@ import React, { useReducer, useCallback, useEffect, useState } from 'react'
 import type { ChatState, ChatAction, ChatMessage, ToolProposalCardStatus } from '../types'
 import { logger } from '../utils/logger'
 import { getChatStorage } from '../utils/storage'
+import { mergeServerHistory } from '../utils/mergeServerHistory'
 
 function getStorageKey(apiKey: string, agentId: string = 'default') {
   return `botuyo_chat_v1_${apiKey}_${agentId}`
@@ -79,7 +80,10 @@ const dedupeById = normalizeMessages
 
 function chatReducer(
   state: ChatState,
-  action: ChatAction | { type: 'RESTORE_SESSION'; payload: Partial<ChatState> }
+  action:
+    | ChatAction
+    | { type: 'RESTORE_SESSION'; payload: Partial<ChatState> }
+    | { type: 'MERGE_SERVER_HISTORY'; payload: ChatMessage[] }
 ): ChatState {
   switch (action.type) {
     case 'TOGGLE_WINDOW':
@@ -123,6 +127,12 @@ function chatReducer(
 
     case 'SET_MESSAGES':
       return { ...state, messages: normalizeMessages(action.payload) }
+
+    case 'MERGE_SERVER_HISTORY':
+      // Reconcile the SERVER transcript against the CURRENT local list (inside the reducer, so we
+      // always merge against the latest messages — never a stale closure captured when the socket
+      // event fired). This is what stops the pile-up/drop on reconnect after inactivity.
+      return { ...state, messages: normalizeMessages(mergeServerHistory(state.messages, action.payload)) }
 
     case 'SET_ERROR':
       return { ...state, error: action.payload }
@@ -282,6 +292,10 @@ export function useChatState(apiKey: string, agentId: string = 'default') {
     (msgs: ChatMessage[]) => dispatch({ type: 'SET_MESSAGES', payload: msgs }),
     []
   )
+  const mergeHistory = useCallback(
+    (msgs: ChatMessage[]) => dispatch({ type: 'MERGE_SERVER_HISTORY', payload: msgs }),
+    []
+  )
   const setError = useCallback(
     (err: string | null) => dispatch({ type: 'SET_ERROR', payload: err }),
     []
@@ -322,6 +336,7 @@ export function useChatState(apiKey: string, agentId: string = 'default') {
       setTyping,
       addMessage,
       setMessages,
+      mergeHistory,
       setError,
       setSessionId,
       clearChat,
