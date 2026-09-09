@@ -18,6 +18,8 @@ Thumbs.db
 # Temporary files
 *.tmp
 .cache/
+test-results/
+playwright-report/
 
 *storybook.log
 storybook-static

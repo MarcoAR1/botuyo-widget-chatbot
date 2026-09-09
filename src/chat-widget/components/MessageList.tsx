@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useRef, useEffect, useState, memo } from 'react'
+import React, { useRef, useEffect, useState, useMemo, useCallback, memo } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import type { BubbleStyles, ChatMessage } from '../types'
 import { MessageBubble } from './MessageBubble'
@@ -48,10 +48,23 @@ export const MessageList = memo(
 
     // Virtualización activada solo si hay muchos mensajes
     const shouldVirtualize = messages.length > VIRTUALIZATION_THRESHOLD
+    // Use the same identity in both renderers. Tuple encoding also avoids collisions
+    // between a repeated ID and a literal ID such as "message__1".
+    const messageKeys = useMemo(() => {
+      const seen = new Map<string, number>()
+      return messages.map((message, index) => {
+        const base = message.id || `idx-${index}`
+        const occurrence = seen.get(base) ?? 0
+        seen.set(base, occurrence + 1)
+        return JSON.stringify([base, occurrence])
+      })
+    }, [messages])
+    const getItemKey = useCallback((index: number) => messageKeys[index], [messageKeys])
 
     // Configuración del virtualizador
     const virtualizer = useVirtualizer({
       count: messages.length,
+      getItemKey,
       getScrollElement: () => containerRef.current,
       estimateSize: () => 80, // Altura estimada por mensaje
       overscan: 5, // Pre-renderizar 5 items extra
@@ -74,7 +87,7 @@ export const MessageList = memo(
             // Con virtualización: scroll al último índice
             virtualizer.scrollToIndex(messages.length - 1, {
               align: 'end',
-              behavior: messages.length <= 1 ? 'auto' : 'smooth',
+              behavior: 'auto',
             })
           } else {
             // Sin virtualización: scroll tradicional
@@ -86,7 +99,7 @@ export const MessageList = memo(
         }, 100)
         return () => clearTimeout(timer)
       }
-    }, [messages.length, isTyping, isReady, shouldVirtualize, virtualizer])
+    }, [messages, isTyping, isReady, shouldVirtualize, virtualizer])
 
     /**
      * 📅 FORMATEO DE SEPARADORES DE FECHA
@@ -104,7 +117,7 @@ export const MessageList = memo(
       return (
         <div
           ref={containerRef}
-          className="flex-1 overflow-y-auto scroll-smooth scrollbar-none"
+          className="flex-1 min-h-0 min-w-0 overflow-y-auto scrollbar-none"
           style={{ padding: 'var(--spacing-5)', scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
         >
           <div
@@ -138,7 +151,13 @@ export const MessageList = memo(
               return (
                 <div
                   key={virtualRow.key}
+                  data-index={virtualRow.index}
+                  ref={virtualizer.measureElement}
                   style={{
+                    // Include child margins and the inactivity separator in the
+                    // measured box; ResizeObserver tracks later media/text changes.
+                    display: 'flow-root',
+                    paddingBottom: 'var(--spacing-3, 12px)',
                     position: 'absolute',
                     top: 0,
                     left: 0,
@@ -187,18 +206,10 @@ export const MessageList = memo(
     }
 
     // Renderizado tradicional para listas pequeñas
-    const seenKeys = new Map<string, number>()
-    const keyFor = (message: ChatMessage, index: number): string => {
-      const base = message.id || `idx-${index}`
-      const occurrence = seenKeys.get(base) ?? 0
-      seenKeys.set(base, occurrence + 1)
-      return occurrence === 0 ? base : `${base}__${occurrence}`
-    }
-
     return (
       <div
         ref={containerRef}
-        className="flex-1 overflow-y-auto scroll-smooth p-4 scrollbar-none"
+        className="flex-1 min-h-0 min-w-0 overflow-y-auto scroll-smooth p-4 scrollbar-none"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
       >
         <div className="min-h-full flex flex-col justify-end">
@@ -267,7 +278,7 @@ export const MessageList = memo(
                 differenceInMinutes(new Date(next.timestamp), new Date(message.timestamp)) < 5
 
               return (
-                <React.Fragment key={keyFor(message, index)}>
+                <React.Fragment key={messageKeys[index]}>
                   {showDateSeparator && (
                     <div className="flex justify-center my-8 animate-in fade-in zoom-in-95">
                       <span className="px-4 py-1.5 bg-muted/40 backdrop-blur-md rounded-full text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] border border-border/50 shadow-sm">
@@ -313,20 +324,5 @@ export const MessageList = memo(
         </div>
       </div>
     )
-  },
-  (prevProps, nextProps) => {
-    // Custom comparator: reducir re-renders innecesarios
-    if (prevProps.messages.length !== nextProps.messages.length) return false
-    if (prevProps.isTyping !== nextProps.isTyping) return false
-    if (prevProps.primaryColor !== nextProps.primaryColor) return false
-    if (prevProps.botName !== nextProps.botName) return false
-    if (prevProps.logoUrl !== nextProps.logoUrl) return false
-
-    // Comparar último mensaje por ID para detectar cambios
-    const prevLast = prevProps.messages[prevProps.messages.length - 1]
-    const nextLast = nextProps.messages[nextProps.messages.length - 1]
-    if (prevLast?.id !== nextLast?.id) return false
-
-    return true // No re-renderizar
   }
 )

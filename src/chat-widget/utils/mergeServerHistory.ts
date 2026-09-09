@@ -11,7 +11,14 @@ const contentOf = (m: ChatMessage): string => {
   return typeof c === 'string' ? c : ''
 }
 
-const signature = (m: ChatMessage): string => `${m.sender}|${contentOf(m).trim()}`
+// Only textual turns can be compared by content. Images/locations without
+// `content` used to all share the same empty signature and disappear on resume.
+const signature = (m: ChatMessage): string | null =>
+  (m.type === 'text' || m.type === 'system') && contentOf(m).trim()
+    ? JSON.stringify([m.type, m.sender, contentOf(m).trim()])
+    : null
+
+const CLOCK_SKEW_WINDOW_MS = 30_000
 
 /**
  * Reconcile the LOCAL message list with the SERVER's authoritative transcript
@@ -21,7 +28,7 @@ const signature = (m: ChatMessage): string => `${m.sender}|${contentOf(m).trim()
  *
  * Only genuinely LOCAL in-flight messages are preserved: those NEWER than the
  * server's newest message AND not already represented on the server (by id, and by
- * sender+content signature to survive small clock skew). That keeps an optimistic
+ * type+sender+content within 30 seconds to survive small clock skew). That keeps an optimistic
  * just-sent text from disappearing before it persists, without re-introducing dupes.
  *
  * When the server sends an empty history, the local list is kept untouched (the
@@ -32,10 +39,21 @@ export function mergeServerHistory(local: ChatMessage[], server: ChatMessage[]):
 
   const newestServerTs = server.reduce((max, m) => Math.max(max, ts(m)), 0)
   const serverIds = new Set(server.map(m => m.id))
-  const serverSignatures = new Set(server.map(signature))
+  const localIds = new Set(local.map(m => m.id))
+  const unmatchedServer = server.filter(m => !localIds.has(m.id))
 
   const inFlight = local.filter(
-    m => !serverIds.has(m.id) && ts(m) > newestServerTs && !serverSignatures.has(signature(m))
+    m => {
+      if (serverIds.has(m.id) || ts(m) <= newestServerTs) return false
+      const key = signature(m)
+      const match = key === null ? -1 : unmatchedServer.findIndex(s =>
+        signature(s) === key && Math.abs(ts(s) - ts(m)) <= CLOCK_SKEW_WINDOW_MS
+      )
+      if (match < 0) return true
+      // One server turn can reconcile only one optimistic turn.
+      unmatchedServer.splice(match, 1)
+      return false
+    }
   )
 
   return [...server, ...inFlight].sort((a, b) => ts(a) - ts(b))

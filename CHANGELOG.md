@@ -12,6 +12,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.18] — 2026-09-09
+
+### Fixed
+- Prevent overlapping chat bubbles in conversations with more than 100 messages by measuring complete rows, including inactivity separators and dynamically loaded content.
+- Refresh message content, quiz answers and callbacks correctly when restoring history; keep messages added while history is being reconciled.
+- Preserve repeated messages sent after inactivity and distinct media messages during history reconciliation.
+- Stop resending messages after a retry has been acknowledged.
+- Keep long unbroken text and source citations within the chat width.
+
+### Added
+- Browser regression tests for inactivity separators, virtualization transitions, resizing, reopening, history updates and delayed image loading.
+
 ## [1.8.16] — 2026-09-04
 
 ### Fixed

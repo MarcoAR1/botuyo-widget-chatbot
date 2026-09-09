@@ -66,6 +66,20 @@ describe('useChatSocket', () => {
 
   afterEach(() => {
     vi.clearAllMocks()
+    vi.useRealTimers()
+  })
+
+  it('stops retrying once a retry is acknowledged', () => {
+    vi.useFakeTimers()
+    const { result } = renderHook(() => useChatSocket({ apiKey: 'test', apiBaseUrl: 'http://localhost:3000', ...mockHandlers }))
+    mockSocket.connected = true
+    act(() => mockSocket.on.mock.calls.find(([event]: [string]) => event === 'connect')[1]())
+    mockSocket.emit.mockImplementation((_event: string, _payload: unknown, ack: (value: unknown) => void) => ack({ success: false }))
+    act(() => { result.current.sendMessage('hola') })
+    mockSocket.emit.mockImplementation((_event: string, _payload: unknown, ack: (value: unknown) => void) => ack({ success: true }))
+    act(() => { vi.advanceTimersByTime(20_000) })
+    expect(mockSocket.emit).toHaveBeenCalledTimes(2)
+    expect(mockHandlers.onEvent).not.toHaveBeenCalledWith('message_failed', expect.anything())
   })
 
   describe('Connection', () => {

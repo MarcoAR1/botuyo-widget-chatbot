@@ -28,6 +28,17 @@ vi.mock('../../chat-widget/utils/logger', () => ({
 }))
 
 describe('useChatState', () => {
+  it('merges reconnect history against messages added in the same React batch', async () => {
+    const { result } = renderHook(() => useChatState('test-key'))
+    await waitFor(() => expect(result.current.isHydrated).toBe(true))
+    const pending: ChatMessage = { id: 'pending', type: 'text', content: 'new turn', sender: 'user', timestamp: new Date('2026-09-09T12:20:00Z') }
+    const history: ChatMessage = { ...pending, id: 'server', content: 'old turn', timestamp: new Date('2026-09-09T12:00:00Z') }
+    act(() => {
+      result.current.actions.addMessage(pending)
+      result.current.actions.mergeHistory([history])
+    })
+    expect(result.current.state.messages.map(m => m.id)).toEqual(['server', 'pending'])
+  })
   beforeEach(() => {
     vi.clearAllMocks()
     localStorage.clear()

@@ -14,6 +14,24 @@ const msg = (over: Partial<ChatMessage> & { id: string }): ChatMessage =>
   }) as ChatMessage
 
 describe('mergeServerHistory — server-authoritative reconciliation', () => {
+  it('keeps a repeated greeting sent after inactivity', () => {
+    const server = [msg({ id: 'server', content: 'hola' })]
+    const local = [msg({ id: 'pending', content: 'hola', timestamp: new Date('2026-01-01T10:20:00Z') })]
+    expect(ids(mergeServerHistory(local, server))).toEqual(['server', 'pending'])
+  })
+
+  it('does not treat different images as duplicate empty text', () => {
+    const server: ChatMessage[] = [{ id: 'image1', type: 'image', sender: 'user', imageUrl: '/first.png', timestamp: new Date('2026-01-01T10:00:00Z') }]
+    const local: ChatMessage[] = [{ id: 'image2', type: 'image', sender: 'user', imageUrl: '/second.png', timestamp: new Date('2026-01-01T10:00:01Z') }]
+    expect(ids(mergeServerHistory(local, server))).toEqual(['image1', 'image2'])
+  })
+
+  it('does not consume two optimistic messages for one server turn', () => {
+    const server = [msg({ id: 'server', content: 'hola' })]
+    const local = [1, 2].map(i => msg({ id: `pending-${i}`, content: 'hola', timestamp: new Date(`2026-01-01T10:00:0${i}Z`) }))
+    expect(ids(mergeServerHistory(local, server))).toEqual(['server', 'pending-2'])
+  })
+
   it('returns the local list untouched when the server history is empty', () => {
     const local = [msg({ id: 'a' }), msg({ id: 'b' })]
     expect(mergeServerHistory(local, [])).toBe(local)

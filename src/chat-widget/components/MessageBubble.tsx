@@ -55,10 +55,12 @@ interface MessageButtonsProps {
  * state (useState) lives at a component's top level (React rules-of-hooks).
  */
 function MessageButtons({ message, brandColor, onButtonClick }: MessageButtonsProps) {
-  const [clickedId, setClickedId] = useState<string | null>(message.selectedId || null)
+  const [localClickedId, setClickedId] = useState<string | null>(null)
+  const clickedId = message.selectedId || localClickedId
+  const answered = message.answered || clickedId !== null
 
   const handleButtonClick = (btn: { id: string; label: string }) => {
-    if (clickedId) return // Already answered
+    if (answered) return // Already answered locally or restored from history
     setClickedId(btn.id)
     onButtonClick?.(btn.label, message)
   }
@@ -94,14 +96,14 @@ function MessageButtons({ message, brandColor, onButtonClick }: MessageButtonsPr
       <div className="flex flex-col gap-2">
         {message.buttons.map((btn, btnIdx) => {
           const isClicked = clickedId === btn.id
-          const isDisabled = clickedId !== null && !isClicked
+          const isDisabled = answered && !isClicked
 
           return (
             <button
               key={btn.id}
               type="button"
               onClick={() => handleButtonClick(btn)}
-              disabled={clickedId !== null}
+              disabled={answered}
               className={cn(
                 'w-full text-left px-4 py-3 rounded-[var(--button-radius,0.75rem)] border text-sm font-semibold',
                 'transition-all duration-200 cursor-pointer',
@@ -540,7 +542,7 @@ export const MessageBubble = memo(
     return (
       <div
         className={cn(
-          'flex w-full mb-0.5 group',
+          'flex w-full min-w-0 shrink-0 flex-wrap mb-0.5 group',
           messageEntryClass, // Configurable animation
           isUser ? 'justify-end' : 'justify-start gap-3',
           isFirst && 'mt-3',
@@ -595,7 +597,8 @@ export const MessageBubble = memo(
         {/* BURBUJA */}
         <div
           className={cn(
-            'max-w-[85%] shadow-sm transition-all duration-300 relative',
+            'min-w-0 [overflow-wrap:anywhere] shadow-sm transition-all duration-300 relative',
+            isUser ? 'max-w-[85%]' : 'max-w-[calc(100%-3rem)]',
             isUser ? 'text-primary-foreground' : 'border',
             // Bordes inteligentes
             isUser
@@ -648,30 +651,11 @@ export const MessageBubble = memo(
 
         {/* RAG Source Citations — non-invasive chips below bot messages */}
         {isBot && isLast && message.type === 'text' && (message as TextMessage).sources && (
-          <SourcesCitation sources={(message as TextMessage).sources!} />
+          <div className="w-full min-w-0">
+            <SourcesCitation sources={(message as TextMessage).sources!} />
+          </div>
         )}
       </div>
     )
-  },
-  (prevProps, nextProps) => {
-    // Custom comparator: solo re-render si cambió algo relevante
-    if (prevProps.message.id !== nextProps.message.id) return false
-    if (prevProps.message.timestamp !== nextProps.message.timestamp) return false
-    // Tool-approval cards mutate their status in place (server resolve/expire) — re-render on change.
-    if (
-      (prevProps.message as ToolProposalMessage).status !==
-      (nextProps.message as ToolProposalMessage).status
-    )
-      return false
-    if (prevProps.primaryColor !== nextProps.primaryColor) return false
-    if (prevProps.botAvatar !== nextProps.botAvatar) return false
-    if (prevProps.botName !== nextProps.botName) return false
-    if (prevProps.isFirst !== nextProps.isFirst) return false
-    if (prevProps.isLast !== nextProps.isLast) return false
-
-    // Comparar styles profundamente si existe
-    if (JSON.stringify(prevProps.styles) !== JSON.stringify(nextProps.styles)) return false
-
-    return true // No re-renderizar
   }
 )

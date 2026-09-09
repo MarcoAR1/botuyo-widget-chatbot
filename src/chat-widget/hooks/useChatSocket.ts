@@ -511,6 +511,7 @@ export function useChatSocket(options: UseChatSocketOptions) {
       attempts: number
       maxAttempts: number
       nextRetryAt: number
+      delivered?: boolean
     }[]
   >([])
 
@@ -538,6 +539,7 @@ export function useChatSocket(options: UseChatSocketOptions) {
       const now = Date.now()
 
       retryQueueRef.current = retryQueueRef.current.filter(item => {
+        if (item.delivered) return false
         // Aún no es tiempo de reintentar
         if (now < item.nextRetryAt) return true
 
@@ -555,6 +557,7 @@ export function useChatSocket(options: UseChatSocketOptions) {
         if (socketRef.current?.connected) {
           socketRef.current.emit('user_message', item.payload, (ack: any) => {
             if (ack?.success) {
+              item.delivered = true
               handlersRef.current.onEvent?.('message_sent', { id: item.id })
             }
           })
@@ -563,7 +566,7 @@ export function useChatSocket(options: UseChatSocketOptions) {
           item.attempts++
           item.nextRetryAt = now + Math.pow(2, item.attempts) * 1000
 
-          return item.attempts < item.maxAttempts
+          return !item.delivered
         }
 
         return true
