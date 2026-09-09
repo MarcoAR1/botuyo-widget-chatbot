@@ -107,12 +107,12 @@ jobs:
               [[ "$filename" == *.css ]] && ct="text/css"
 
               # Versioned (immutable, 1 year cache)
-              wrangler r2 object put ${BUCKET}/${VERSION}/${filename} \
+              wrangler r2 object put --remote ${BUCKET}/${VERSION}/${filename} \
                 --file "$file" --content-type "$ct" \
                 --cache-control "public, max-age=31536000, immutable"
 
               # Latest (short cache)
-              wrangler r2 object put ${BUCKET}/latest/${filename} \
+              wrangler r2 object put --remote ${BUCKET}/latest/${filename} \
                 --file "$file" --content-type "$ct" \
                 --cache-control "public, max-age=3600"
 

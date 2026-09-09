@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.19] — 2026-09-09
+
+### Fixed
+- Upload CDN artifacts to remote Cloudflare R2 explicitly. Wrangler's local default previously let the deployment succeed without updating the public CDN. Applies to GitHub Actions and the PowerShell deploy script.
+
 ## [1.8.18] — 2026-09-09
 
 ### Fixed

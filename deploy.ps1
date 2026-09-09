@@ -100,7 +100,7 @@ if (-not $SkipCdn) {
     Get-ChildItem "$distDir\*.js" | ForEach-Object {
         $fname = $_.Name
         Write-Host "    $fname" -ForegroundColor DarkGray
-        npx -y wrangler r2 object put "$R2Bucket/v$NewVersion/$fname" `
+        npx -y wrangler r2 object put --remote "$R2Bucket/v$NewVersion/$fname" `
             --file $_.FullName `
             --content-type "application/javascript" `
             --cache-control "public, max-age=31536000, immutable" 2>&1 | Out-Null
@@ -109,7 +109,7 @@ if (-not $SkipCdn) {
     Get-ChildItem "$distDir\*.css" | ForEach-Object {
         $fname = $_.Name
         Write-Host "    $fname" -ForegroundColor DarkGray
-        npx -y wrangler r2 object put "$R2Bucket/v$NewVersion/$fname" `
+        npx -y wrangler r2 object put --remote "$R2Bucket/v$NewVersion/$fname" `
             --file $_.FullName `
             --content-type "text/css" `
             --cache-control "public, max-age=31536000, immutable" 2>&1 | Out-Null
@@ -122,7 +122,7 @@ if (-not $SkipCdn) {
 
     Get-ChildItem "$distDir\*.js" | ForEach-Object {
         $fname = $_.Name
-        npx -y wrangler r2 object put "$R2Bucket/latest/$fname" `
+        npx -y wrangler r2 object put --remote "$R2Bucket/latest/$fname" `
             --file $_.FullName `
             --content-type "application/javascript" `
             --cache-control "public, max-age=3600" 2>&1 | Out-Null
@@ -130,7 +130,7 @@ if (-not $SkipCdn) {
 
     Get-ChildItem "$distDir\*.css" | ForEach-Object {
         $fname = $_.Name
-        npx -y wrangler r2 object put "$R2Bucket/latest/$fname" `
+        npx -y wrangler r2 object put --remote "$R2Bucket/latest/$fname" `
             --file $_.FullName `
             --content-type "text/css" `
             --cache-control "public, max-age=3600" 2>&1 | Out-Null
@@ -140,14 +140,14 @@ if (-not $SkipCdn) {
     $umdJs = Join-Path $distDir "botuyo-chat.umd.js"
     if (Test-Path $umdJs) {
         Write-Host "  Uploading widget.js alias..." -ForegroundColor Cyan
-        npx -y wrangler r2 object put "$R2Bucket/widget.js" `
+        npx -y wrangler r2 object put --remote "$R2Bucket/widget.js" `
             --file $umdJs `
             --content-type "application/javascript" `
             --cache-control "public, max-age=3600" 2>&1 | Out-Null
         
         $umdCss = Join-Path $distDir "botuyo-chat.umd.css"
         if (Test-Path $umdCss) {
-            npx -y wrangler r2 object put "$R2Bucket/widget.css" `
+            npx -y wrangler r2 object put --remote "$R2Bucket/widget.css" `
                 --file $umdCss `
                 --content-type "text/css" `
                 --cache-control "public, max-age=3600" 2>&1 | Out-Null
