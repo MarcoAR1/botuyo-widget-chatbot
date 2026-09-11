@@ -49,6 +49,8 @@ import {
 } from '../voice/vadGate'
 import { createSpeechDetector, type ISpeechDetector } from '../voice/speechDetector'
 import { useWakeLock } from '../hooks/useWakeLock'
+import { DataConfirmationCard, parseConfirmationRequest, type ConfirmationRequest, type ConfirmationResult } from './DataConfirmationCard'
+import { useLanguage } from '../i18n/LanguageContext'
 
 // Lazy-loaded 3D avatar — separate chunk, 0KB impact on main bundle
 const Avatar3D = lazy(() => import('./Avatar3D'))
@@ -595,6 +597,7 @@ export function VoiceCallOverlay({
   voiceConfig,
   onCallEnded,
 }: VoiceCallOverlayProps) {
+  const { locale } = useLanguage()
   // Resolve all config defaults once
   const cfg = useMemo(
     () => resolveVoiceConfig(voiceConfig, primaryColor),
@@ -612,6 +615,9 @@ export function VoiceCallOverlay({
   const [audioLevel, setAudioLevel] = useState(0)
   const [currentEmotion, setCurrentEmotion] = useState<string | null>(null)
   const [conversation, setConversation] = useState<VoiceEntry[]>([])
+  const [dataConfirmations, setDataConfirmations] = useState<ConfirmationRequest[]>([])
+  const [confirmationResults, setConfirmationResults] = useState<Record<string, ConfirmationResult>>({})
+  const confirmedRequestIds = useRef(new Set<string>())
   const [showTextInput, setShowTextInput] = useState(false)
   const [textInputValue, setTextInputValue] = useState('')
   const [timeoutWarning, setTimeoutWarning] = useState(false)
@@ -1033,6 +1039,28 @@ export function VoiceCallOverlay({
     // Structured client events (quiz buttons, etc.) — same canonical `quiz_question`
     // event used in text mode, carrying explicit buttons (no markdown parsing).
     const onVoiceCustomEvent = (evt: any) => {
+      if (evt?.eventName === 'data_confirmation') {
+        const request = parseConfirmationRequest(evt.data)
+        if (request) {
+          resetInactivityTimer()
+          setDataConfirmations(prev => prev.some(r => r.requestId === request.requestId) ? prev : [...prev, request])
+        }
+      }
+      if (evt?.eventName === 'data_confirmation_result' && typeof evt.data?.requestId === 'string') {
+        const result = evt.data as ConfirmationResult
+        if (['confirmed', 'cancelled', 'expired', 'error'].includes(result.status)) {
+          setConfirmationResults(prev => ({ ...prev, [result.requestId]: result }))
+          if (result.status !== 'error' && !confirmedRequestIds.current.has(result.requestId)) {
+            confirmedRequestIds.current.add(result.requestId)
+            const text = result.status === 'confirmed'
+              ? `✓ ${Object.values(result.values || {}).join(' · ')}`
+              : result.status === 'expired'
+                ? (locale === 'en' ? 'Confirmation expired. Please request a new form.' : 'La confirmación venció. Pedí un nuevo formulario.')
+                : (locale === 'en' ? 'Confirmation cancelled' : 'Confirmación cancelada')
+            setConversation(prev => [...prev, { role: 'user', text, standalone: true }])
+          }
+        }
+      }
       if (evt?.eventName === 'quiz_question' && evt?.data) {
         const { question, buttons } = evt.data as {
           question: string
@@ -1325,6 +1353,9 @@ export function VoiceCallOverlay({
     setCallState('connecting')
     setDuration(0)
     setConversation([])
+    setDataConfirmations([])
+    setConfirmationResults({})
+    confirmedRequestIds.current.clear()
     setCurrentEmotion(null)
     // Fresh call: drop any prior override so we re-seed from props until voice_ready arrives.
     setOverrideAvatars(undefined)
@@ -1421,6 +1452,9 @@ export function VoiceCallOverlay({
     setDuration(0)
     setIsMuted(false)
     setConversation([])
+    setDataConfirmations([])
+    setConfirmationResults({})
+    confirmedRequestIds.current.clear()
     setTimeoutWarning(false)
     setSwitchedAgentName(null)
     setOverrideAvatars(undefined)
@@ -1901,6 +1935,20 @@ export function VoiceCallOverlay({
 
       {/* Pinned quiz dock — keeps the question + options on screen (above the controls) so they
           never scroll away while the bot keeps talking, until the user answers (tap or voice). */}
+      {dataConfirmations.length > 0 && (
+        <div data-testid="voice-confirmation-dock" style={{ flexShrink: 0, maxHeight: '48%', overflowY: 'auto', padding: '0 16px 12px', position: 'relative' }}>
+          {dataConfirmations.filter(r => !['confirmed', 'cancelled', 'expired'].includes(confirmationResults[r.requestId]?.status)).slice(0, 1).map(request => (
+            <DataConfirmationCard key={request.requestId} request={request} result={confirmationResults[request.requestId]}
+              language={locale} onSubmit={payload => {
+                const socket = getSocket?.()
+                if (!socket?.connected) return false
+                socket.emit('voice_data_confirmation', payload)
+                resetInactivityTimer()
+                return true
+              }} />
+          ))}
+        </div>
+      )}
       {activeQuiz && activeQuiz.quizButtons && activeQuiz.quizButtons.length > 0 && (
         <div data-testid="voice-quiz-dock" style={{ flexShrink: 0, padding: '0 20px 10px' }}>
           <div

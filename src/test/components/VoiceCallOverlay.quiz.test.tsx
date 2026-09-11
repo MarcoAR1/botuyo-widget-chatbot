@@ -84,6 +84,40 @@ describe('VoiceCallOverlay — interactive quiz', () => {
     expect(typeof socket.handlers['custom_event']).toBe('function')
   })
 
+  it('keeps a data correction pinned through speech and resolves only on server acknowledgement', async () => {
+    const socket = await renderOverlay()
+    act(() => socket.handlers['custom_event']({ eventName: 'data_confirmation', data: {
+      requestId: 'contact-1', fields: [{ key: 'email', label: 'Email', type: 'email', value: 'ana@gmal.com' }]
+    } }))
+    act(() => socket.handlers['voice_user_transcript_final']({ text: 'sí, eh, no, esperá' }))
+    act(() => socket.handlers['voice_model_transcript']({ text: 'Podés corregirlo.' }))
+    expect(screen.getByLabelText('Email')).toHaveValue('ana@gmal.com')
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'ana+demo@gmail.com' } })
+    fireEvent.click(screen.getByRole('button', { name: /Confirmar datos|Confirm details/ }))
+    expect(socket.emit).toHaveBeenCalledWith('voice_data_confirmation', {
+      requestId: 'contact-1', values: { email: 'ana+demo@gmail.com' }, cancel: false
+    })
+    expect(screen.getByLabelText('Email')).toBeInTheDocument()
+    act(() => socket.handlers['custom_event']({ eventName: 'data_confirmation_result', data: {
+      requestId: 'contact-1', status: 'confirmed', values: { email: 'ana+demo@gmail.com' }
+    } }))
+    expect(screen.queryByLabelText('Email')).not.toBeInTheDocument()
+    expect(document.body).toHaveTextContent('✓ ana+demo@gmail.com')
+  })
+
+  it('does not lose the data form when the socket is disconnected', async () => {
+    const socket = await renderOverlay()
+    act(() => socket.handlers['custom_event']({ eventName: 'data_confirmation', data: {
+      requestId: 'contact-2', fields: [{ key: 'email', label: 'Email', type: 'email', value: 'ana@example.com' }]
+    } }))
+    socket.connected = false
+    socket.emit.mockClear()
+    fireEvent.click(screen.getByRole('button', { name: /Confirmar datos|Confirm details/ }))
+    expect(socket.emit).not.toHaveBeenCalled()
+    expect(screen.getByLabelText('Email')).toHaveValue('ana@example.com')
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+  })
+
   it('renders the question and clickable option buttons from quiz_question', async () => {
     const socket = await renderOverlay()
 
