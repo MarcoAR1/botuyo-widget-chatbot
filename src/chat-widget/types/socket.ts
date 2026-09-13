@@ -8,6 +8,10 @@ import { BotEmotion } from '../components/Launcher'
 
 // ========== Eventos Cliente → Servidor ==========
 export interface ClientToServerEvents {
+  navigation_result: (data: {
+    requestId: string
+    status: 'completed' | 'failed' | 'delegated'
+  }) => void
   /** Enviar mensaje del usuario con confirmación opcional */
   user_message: (data: UserMessagePayload, callback?: (ack: { success: boolean }) => void) => void
 
@@ -44,6 +48,11 @@ export interface UserMessagePayload {
 
 // ========== Eventos Servidor → Cliente ==========
 export interface ServerToClientEvents {
+  navigation_receipt: (data: {
+    requestId: string
+    path: string
+    status: 'completed' | 'failed' | 'delegated'
+  }) => void
   /** Mensaje del bot */
   bot_message: (data: BotMessagePayload) => void
 

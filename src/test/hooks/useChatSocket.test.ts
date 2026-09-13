@@ -71,13 +71,23 @@ describe('useChatSocket', () => {
 
   it('stops retrying once a retry is acknowledged', () => {
     vi.useFakeTimers()
-    const { result } = renderHook(() => useChatSocket({ apiKey: 'test', apiBaseUrl: 'http://localhost:3000', ...mockHandlers }))
+    const { result } = renderHook(() =>
+      useChatSocket({ apiKey: 'test', apiBaseUrl: 'http://localhost:3000', ...mockHandlers })
+    )
     mockSocket.connected = true
     act(() => mockSocket.on.mock.calls.find(([event]: [string]) => event === 'connect')[1]())
-    mockSocket.emit.mockImplementation((_event: string, _payload: unknown, ack: (value: unknown) => void) => ack({ success: false }))
-    act(() => { result.current.sendMessage('hola') })
-    mockSocket.emit.mockImplementation((_event: string, _payload: unknown, ack: (value: unknown) => void) => ack({ success: true }))
-    act(() => { vi.advanceTimersByTime(20_000) })
+    mockSocket.emit.mockImplementation(
+      (_event: string, _payload: unknown, ack: (value: unknown) => void) => ack({ success: false })
+    )
+    act(() => {
+      result.current.sendMessage('hola')
+    })
+    mockSocket.emit.mockImplementation(
+      (_event: string, _payload: unknown, ack: (value: unknown) => void) => ack({ success: true })
+    )
+    act(() => {
+      vi.advanceTimersByTime(20_000)
+    })
     expect(mockSocket.emit).toHaveBeenCalledTimes(2)
     expect(mockHandlers.onEvent).not.toHaveBeenCalledWith('message_failed', expect.anything())
   })
@@ -288,7 +298,9 @@ describe('useChatSocket', () => {
         })
       )
 
-      const customHandler = mockSocket.on.mock.calls.find((call: any[]) => call[0] === 'custom_event')?.[1]
+      const customHandler = mockSocket.on.mock.calls.find(
+        (call: any[]) => call[0] === 'custom_event'
+      )?.[1]
 
       act(() => {
         customHandler?.({
@@ -321,7 +333,9 @@ describe('useChatSocket', () => {
         })
       )
 
-      const customHandler = mockSocket.on.mock.calls.find((call: any[]) => call[0] === 'custom_event')?.[1]
+      const customHandler = mockSocket.on.mock.calls.find(
+        (call: any[]) => call[0] === 'custom_event'
+      )?.[1]
 
       act(() => {
         customHandler?.({
@@ -336,7 +350,9 @@ describe('useChatSocket', () => {
         })
       })
 
-      const quizCalls = (mockHandlers.onMessage as any).mock.calls.filter((c: any[]) => c[0]?.type === 'buttons')
+      const quizCalls = (mockHandlers.onMessage as any).mock.calls.filter(
+        (c: any[]) => c[0]?.type === 'buttons'
+      )
       expect(quizCalls).toHaveLength(0)
     })
 
@@ -881,6 +897,31 @@ describe('useChatSocket', () => {
   })
 
   describe('Custom Events — agent_switched', () => {
+    it('handles a navigation request once and reports its receipt without a chat bubble', async () => {
+      const section = document.createElement('section')
+      section.id = 'precios'
+      section.scrollIntoView = vi.fn()
+      document.body.append(section)
+      renderHook(() =>
+        useChatSocket({ apiKey: 'k', apiBaseUrl: 'http://localhost:3000', ...mockHandlers })
+      )
+      const receive = mockSocket.on.mock.calls.find((call: any[]) => call[0] === 'custom_event')[1]
+      const data = { requestId: 'e12dfdde-67c0-4c81-86b6-20e52046a012', path: '#precios' }
+      act(() => {
+        receive({ eventName: 'navigation_requested', data })
+        receive({ eventName: 'navigation_requested', data })
+      })
+      await waitFor(() =>
+        expect(mockSocket.emit).toHaveBeenCalledWith('navigation_result', {
+          requestId: data.requestId,
+          status: 'completed',
+        })
+      )
+      expect(section.scrollIntoView).toHaveBeenCalledOnce()
+      expect(mockHandlers.onMessage).not.toHaveBeenCalled()
+      section.remove()
+    })
+
     const getCustomEventHandler = () =>
       mockSocket.on.mock.calls.find((call: any[]) => call[0] === 'custom_event')?.[1]
 
@@ -1047,7 +1088,9 @@ describe('useChatSocket', () => {
         handler?.({ eventName: 'show_image', data: { imageUrl: 'https://img.test/cat.jpg' } })
       })
 
-      const msg = (mockHandlers.onMessage as any).mock.calls.find((c: any[]) => c[0]?.type === 'image')?.[0]
+      const msg = (mockHandlers.onMessage as any).mock.calls.find(
+        (c: any[]) => c[0]?.type === 'image'
+      )?.[0]
       expect(msg.altText).toBe('Imagen')
       expect('caption' in msg).toBe(false)
       expect('attribution' in msg).toBe(false)
@@ -1060,7 +1103,9 @@ describe('useChatSocket', () => {
         handler?.({ eventName: 'show_image', data: { caption: 'no url here' } })
       })
 
-      const imageCalls = (mockHandlers.onMessage as any).mock.calls.filter((c: any[]) => c[0]?.type === 'image')
+      const imageCalls = (mockHandlers.onMessage as any).mock.calls.filter(
+        (c: any[]) => c[0]?.type === 'image'
+      )
       expect(imageCalls).toHaveLength(0)
     })
 
@@ -1074,7 +1119,9 @@ describe('useChatSocket', () => {
         })
       })
 
-      const imageCalls = (mockHandlers.onMessage as any).mock.calls.filter((c: any[]) => c[0]?.type === 'image')
+      const imageCalls = (mockHandlers.onMessage as any).mock.calls.filter(
+        (c: any[]) => c[0]?.type === 'image'
+      )
       expect(imageCalls).toHaveLength(0)
     })
   })
@@ -1285,7 +1332,10 @@ describe('useChatSocket', () => {
       )
 
       act(() => {
-        getCustomEventHandler()?.({ eventName: 'tool_proposal_expired', data: { proposalId: 'p1' } })
+        getCustomEventHandler()?.({
+          eventName: 'tool_proposal_expired',
+          data: { proposalId: 'p1' },
+        })
       })
 
       expect(onToolProposalResolved).toHaveBeenCalledWith('p1', 'expired')

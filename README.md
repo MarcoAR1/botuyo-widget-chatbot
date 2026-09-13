@@ -6,6 +6,8 @@
 
 ## Quick Start — CDN (Standalone)
 
+Version 1.9.0 handles configured `navigate_to` requests through `navigation_requested` custom events. Valid local anchors scroll without changing the current language path. `onNavigate` can handle other same-origin routes; delegation is not reported as completed unless the target URL is observed. The widget emits a scoped `navigation_result` receipt and deduplicates request IDs. This requires backend 2.7.0 and an agent `params.destinations` catalog.
+
 Add a single script tag to any HTML page. No build step required.
 
 ```html

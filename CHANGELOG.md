@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.9.0] - 2026-09-13
+
+- Handle correlated navigation requests with local destination validation, deduplication and client receipts.
+- Preserve the active locale for page anchors and report router handoff as delegated.
+- Keep navigation transport events out of chat bubbles.
+
 All notable changes to **@botuyo/chat-widget-standalone** are documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),

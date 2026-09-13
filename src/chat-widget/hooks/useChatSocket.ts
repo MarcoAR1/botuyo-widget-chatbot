@@ -27,6 +27,12 @@ import type {
 import { getOrCreateDeviceId } from '../utils/deviceId'
 import { logger } from '../utils/logger'
 import { throttle } from '../utils/performance'
+import { performNavigation } from '../utils/navigation'
+
+const NavigationRequestSchema = z.object({
+  requestId: z.string().uuid(),
+  path: z.string().min(1).max(2048),
+})
 
 // Zod schema defined at module level for stable reference
 const BotMessageSchema = z.object({
@@ -67,7 +73,6 @@ const ShowImageSchema = z.object({
   license: z.string().optional(),
 })
 
-
 export interface UseChatSocketOptions {
   apiKey: string
   apiBaseUrl: string
@@ -105,12 +110,14 @@ export interface UseChatSocketOptions {
 }
 
 /** Connect-error reasons that mean "the user token is missing/expired/invalid" → re-auth. */
-const AUTH_ERROR_PATTERN = /USER_IDENTITY_REQUIRED|AUTH_EXPIRED|AUTH_INVALID|AUTH_REQUIRED|unauthorized/i
+const AUTH_ERROR_PATTERN =
+  /USER_IDENTITY_REQUIRED|AUTH_EXPIRED|AUTH_INVALID|AUTH_REQUIRED|unauthorized/i
 
 export function useChatSocket(options: UseChatSocketOptions) {
   const { apiKey, apiBaseUrl, agentId, pageContext, userContext } = options
 
   const handlersRef = useRef(options)
+  const navigationRequests = useRef(new Set<string>())
   useEffect(() => {
     handlersRef.current = options
   }, [options])
@@ -319,7 +326,11 @@ export function useChatSocket(options: UseChatSocketOptions) {
       // ── Form Bridge: bidirectional page ↔ agent communication ──────────
       // Forward agent commands to the parent page
       const forwardToPage = (data: any) => {
-        try { window.parent.postMessage(data, '*') } catch (_e) { window.postMessage(data, '*') }
+        try {
+          window.parent.postMessage(data, '*')
+        } catch (_e) {
+          window.postMessage(data, '*')
+        }
       }
       socket.on('onboarding:command' as any, (data: any) => forwardToPage(data))
       socket.on('form:command' as any, (data: any) => forwardToPage(data))
@@ -337,6 +348,18 @@ export function useChatSocket(options: UseChatSocketOptions) {
 
       // ── Custom Events: interactive buttons + dashboard updates ──────────
       socket.on('custom_event' as any, (evt: any) => {
+        if (evt?.eventName === 'navigation_requested') {
+          const parsed = NavigationRequestSchema.safeParse(evt.data)
+          if (!parsed.success || navigationRequests.current.has(parsed.data.requestId)) return
+          const { requestId, path } = parsed.data
+          if (navigationRequests.current.size >= 200)
+            navigationRequests.current.delete(navigationRequests.current.values().next().value!)
+          navigationRequests.current.add(requestId)
+          void performNavigation(path, handlersRef.current.onNavigate).then(status => {
+            socket.emit('navigation_result', { requestId, status })
+          })
+          return
+        }
         // Forward ALL custom events to the host page for external listeners
         forwardToPage({ type: 'botuyo-custom-event', ...evt })
 
@@ -344,8 +367,15 @@ export function useChatSocket(options: UseChatSocketOptions) {
         // so skip materializing a persistent main-chat card here — otherwise it lingers
         // unanswered in the transcript after the call ends. The event was already forwarded to
         // the host page above, so external listeners still receive it.
-        if (evt?.eventName === 'quiz_question' && evt?.data && !handlersRef.current.isVoiceCallActive?.()) {
-          const { question, buttons } = evt.data as { question: string; buttons: Array<{ id: string; label: string }> }
+        if (
+          evt?.eventName === 'quiz_question' &&
+          evt?.data &&
+          !handlersRef.current.isVoiceCallActive?.()
+        ) {
+          const { question, buttons } = evt.data as {
+            question: string
+            buttons: Array<{ id: string; label: string }>
+          }
           if (question && buttons?.length) {
             const quizMsg: ButtonsMessage = {
               id: `quiz-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -353,7 +383,7 @@ export function useChatSocket(options: UseChatSocketOptions) {
               sender: 'bot',
               timestamp: new Date(),
               content: question,
-              buttons
+              buttons,
             }
             handlersRef.current.onMessage(quizMsg)
           }
@@ -363,7 +393,11 @@ export function useChatSocket(options: UseChatSocketOptions) {
         // show_image tool. Render it as an ImageMessage with caption + attribution. During a live
         // voice call the VoiceCallOverlay already renders it (show_content visual), so skip the
         // main-chat card to avoid a duplicate (the event was forwarded to the host page above).
-        if (evt?.eventName === 'show_image' && evt?.data && !handlersRef.current.isVoiceCallActive?.()) {
+        if (
+          evt?.eventName === 'show_image' &&
+          evt?.data &&
+          !handlersRef.current.isVoiceCallActive?.()
+        ) {
           const parsed = ShowImageSchema.safeParse(evt.data)
           if (parsed.success) {
             const d = parsed.data
@@ -423,13 +457,16 @@ export function useChatSocket(options: UseChatSocketOptions) {
 
         // A proposal was resolved server-side (confirmed/cancelled) or expired → update its card.
         if (
-          (evt?.eventName === 'tool_proposal_resolved' || evt?.eventName === 'tool_proposal_expired') &&
+          (evt?.eventName === 'tool_proposal_resolved' ||
+            evt?.eventName === 'tool_proposal_expired') &&
           evt?.data
         ) {
           const parsed = ToolProposalResolvedSchema.safeParse(evt.data)
           if (parsed.success) {
             const status: ToolProposalStatus =
-              evt.eventName === 'tool_proposal_expired' ? 'expired' : (parsed.data.status ?? 'confirmed')
+              evt.eventName === 'tool_proposal_expired'
+                ? 'expired'
+                : (parsed.data.status ?? 'confirmed')
             handlersRef.current.onToolProposalResolved?.(parsed.data.proposalId, status)
           } else {
             logger.debug('ChatSocket: dropped malformed tool_proposal_resolved payload')
